@@ -53,6 +53,7 @@ Create Parent class User for Client and Admin or it's not necessary
 	nikogo i info kto to zatwierdzil)
 
 - DTO BankAccount:
+	- OptimisticLockingJPA -> do it in the future after basic
 	- Long id
 	- String number
 	- AccountType : current, saving, foreign currency
