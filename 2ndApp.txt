@@ -3,7 +3,14 @@ APLIKACJA BANKKOWA
 Actor
 Split to Client and ClientDetails?
 Create Parent class User for Client and Admin or it's not necessary
-- DTO Client:
+- DTO UserAccount: ManyToMany UserAccount_Client UserAccount_Employee
+	- login
+	- password
+	- role: Client, Admin, Employee
+
+	* UserAccountService
+
+- DTO Client: -> connect to UserAccount
 	- Long id
 	- String username
 	- String password
@@ -13,22 +20,23 @@ Create Parent class User for Client and Admin or it's not necessary
 	- String street
 	- String houseNumber
 	- String identificationNumber // PESEL/PPS
-	- UserType: Client
+	- UserType: Client -> don't need it
 	- List<Account> accounts @ManyToMany
 
 	* ClientService
 		- findById(Long id)
 		- findAll()
-- DTO Admin
+
+- DTO Admin -> change to Employee -> connect to UserAccount
 	- Long id
 	- String adminNumber
 	- String password
 	- String firstName
 	- String lastName
-	- UserType: Admin
+	- UserType: Admin -> don't need it
 
 	* AdminService:
-		- createAdmin(Admin admin) ???
+		- createAdmin(Admin admin)
 		- removeAdmin(Long adminId)
 		- findByIdAdmin(Long adminId)
 		- findAll()
@@ -44,7 +52,7 @@ Create Parent class User for Client and Admin or it's not necessary
 	* zatwierdzenie wplaty gotowkowej (to jest rodzaj tranzakcji ktory nie jest od
 	nikogo i info kto to zatwierdzil)
 
-- DTO Account:
+- DTO BankAccount:
 	- Long id
 	- String number
 	- AccountType : current, saving, foreign currency
@@ -53,7 +61,7 @@ Create Parent class User for Client and Admin or it's not necessary
 	- List<Client> clients @ManyToMany
 	- List<Transaction> transactions @ManyToMany
 
-	* AccountService
+	* BankAccountService
 		- findById(Long id)
 		- findAll()
 
@@ -65,6 +73,7 @@ Create Parent class User for Client and Admin or it's not necessary
 	- Account accountFrom
 	- Account accountTo
 	- BigDecimal value
+	- Currency: PLN, EUR
 	- LocalDateTime date
 
 	* TransactionService
