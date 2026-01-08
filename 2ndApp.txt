@@ -1,0 +1,58 @@
+APLIKACJA BANKKOWA
+
+Actor
+- Client:
+	- Long id
+	- String firstName
+	- String lastName
+	- String city
+	- String street
+	- String houseNumber
+	- String identificationNumber // PESEL/PPS
+	- UserType: Client
+- Admin
+	- Long id
+	- String firstName
+	- String lastName
+	- Integer? adminNumber //moze String?
+	- UserType: Admin
+
+	* AdminService
+	
+	* zakladac nowe konta
+	* przegladac wszystkie transakcje
+	* zatwierdzenie wplaty gotowkowej (to jest rodzaj tranzakcji ktory nie jest od
+	nikogo i info kto to zatwierdzil)
+
+Logowanie: Login + Haslo
+
+- Widok kont (klient moze miec 1 lub wiecej kont)
+
+- DTO Account:
+	* Nr konta
+	* Typ konta: Rozliczeniowe, oszczednosciowe, walutowe
+	* Waluta PLN/EUR
+	* Balance(stan konta)
+
+- Widok transakcji
+	* From To - dane osoby przelewajacej, date, zobaczyc jak to w apce mam i podobnie
+	* Wyszukiwanie po dacie i po danych osoby
+	DTO Transaction:
+	- Account accountFrom
+	- Account accountTo
+	- BigDecimal value
+	- LocalDateTime date
+
+- Przelej (przelew: jedno konto na + a drugie konto na -) 
+(czyli minus tyle do kogos a ta druga osoba plus tyle od kogos)
+	* Account accountFrom
+	* Account accountTo
+	* BigDecimal value
+
+- Dodatkowa opcja dla Adminow zeby zakladac konta po zalogowaniu
+
+- Czyli tabelka dla user_account , back_account ManyToMany
+
+**** TESTY ****
+- Integracyjne!!!
+- junit - jednostkowe tez zrobic
