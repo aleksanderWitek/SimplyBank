@@ -1,7 +1,6 @@
 package main.java.com.alex.service;
 
 import main.java.com.alex.dto.Client;
-import main.java.com.alex.dto.ClientDetails;
 import main.java.com.alex.repository.IClientRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,15 +19,13 @@ public class ClientService implements IClientService {
 
     @Transactional
     @Override
-    public Client save(ClientDetails clientDetails) {
-        Client client = new Client(clientDetails.getFirstName() + " " + clientDetails.getLastName(), clientDetails);
-        return clientRepository.save(client);
+    public Client save() {
+        return new Client();
     }
 
     @Transactional
     @Override
     public void update(Client client) {
-        //todo create new method i repository for update to make it more readable and single responsibility think?
         clientRepository.save(client);
     }
 

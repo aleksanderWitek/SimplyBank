@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface IClientRepository {
 
-    Client save(Client client);
+    Long save(Client client);
     Optional<Client> findById(Long id);
     List<Client> findAll();
     void deleteById(Client client);

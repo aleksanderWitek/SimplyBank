@@ -3,55 +3,59 @@ package main.java.com.alex.repository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import main.java.com.alex.dto.Client;
+import main.java.com.alex.exception.DataAccessRuntimeException;
+import main.java.com.alex.rowMapper.ClientRowMapper;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Component
-public class ClientRepository implements IClientRepository{
+public class ClientRepository implements IClientRepository {
 
-    private final EntityManager entityManager;
+    private final JdbcTemplate jdbcTemplate;
+    private final ICommonJdbcRepository commonJdbcRepository;
 
-    public ClientRepository(EntityManager entityManager) {
-        this.entityManager = entityManager;
+    public ClientRepository(JdbcTemplate jdbcTemplate, ICommonJdbcRepository commonJdbcRepository) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.commonJdbcRepository = commonJdbcRepository;
     }
 
     @Override
-    public Client save(Client client) {
-        if(client.getId() == null) {
-            entityManager.persist(client);
-            return client;
-        } else {
-            return entityManager.merge(client);
+    public Long save(Client client) {
+        String query = "INSERT INTO client(first_name, last_name, city, street, house_number, identification_number)" +
+                " VALUES(?, ?, ?, ?, ?, ?)";
+        try {
+            jdbcTemplate.update(query, client.getFirstName(), client.getLastName(), client.getCity(),
+                    client.getStreet(), client.getHouseNumber(), client.getIdentificationNumber());
+        } catch (DataAccessException e) {
+            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
         }
+        return commonJdbcRepository.getLastInsertedId();
     }
 
     @Override
     public Optional<Client> findById(Long id) {
-        Client client = entityManager.find(Client.class, id);
-        return Optional.ofNullable(client);
+        String query = "SELECT * FROM client WHERE id = ?";
+        try {
+            List<Client> clients = jdbcTemplate.query(query, new ClientRowMapper(), id);
+            return Optional.of(clients.getFirst());
+        } catch (DataAccessException e){
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
     }
 
     @Override
     public List<Client> findAll() {
-        TypedQuery<Client> query = entityManager.createQuery(
-                "SELECT client FROM Client client", Client.class);
-        return query.getResultList();
+        String query = "SELECT * FROM client";
+        return jdbcTemplate.query(query, new ClientRowMapper());
     }
 
     @Override
     public void deleteById(Client client) {
-        entityManager.remove(client);
 
-        //todo is below more efficient and better or code above is more better
-//        int deletedCount = entityManager.createQuery(
-//                        "DELETE FROM Client c WHERE c.id = :id")
-//                .setParameter("id", id)
-//                .executeUpdate();
-//
-//        if (deletedCount == 0) {
-//            throw new RuntimeException("There is no Client with id: " + id);
-//        }
     }
 }

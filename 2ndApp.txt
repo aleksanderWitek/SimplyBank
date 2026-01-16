@@ -12,8 +12,6 @@ Create Parent class User for Client and Admin or it's not necessary
 
 - DTO Client: -> connect to UserAccount
 	- Long id
-	- String username
-	- String password
 	- String firstName
 	- String lastName
 	- String city
@@ -29,8 +27,6 @@ Create Parent class User for Client and Admin or it's not necessary
 
 - DTO Admin -> change to Employee -> connect to UserAccount
 	- Long id
-	- String adminNumber
-	- String password
 	- String firstName
 	- String lastName
 	- UserType: Admin -> don't need it
@@ -76,6 +72,7 @@ Create Parent class User for Client and Admin or it's not necessary
 	- BigDecimal value
 	- Currency: PLN, EUR
 	- LocalDateTime date
+	- role: addressee, recipient
 
 	* TransactionService
 		- findById(Long id)

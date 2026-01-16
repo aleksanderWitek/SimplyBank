@@ -4,9 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class HibernateTest {
+public class SimplyBank {
 
 	public static void main(String[] args) {
-		SpringApplication.run(HibernateTest.class, args);
+		SpringApplication.run(SimplyBank.class, args);
 	}
 }

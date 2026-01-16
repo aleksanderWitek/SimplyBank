@@ -1,6 +1,6 @@
 package main.java.com.alex.dto;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -8,85 +8,97 @@ import java.util.List;
 
 @Entity
 @Table(name = "client")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Client {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
+    @Column(name = "first_name", nullable = false, length = 30)
+    private String firstName;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "client_details_id")
-    private ClientDetails clientDetails;
+    @Column(name = "last_name", nullable = false, length = 30)
+    private String lastName;
 
-    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private final List<OrderDetails> orders = new ArrayList<>();
+    @Column(name = "city", nullable = false, length = 30)
+    private String city;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-            name = "client_account",
-            joinColumns = @JoinColumn(name = "client_id"),
-            inverseJoinColumns = @JoinColumn(name = "account_id")
-    )
-    private final List<Account> accounts = new ArrayList<>();
+    @Column(name = "street", nullable = false, length = 30)
+    private String street;
+
+    @Column(name = "house_number", nullable = false, length = 10)
+    private String houseNumber;
+
+    @Column(name = "identification_number", nullable = false, length = 15)
+    private String identificationNumber;
+
+    @ManyToMany(mappedBy = "client")
+    private final List<UserAccount> userAccount = new ArrayList<>();
 
     public Client() {
     }
 
-    public Client(String name, ClientDetails clientDetails) {
-        this.name = name;
-        this.clientDetails = clientDetails;
+    public Client(String firstName, String lastName, String city, String street,
+                  String houseNumber, String identificationNumber) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.city = city;
+        this.street = street;
+        this.houseNumber = houseNumber;
+        this.identificationNumber = identificationNumber;
+    }
+
+    public Client(Long id, String firstName, String lastName, String city,
+                  String street, String houseNumber, String identificationNumber) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.city = city;
+        this.street = street;
+        this.houseNumber = houseNumber;
+        this.identificationNumber = identificationNumber;
     }
 
     public Long getId() {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public ClientDetails getClientDetails() {
-        return clientDetails;
+    public String getLastName() {
+        return lastName;
     }
 
-    public List<OrderDetails> getOrders() {
-        return orders;
+    public String getCity() {
+        return city;
     }
 
-    public List<Account> getAccounts() {
-        return accounts;
+    public String getStreet() {
+        return street;
     }
 
-    @Override
-    public String toString() {
-        return "Client{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", clientDetails=" + clientDetails +
-                '}';
+    public String getHouseNumber() {
+        return houseNumber;
     }
 
-    public void addOrder(OrderDetails orderDetails) {
-        this.orders.add(orderDetails);
-        orderDetails.setClient(this);
+    public String getIdentificationNumber() {
+        return identificationNumber;
     }
 
-    public void removeOrder(OrderDetails orderDetails) {
-        this.orders.remove(orderDetails);
-        orderDetails.setClient(null);
+    public List<UserAccount> getUserAccount() {
+        return userAccount;
     }
 
-    public void addAccount(Account account) {
-        this.accounts.add(account);
-        account.getClients().add(this);
+    public void addUserAccount(UserAccount userAccount) {
+        this.userAccount.add(userAccount);
+        userAccount.getClient().add(this);
     }
 
-    public void removeAccount(Account account) {
-        this.accounts.remove(account);
-        account.getClients().remove(this);
+    public void removeUserAccount(UserAccount userAccount) {
+        this.userAccount.remove(userAccount);
+        userAccount.getClient().remove(this);
     }
 }
