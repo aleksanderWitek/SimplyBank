@@ -1,17 +1,16 @@
 package main.java.com.alex.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import main.java.com.alex.BankAccountType;
 import main.java.com.alex.Currency;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "bank_account")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class BankAccount {
 
     @Id
@@ -27,34 +26,55 @@ public class BankAccount {
     @Column(name = "currency", nullable = false, length = 3)
     private Currency currency;
 
-    @Column(name = "balance", nullable = false)
+    @Column(name = "balance", nullable = false, precision = 14, scale = 2)
     private BigDecimal balance;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "transaction_bank_account",
-            joinColumns = @JoinColumn(name = "bank_account_id"),
-            inverseJoinColumns = @JoinColumn(name = "transaction_id")
-    )
-    @JsonIgnoreProperties({"bankAccounts", "hibernateLazyInitializer", "handler"})
-    private final List<Transaction> transactions = new ArrayList<>();
+    @Column(name = "create_date", nullable = false)
+    private LocalDateTime createDate;
+
+    @Column(name = "modify_date")
+    private LocalDateTime modifyDate;
+
+    @Column(name = "delete_date")
+    private LocalDateTime deleteDate;
+
+    @OneToMany(mappedBy = "bankAccountFrom", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Transaction> transactionsFrom = new ArrayList<>();
+
+    @OneToMany(mappedBy = "bankAccountTo", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    private List<Transaction> transactionsTo = new ArrayList<>();
 
     public BankAccount() {
     }
 
-    public BankAccount(String number, BankAccountType accountType, Currency currency, BigDecimal balance) {
+    public BankAccount(String number, BankAccountType accountType, Currency currency, BigDecimal balance, LocalDateTime createDate) {
         this.number = number;
         this.accountType = accountType;
         this.currency = currency;
         this.balance = balance;
+        this.createDate = createDate;
     }
 
-    public BankAccount(Long id, String number, BankAccountType accountType, Currency currency, BigDecimal balance) {
+    public BankAccount(Long id, String number, BankAccountType accountType, Currency currency, BigDecimal balance,
+                       LocalDateTime createDate) {
         this.id = id;
         this.number = number;
         this.accountType = accountType;
         this.currency = currency;
         this.balance = balance;
+        this.createDate = createDate;
+    }
+
+    public BankAccount(Long id, String number, BankAccountType accountType, Currency currency, BigDecimal balance,
+                       LocalDateTime createDate, LocalDateTime modifyDate, LocalDateTime deleteDate) {
+        this.id = id;
+        this.number = number;
+        this.accountType = accountType;
+        this.currency = currency;
+        this.balance = balance;
+        this.createDate = createDate;
+        this.modifyDate = modifyDate;
+        this.deleteDate = deleteDate;
     }
 
     public Long getId() {
@@ -77,17 +97,15 @@ public class BankAccount {
         return balance;
     }
 
-    public List<Transaction> getTransactions() {
-        return transactions;
+    public LocalDateTime getCreateDate() {
+        return createDate;
     }
 
-    public void addTransaction(Transaction transaction) {
-        this.transactions.add(transaction);
-        transaction.getBankAccounts().add(this);
+    public LocalDateTime getModifyDate() {
+        return modifyDate;
     }
 
-    public void removeTransaction(Transaction transaction) {
-        this.transactions.remove(transaction);
-        transaction.getBankAccounts().remove(this);
+    public LocalDateTime getDeleteDate() {
+        return deleteDate;
     }
 }

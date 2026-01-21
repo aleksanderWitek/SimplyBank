@@ -10,5 +10,6 @@ public interface IClientRepository {
     Long save(Client client);
     Optional<Client> findById(Long id);
     List<Client> findAll();
-    void deleteById(Client client);
+    void update(Long id, Client client);
+    void deleteById(Long id);
 }

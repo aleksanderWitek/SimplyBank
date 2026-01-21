@@ -1,14 +1,13 @@
 package main.java.com.alex.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "client")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Client {
 
     @Id
@@ -33,6 +32,15 @@ public class Client {
     @Column(name = "identification_number", nullable = false, length = 15)
     private String identificationNumber;
 
+    @Column(name = "create_date", nullable = false)
+    private LocalDateTime createDate;
+
+    @Column(name = "modify_date")
+    private LocalDateTime modifyDate;
+
+    @Column(name = "delete_date")
+    private LocalDateTime deleteDate;
+
     @ManyToMany(mappedBy = "client")
     private final List<UserAccount> userAccount = new ArrayList<>();
 
@@ -40,17 +48,18 @@ public class Client {
     }
 
     public Client(String firstName, String lastName, String city, String street,
-                  String houseNumber, String identificationNumber) {
+                  String houseNumber, String identificationNumber, LocalDateTime createDate) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.city = city;
         this.street = street;
         this.houseNumber = houseNumber;
         this.identificationNumber = identificationNumber;
+        this.createDate = createDate;
     }
 
     public Client(Long id, String firstName, String lastName, String city,
-                  String street, String houseNumber, String identificationNumber) {
+                  String street, String houseNumber, String identificationNumber, LocalDateTime createDate) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -58,6 +67,22 @@ public class Client {
         this.street = street;
         this.houseNumber = houseNumber;
         this.identificationNumber = identificationNumber;
+        this.createDate = createDate;
+    }
+
+    public Client(Long id, String firstName, String lastName, String city, String street, String houseNumber,
+                  String identificationNumber, LocalDateTime createDate, LocalDateTime modifyDate,
+                  LocalDateTime deleteDate) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.city = city;
+        this.street = street;
+        this.houseNumber = houseNumber;
+        this.identificationNumber = identificationNumber;
+        this.createDate = createDate;
+        this.modifyDate = modifyDate;
+        this.deleteDate = deleteDate;
     }
 
     public Long getId() {
@@ -86,6 +111,18 @@ public class Client {
 
     public String getIdentificationNumber() {
         return identificationNumber;
+    }
+
+    public LocalDateTime getCreateDate() {
+        return createDate;
+    }
+
+    public LocalDateTime getModifyDate() {
+        return modifyDate;
+    }
+
+    public LocalDateTime getDeleteDate() {
+        return deleteDate;
     }
 
     public List<UserAccount> getUserAccount() {

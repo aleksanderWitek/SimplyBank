@@ -20,6 +20,7 @@ public class ClientService implements IClientService {
     @Transactional
     @Override
     public Client save() {
+
         return new Client();
     }
 
@@ -44,7 +45,6 @@ public class ClientService implements IClientService {
     @Transactional
     @Override
     public void deleteById(Long id) {
-        Client client = findById(id).orElseThrow(() -> new RuntimeException("There is no Client with id:" + id));
-        clientRepository.deleteById(client);
+        clientRepository.deleteById(id);
     }
 }

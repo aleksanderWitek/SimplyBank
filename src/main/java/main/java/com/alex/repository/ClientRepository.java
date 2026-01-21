@@ -1,8 +1,7 @@
 package main.java.com.alex.repository;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
 import main.java.com.alex.dto.Client;
+import main.java.com.alex.exception.ClientNotFoundRuntimeException;
 import main.java.com.alex.exception.DataAccessRuntimeException;
 import main.java.com.alex.rowMapper.ClientRowMapper;
 import org.springframework.dao.DataAccessException;
@@ -26,11 +25,12 @@ public class ClientRepository implements IClientRepository {
 
     @Override
     public Long save(Client client) {
-        String query = "INSERT INTO client(first_name, last_name, city, street, house_number, identification_number)" +
-                " VALUES(?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO client(first_name, last_name, city, street, house_number, identification_number, " +
+                "create_date)" +
+                " VALUES(?, ?, ?, ?, ?, ?, ?)";
         try {
             jdbcTemplate.update(query, client.getFirstName(), client.getLastName(), client.getCity(),
-                    client.getStreet(), client.getHouseNumber(), client.getIdentificationNumber());
+                    client.getStreet(), client.getHouseNumber(), client.getIdentificationNumber(), client.getCreateDate());
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
         }
@@ -55,7 +55,51 @@ public class ClientRepository implements IClientRepository {
     }
 
     @Override
-    public void deleteById(Client client) {
+    public void update(Long id, Client client) {
 
+        String query = "UPDATE client " +
+                "SET first_name = ?, " +
+                "last_name = ?, " +
+                "city = ?, " +
+                "street = ?, " +
+                "house_number = ?, " +
+                "identification_number = ?, " +
+                "create_date = ?, " +
+                "modify_date = ? " +
+                "WHERE id = ?";
+        try {
+            int rowAffected = jdbcTemplate.update(query,
+                    client.getFirstName(),
+                    client.getLastName(),
+                    client.getCity(),
+                    client.getStreet(),
+                    client.getHouseNumber(),
+                    client.getIdentificationNumber(),
+                    client.getCreateDate(),
+                    client.getModifyDate(),
+                    id);
+            if(rowAffected == 0) {
+                throw new ClientNotFoundRuntimeException("There is no Client with provided id = " + id);
+            }
+        } catch (DataAccessException e) {
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        String query = "UPDATE client " +
+                "SET delete_date = ? " +
+                "WHERE id = ?";
+        try {
+            int rowAffected = jdbcTemplate.update(query,
+                    LocalDateTime.now(),
+                    id);
+            if(rowAffected == 0) {
+                throw new ClientNotFoundRuntimeException("There is no Client with provided id = " + id);
+            }
+        } catch (DataAccessException e) {
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
     }
 }

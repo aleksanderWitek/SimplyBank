@@ -1,17 +1,13 @@
 package main.java.com.alex.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import main.java.com.alex.Currency;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "transaction")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Transaction {
 
     @Id
@@ -30,26 +26,34 @@ public class Transaction {
     @Column(name = "date", nullable = false)
     private LocalDateTime date;
 
-    //todo how to add role from table transaction_bank_account check 2ndApp.txt or db script
-    @ManyToMany(mappedBy = "transactions")
-    private final List<BankAccount> bankAccounts = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bank_account_id_from", nullable = false)
+    private BankAccount bankAccountFrom;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bank_account_id_to", nullable = false)
+    private BankAccount bankAccountTo;
 
     public Transaction() {
     }
 
-    public Transaction(String number, Currency currency, BigDecimal amount, LocalDateTime date) {
+    public Transaction(String number, Currency currency, BigDecimal amount, LocalDateTime date, BankAccount bankAccountFrom, BankAccount bankAccountTo) {
         this.number = number;
         this.currency = currency;
         this.amount = amount;
         this.date = date;
+        this.bankAccountFrom = bankAccountFrom;
+        this.bankAccountTo = bankAccountTo;
     }
 
-    public Transaction(Long id, String number, Currency currency, BigDecimal amount, LocalDateTime date) {
+    public Transaction(Long id, String number, Currency currency, BigDecimal amount, LocalDateTime date, BankAccount bankAccountFrom, BankAccount bankAccountTo) {
         this.id = id;
         this.number = number;
         this.currency = currency;
         this.amount = amount;
         this.date = date;
+        this.bankAccountFrom = bankAccountFrom;
+        this.bankAccountTo = bankAccountTo;
     }
 
     public Long getId() {
@@ -72,17 +76,11 @@ public class Transaction {
         return date;
     }
 
-    public List<BankAccount> getBankAccounts() {
-        return bankAccounts;
+    public BankAccount getBankAccountFrom() {
+        return bankAccountFrom;
     }
 
-    public void addBankAccount(BankAccount bankAccount) {
-        this.bankAccounts.add(bankAccount);
-        bankAccount.getTransactions().add(this);
-    }
-
-    public void removeBankAccount(BankAccount bankAccount) {
-        this.bankAccounts.remove(bankAccount);
-        bankAccount.getTransactions().remove(this);
+    public BankAccount getBankAccountTo() {
+        return bankAccountTo;
     }
 }
