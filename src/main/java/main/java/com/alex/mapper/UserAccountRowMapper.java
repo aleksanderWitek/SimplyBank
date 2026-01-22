@@ -1,9 +1,11 @@
-package main.java.com.alex.rowMapper;
+package main.java.com.alex.mapper;
 
 import main.java.com.alex.UserAccountRole;
 import main.java.com.alex.dto.UserAccount;
 import main.java.com.alex.exception.NullPointerRuntimeException;
 import main.java.com.alex.exception.SQLRuntimeException;
+import main.java.com.alex.validation.DateValidation;
+import main.java.com.alex.validation.UserAccountValidation;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
@@ -14,23 +16,21 @@ public class UserAccountRowMapper implements RowMapper<UserAccount> {
     @Override
     public UserAccount mapRow(ResultSet rs, int rowNum) {
         try {
-            UserAccountRole role = switch (rs.getString("role").toUpperCase()) {
-                case "ADMIN" -> UserAccountRole.ADMIN;
-                case "EMPLOYEE" -> UserAccountRole.EMPLOYEE;
-                case "CLIENT" -> UserAccountRole.CLIENT;
-                default -> throw new SQLRuntimeException("Unknown role: " + rs.getString("role"));
-            };
+            String userAccountRoleInput = rs.getString("role");
+            UserAccountValidation.validateIfUserAccountRoleIsCorrect(userAccountRoleInput,
+                    "Empty or invalid value from database for: role = " + userAccountRoleInput);
+            UserAccountRole userAccountRole = UserAccountRole.valueOf(userAccountRoleInput.toUpperCase());
+
             Timestamp createDate = rs.getTimestamp("create_date");
-            if(createDate == null) {
-                throw new NullPointerRuntimeException("Empty value from database for: create_date");
-            }
+            DateValidation.validateIfDateIsCorrect(createDate, "Empty value from database for: create_date");
+
             Timestamp modifyDate = rs.getTimestamp("modify_date");
             Timestamp deleteDate = rs.getTimestamp("delete_date");
             return new UserAccount(
                     rs.getLong("id"),
                     rs.getString("login"),
                     rs.getString("password"),
-                    role,
+                    userAccountRole,
                     createDate.toLocalDateTime(),
                     modifyDate != null ? modifyDate.toLocalDateTime() : null,
                     deleteDate != null ? deleteDate.toLocalDateTime() : null

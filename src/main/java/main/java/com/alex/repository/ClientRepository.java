@@ -3,7 +3,7 @@ package main.java.com.alex.repository;
 import main.java.com.alex.dto.Client;
 import main.java.com.alex.exception.ClientNotFoundRuntimeException;
 import main.java.com.alex.exception.DataAccessRuntimeException;
-import main.java.com.alex.rowMapper.ClientRowMapper;
+import main.java.com.alex.mapper.ClientRowMapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
