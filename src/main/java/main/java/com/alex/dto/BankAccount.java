@@ -20,9 +20,11 @@ public class BankAccount {
     @Column(name = "number", nullable = false, length = 15)
     private String number;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "account_type", nullable = false, length = 15)
     private BankAccountType accountType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "currency", nullable = false, length = 3)
     private Currency currency;
 

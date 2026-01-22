@@ -20,13 +20,14 @@ public class TransactionRowMapper implements RowMapper<Transaction> {
     @Override
     public Transaction mapRow(ResultSet rs, int rowNum) {
         try {
-            String transactionTypeStr = rs.getString("transaction_type");
-            TransactionValidation.validateIfTransactionTypeIsCorrect(transactionTypeStr, "Empty value from database for: transaction_type");
-            TransactionType transactionType = TransactionType.valueOf(transactionTypeStr.toUpperCase());
+            String transactionTypeInput = rs.getString("transaction_type");
+            TransactionValidation.validateIfTransactionTypeIsCorrect(transactionTypeInput,
+                    "Empty or invalid value from database for: transaction_type = " + transactionTypeInput);
+            TransactionType transactionType = TransactionType.valueOf(transactionTypeInput.toUpperCase());
 
-            String currencyStr = rs.getString("currency");
-            CurrencyValidation.validateIfCurrencyIsCorrect(currencyStr, "Empty value from database for: currency");
-            Currency currency = Currency.valueOf(currencyStr.toUpperCase());
+            String currencyInput = rs.getString("currency");
+            CurrencyValidation.validateIfCurrencyIsCorrect(currencyInput, "Empty or invalid value from database for: currency = " + currencyInput);
+            Currency currency = Currency.valueOf(currencyInput.toUpperCase());
 
             Long bankAccountIdFrom = rs.getLong("bank_account_id_from");
             Long bankAccountIdTo = rs.getLong("bank_account_id_to");
@@ -55,16 +56,12 @@ public class TransactionRowMapper implements RowMapper<Transaction> {
                     modifyDate != null ? modifyDate.toLocalDateTime() : null,
                     deleteDate != null ? deleteDate.toLocalDateTime() : null
             );
-        } catch (IllegalArgumentException e) {
-            throw new SQLRuntimeException("Invalid transaction type in database: " + e.getMessage());
         } catch (SQLException e) {
             throw new SQLRuntimeException("Database exception: " + e.getMessage());
         }
     }
 
-    private BankAccountPair validateAndCreateBankAccounts(
-            TransactionType transactionType,
-            Long bankAccountIdFrom,
+    private BankAccountPair validateAndCreateBankAccounts(TransactionType transactionType, Long bankAccountIdFrom,
             Long bankAccountIdTo) {
 
         BankAccount bankAccountFrom = null;
