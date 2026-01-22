@@ -1,6 +1,6 @@
-package main.java.com.alex.rowMapper;
+package main.java.com.alex.mapper;
 
-import main.java.com.alex.dto.Client;
+import main.java.com.alex.dto.Employee;
 import main.java.com.alex.exception.NullPointerRuntimeException;
 import main.java.com.alex.exception.SQLRuntimeException;
 import org.springframework.jdbc.core.RowMapper;
@@ -9,9 +9,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 
-public class ClientRowMapper implements RowMapper<Client> {
+public class EmployeeRowMapper implements RowMapper<Employee> {
     @Override
-    public Client mapRow(ResultSet rs, int rowNum) {
+    public Employee mapRow(ResultSet rs, int rowNum) {
         try {
             Timestamp createDate = rs.getTimestamp("create_date");
             if(createDate == null) {
@@ -19,14 +19,10 @@ public class ClientRowMapper implements RowMapper<Client> {
             }
             Timestamp modifyDate = rs.getTimestamp("modify_date");
             Timestamp deleteDate = rs.getTimestamp("delete_date");
-            return new Client(
+            return new Employee(
                     rs.getLong("id"),
                     rs.getString("first_name"),
                     rs.getString("last_name"),
-                    rs.getString("city"),
-                    rs.getString("street"),
-                    rs.getString("house_number"),
-                    rs.getString("identification_number"),
                     createDate.toLocalDateTime(),
                     modifyDate != null ? modifyDate.toLocalDateTime() : null,
                     deleteDate != null ? deleteDate.toLocalDateTime() : null

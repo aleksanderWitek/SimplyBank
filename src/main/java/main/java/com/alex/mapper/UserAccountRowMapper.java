@@ -1,4 +1,4 @@
-package main.java.com.alex.rowMapper;
+package main.java.com.alex.mapper;
 
 import main.java.com.alex.UserAccountRole;
 import main.java.com.alex.dto.UserAccount;
