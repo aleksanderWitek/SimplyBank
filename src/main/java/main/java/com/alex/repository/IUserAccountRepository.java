@@ -9,6 +9,6 @@ public interface IUserAccountRepository {
     Long save(UserAccount userAccount);
     Optional<UserAccount> findById(Long id);
     List<UserAccount> findAll();
-    void update(Long id, UserAccount userAccount);
+    void updatePassword(Long id, UserAccount userAccount);
     void deleteById(Long id);
 }
