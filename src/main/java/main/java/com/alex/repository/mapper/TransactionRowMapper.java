@@ -1,14 +1,14 @@
-package main.java.com.alex.mapper;
+package main.java.com.alex.repository.mapper;
 
 import main.java.com.alex.Currency;
 import main.java.com.alex.TransactionType;
 import main.java.com.alex.dto.BankAccount;
 import main.java.com.alex.dto.Transaction;
 import main.java.com.alex.exception.SQLRuntimeException;
-import main.java.com.alex.validation.BankAccountValidation;
-import main.java.com.alex.validation.CurrencyValidation;
-import main.java.com.alex.validation.DateValidation;
-import main.java.com.alex.validation.TransactionValidation;
+import main.java.com.alex.service.validation.BankAccountValidation;
+import main.java.com.alex.service.validation.CurrencyValidation;
+import main.java.com.alex.service.validation.DateValidation;
+import main.java.com.alex.service.validation.TransactionValidation;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
@@ -16,6 +16,9 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 public class TransactionRowMapper implements RowMapper<Transaction> {
+
+    //todo we do validation on input data and on output data we assume it is correct so get rid off all
+    // validation on repository and mapper. So we do input validation on frontend and backend
 
     @Override
     public Transaction mapRow(ResultSet rs, int rowNum) {

@@ -1,4 +1,4 @@
-package main.java.com.alex.validation;
+package main.java.com.alex.service.validation;
 
 import main.java.com.alex.Currency;
 import main.java.com.alex.exception.NullPointerRuntimeException;
