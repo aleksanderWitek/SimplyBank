@@ -1,4 +1,4 @@
-package main.java.com.alex.dto.mapper;
+package main.java.com.alex.repository.mapper;
 
 import main.java.com.alex.Currency;
 import main.java.com.alex.TransactionType;

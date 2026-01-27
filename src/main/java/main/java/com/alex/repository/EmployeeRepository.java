@@ -1,7 +1,7 @@
 package main.java.com.alex.repository;
 
 import main.java.com.alex.dto.Employee;
-import main.java.com.alex.dto.mapper.EmployeeRowMapper;
+import main.java.com.alex.repository.mapper.EmployeeRowMapper;
 import main.java.com.alex.exception.DataAccessRuntimeException;
 import main.java.com.alex.exception.EmployeeNotFoundRuntimeException;
 import org.springframework.dao.DataAccessException;

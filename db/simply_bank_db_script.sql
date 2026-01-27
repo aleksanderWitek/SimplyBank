@@ -104,10 +104,10 @@ CREATE TABLE transaction (
     create_date DATETIME NOT NULL,
     modify_date DATETIME,
     delete_date DATETIME,
-    CONSTRAINT pk_transaction PRIMARY KEY(id)
+    CONSTRAINT pk_transaction PRIMARY KEY(id),
     CONSTRAINT fk_transaction_bank_account_from FOREIGN KEY(bank_account_id_from) REFERENCES bank_account(id),
-    CONSTRAINT fk_transaction_bank_account_to FOREIGN KEY(bank_account_id_to) REFERENCES bank_account(id)
-    CONSTRAINT chk_different_accounts CHECK (bank_account_id_from != bank_account_id_to)
+    CONSTRAINT fk_transaction_bank_account_to FOREIGN KEY(bank_account_id_to) REFERENCES bank_account(id),
+    CONSTRAINT chk_different_accounts CHECK (bank_account_id_from != bank_account_id_to),
     CONSTRAINT chk_transfer_accounts CHECK (
             (transaction_type = 'TRANSFER' AND bank_account_id_from IS NOT NULL AND bank_account_id_to IS NOT NULL AND bank_account_id_from != bank_account_id_to)
             OR (transaction_type = 'DEPOSIT' AND bank_account_id_from IS NULL AND bank_account_id_to IS NOT NULL)
