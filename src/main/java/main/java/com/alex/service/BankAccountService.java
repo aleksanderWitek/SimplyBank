@@ -2,10 +2,13 @@ package main.java.com.alex.service;
 
 import main.java.com.alex.dto.BankAccount;
 import main.java.com.alex.repository.IBankAccountRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class BankAccountService implements IBankAccountService{
 
     private final IBankAccountRepository bankAccountRepository;
@@ -14,6 +17,7 @@ public class BankAccountService implements IBankAccountService{
         this.bankAccountRepository = bankAccountRepository;
     }
 
+    @Transactional
     @Override
     public BankAccount save(BankAccount bankAccount) {
         Long id = bankAccountRepository.save(bankAccount);
@@ -21,21 +25,25 @@ public class BankAccountService implements IBankAccountService{
                 bankAccount.getBalance(), bankAccount.getCreateDate());
     }
 
+    @Transactional
     @Override
     public void updateBalanceById(Long id, BankAccount bankAccount) {
         bankAccountRepository.updateBalanceById(id, bankAccount);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Optional<BankAccount> findById(Long id) {
         return bankAccountRepository.findById(id);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<BankAccount> findAll() {
         return bankAccountRepository.findAll();
     }
 
+    @Transactional
     @Override
     public void deleteById(Long id) {
         bankAccountRepository.deleteById(id);
