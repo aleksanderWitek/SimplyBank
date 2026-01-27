@@ -83,7 +83,7 @@ public class EmployeeRepository implements IEmployeeRepository {
     }
 
     @Override
-    public void update(Long id, Employee employee) {
+    public void updateById(Long id, Employee employee) {
         String query = """
                 UPDATE employee\s
                 SET first_name = ?,\s
