@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface IBankAccountService {
     BankAccount save(BankAccount bankAccount);
-    void update(Long id, BankAccount bankAccount);
+    void updateBalanceById(Long id, BankAccount bankAccount);
     Optional<BankAccount> findById(Long id);
     List<BankAccount> findAll();
     void deleteById(Long id);

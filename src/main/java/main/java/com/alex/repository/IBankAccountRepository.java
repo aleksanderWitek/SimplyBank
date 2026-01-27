@@ -9,6 +9,6 @@ public interface IBankAccountRepository {
     Long save(BankAccount bankAccount);
     Optional<BankAccount> findById(Long id);
     List<BankAccount> findAll();
-    void update(Long id, BankAccount bankAccount);
+    void updateBalanceById(Long id, BankAccount bankAccount);
     void deleteById(Long id);
 }

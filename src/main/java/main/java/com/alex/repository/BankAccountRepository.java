@@ -75,7 +75,7 @@ public class BankAccountRepository implements IBankAccountRepository{
     }
 
     @Override
-    public void update(Long id, BankAccount bankAccount) {
+    public void updateBalanceById(Long id, BankAccount bankAccount) {
         String query = """
                 UPDATE bank_account\s
                 SET balance = ?,\s
