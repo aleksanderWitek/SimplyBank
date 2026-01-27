@@ -2,6 +2,8 @@ package main.java.com.alex.service;
 
 import main.java.com.alex.dto.Employee;
 import main.java.com.alex.repository.IEmployeeRepository;
+import main.java.com.alex.service.validation.EmployeeValidation;
+import main.java.com.alex.service.validation.IdValidation;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,8 @@ public class EmployeeService implements IEmployeeService{
     @Transactional
     @Override
     public Employee save(Employee employee) {
+        EmployeeValidation.ensureEmployeePresent(employee);
+
         Long id = employeeRepository.save(employee);
         return new Employee(id, employee.getFirstName(), employee.getLastName(), employee.getCreateDate());
     }
@@ -27,12 +31,17 @@ public class EmployeeService implements IEmployeeService{
     @Transactional
     @Override
     public void updateById(Long id, Employee employee) {
+        IdValidation.ensureIdPresent(id);
+        EmployeeValidation.ensureEmployeePresent(employee);
+
         employeeRepository.updateById(id, employee);
     }
 
     @Transactional(readOnly = true)
     @Override
     public Optional<Employee> findById(Long id) {
+        IdValidation.ensureIdPresent(id);
+
         return employeeRepository.findById(id);
     }
 
@@ -45,6 +54,8 @@ public class EmployeeService implements IEmployeeService{
     @Transactional
     @Override
     public void deleteById(Long id) {
+        IdValidation.ensureIdPresent(id);
+
         employeeRepository.deleteById(id);
     }
 }
