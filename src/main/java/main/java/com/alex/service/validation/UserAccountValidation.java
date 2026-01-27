@@ -1,8 +1,8 @@
 package main.java.com.alex.service.validation;
 
 import main.java.com.alex.UserAccountRole;
+import main.java.com.alex.exception.IllegalArgumentRuntimeException;
 import main.java.com.alex.exception.NullPointerRuntimeException;
-import main.java.com.alex.exception.SQLRuntimeException;
 
 public class UserAccountValidation {
 
@@ -14,7 +14,7 @@ public class UserAccountValidation {
         try {
             UserAccountRole.valueOf(userAccountRole.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new SQLRuntimeException(message);
+            throw new IllegalArgumentRuntimeException(message);
         }
     }
 }

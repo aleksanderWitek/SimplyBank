@@ -100,3 +100,7 @@ Create Parent class User for Client and Admin or it's not necessary
 **** TESTY ****
 - Integracyjne!!!
 - junit - jednostkowe tez zrobic
+
+*********** QUESTIONS ************
+Validation:
+- should i create EntityValidation instead of making it so detailed for each issue?

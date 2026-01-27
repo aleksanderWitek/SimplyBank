@@ -6,11 +6,13 @@ import main.java.com.alex.exception.BankAccountNotFoundRuntimeException;
 import main.java.com.alex.exception.DataAccessRuntimeException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Component
 public class BankAccountRepository implements IBankAccountRepository{
 
     private final JdbcTemplate jdbcTemplate;
