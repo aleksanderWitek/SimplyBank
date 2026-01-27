@@ -1,12 +1,12 @@
-package main.java.com.alex.mapper;
+package main.java.com.alex.dto.mapper;
 
 import main.java.com.alex.BankAccountType;
 import main.java.com.alex.Currency;
 import main.java.com.alex.dto.BankAccount;
 import main.java.com.alex.exception.SQLRuntimeException;
-import main.java.com.alex.validation.BankAccountValidation;
-import main.java.com.alex.validation.CurrencyValidation;
-import main.java.com.alex.validation.DateValidation;
+import main.java.com.alex.service.validation.BankAccountValidation;
+import main.java.com.alex.service.validation.CurrencyValidation;
+import main.java.com.alex.service.validation.DateValidation;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.ResultSet;
@@ -18,6 +18,7 @@ public class BankAccountRowMapper implements RowMapper<BankAccount> {
     public BankAccount mapRow(ResultSet rs, int rowNum) {
         try {
             String bankAccountTypeInput = rs.getString("account_type");
+            //todo move validation to service. Validate only input data
             BankAccountValidation.validateIfBankAccountTypeIsCorrect(bankAccountTypeInput,
                     "Empty or invalid value from database for: account_type = " + bankAccountTypeInput);
             BankAccountType bankAccountType = BankAccountType.valueOf(bankAccountTypeInput.toUpperCase());

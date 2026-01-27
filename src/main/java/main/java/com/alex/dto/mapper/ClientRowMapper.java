@@ -1,4 +1,4 @@
-package main.java.com.alex.mapper;
+package main.java.com.alex.dto.mapper;
 
 import main.java.com.alex.dto.Client;
 import main.java.com.alex.exception.NullPointerRuntimeException;
@@ -13,6 +13,7 @@ public class ClientRowMapper implements RowMapper<Client> {
     @Override
     public Client mapRow(ResultSet rs, int rowNum) {
         try {
+            //todo move validation to service. Validate only input data
             Timestamp createDate = rs.getTimestamp("create_date");
             if(createDate == null) {
                 throw new NullPointerRuntimeException("Empty value from database for: create_date");
