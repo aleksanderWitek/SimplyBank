@@ -74,7 +74,7 @@ public class UserAccountRepository implements IUserAccountRepository{
     }
 
     @Override
-    public void update(Long id, UserAccount userAccount) {
+    public void updatePassword(Long id, UserAccount userAccount) {
         String query = """
                 UPDATE user_account\s
                 SET password = ?,\s
