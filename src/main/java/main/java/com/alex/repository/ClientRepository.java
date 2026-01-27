@@ -94,7 +94,7 @@ public class ClientRepository implements IClientRepository {
     }
 
     @Override
-    public void update(Long id, Client client) {
+    public void updateById(Long id, Client client) {
 
         String query = """
                 UPDATE client\s

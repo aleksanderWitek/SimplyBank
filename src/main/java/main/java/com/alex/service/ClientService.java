@@ -19,15 +19,16 @@ public class ClientService implements IClientService {
 
     @Transactional
     @Override
-    public Client save() {
-
-        return new Client();
+    public Client save(Client client) {
+        Long id = clientRepository.save(client);
+        return new Client(id, client.getFirstName(), client.getLastName(), client.getCity(), client.getStreet(),
+                client.getHouseNumber(), client.getIdentificationNumber(), client.getCreateDate());
     }
 
     @Transactional
     @Override
-    public void update(Client client) {
-        clientRepository.save(client);
+    public void updateById(Long id, Client client) {
+        clientRepository.updateById(id, client);
     }
 
     @Transactional(readOnly = true)
