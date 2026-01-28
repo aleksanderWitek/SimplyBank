@@ -1,10 +1,18 @@
 package main.java.com.alex.service.validation;
 
 import main.java.com.alex.TransactionType;
+import main.java.com.alex.dto.BankAccount;
+import main.java.com.alex.dto.Transaction;
 import main.java.com.alex.exception.NullPointerRuntimeException;
 import main.java.com.alex.exception.SQLRuntimeException;
 
 public class TransactionValidation {
+
+    public static void ensureTransactionPresent(Transaction transaction) {
+        if (transaction == null) {
+            throw new NullPointerRuntimeException("Transaction is null");
+        }
+    }
 
     public static void validateIfBankAccountsAreTheSameForTransaction(Long bankAccountIdFrom,
                                                                       Long bankAccountIdTo) {

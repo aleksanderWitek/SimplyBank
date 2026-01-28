@@ -2,6 +2,8 @@ package main.java.com.alex.service;
 
 import main.java.com.alex.dto.Transaction;
 import main.java.com.alex.repository.ITransactionRepository;
+import main.java.com.alex.service.validation.IdValidation;
+import main.java.com.alex.service.validation.TransactionValidation;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,8 @@ public class TransactionService implements ITransactionService{
     @Transactional
     @Override
     public Transaction save(Transaction transaction) {
+        TransactionValidation.ensureTransactionPresent(transaction);
+
         Long id = transactionRepository.save(transaction);
         return new Transaction(id, transaction.getTransactionType(), transaction.getCurrency(), transaction.getAmount(),
                 transaction.getBankAccountFrom(), transaction.getBankAccountTo(), transaction.getDescription(),
@@ -29,6 +33,8 @@ public class TransactionService implements ITransactionService{
     @Transactional(readOnly = true)
     @Override
     public Optional<Transaction> findById(Long id) {
+        IdValidation.ensureIdPresent(id);
+
         return transactionRepository.findById(id);
     }
 
