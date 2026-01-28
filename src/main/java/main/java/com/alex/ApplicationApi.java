@@ -1,8 +1,11 @@
 package main.java.com.alex;
 
 import main.java.com.alex.dto.Client;
+import main.java.com.alex.dto.Employee;
 import main.java.com.alex.exception.ClientNotFoundRuntimeException;
+import main.java.com.alex.exception.EmployeeNotFoundRuntimeException;
 import main.java.com.alex.service.IClientService;
+import main.java.com.alex.service.IEmployeeService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +17,11 @@ import java.util.Optional;
 public class ApplicationApi {
 
     private final IClientService clientService;
+    private final IEmployeeService employeeService;
 
-    public ApplicationApi(IClientService clientService) {
+    public ApplicationApi(IClientService clientService, IEmployeeService employeeService) {
         this.clientService = clientService;
+        this.employeeService = employeeService;
     }
 
     @PostMapping(path = "client/save", consumes = "application/json", produces = "application/json; charset=UTF-8")
@@ -32,7 +37,7 @@ public class ApplicationApi {
     }
 
     @GetMapping(path = "client/get/{id}", produces = "application/json; charset=UTF-8")
-    public ResponseEntity<Client> getClient(@PathVariable("id") Long id) {
+    public ResponseEntity<Client> findClientById(@PathVariable("id") Long id) {
         Client client = clientService.findById(id).orElseThrow(() -> new ClientNotFoundRuntimeException("There is no Client with provided id:" + id));
         return ResponseEntity.ok(client);
     }
@@ -44,8 +49,38 @@ public class ApplicationApi {
     }
 
     @DeleteMapping(path = "client/delete/{id}")
-    public ResponseEntity<Void> deleteClient(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> deleteClientById(@PathVariable("id") Long id) {
         clientService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(path = "employee/save", consumes = "application/json", produces = "application/json; charset=UTF-8")
+    public ResponseEntity<Employee> saveEmployee(@RequestBody Employee employee) {
+        Employee employeeResult = employeeService.save(employee);
+        return ResponseEntity.ok(employeeResult);
+    }
+
+    @PutMapping(path = "employee/update/{id}", consumes = "application/json")
+    public ResponseEntity<Void> updateEmployee(@PathVariable("id") Long id, @RequestBody Employee employee) {
+        employeeService.updateById(id, employee);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(path = "employee/get/{id}", produces = "application/json; charset=UTF-8")
+    public ResponseEntity<Employee> findEmployeeById(@PathVariable("id") Long id) {
+        Employee employee = employeeService.findById(id).orElseThrow(() -> new EmployeeNotFoundRuntimeException("There is no Employee with provided id:" + id));
+        return ResponseEntity.ok(employee);
+    }
+
+    @GetMapping(path = "employee/find_all", produces = "application/json; charset=UTF-8")
+    public ResponseEntity<List<Employee>> findAllEmployees() {
+        List<Employee> employees = employeeService.findAll();
+        return ResponseEntity.ok(employees);
+    }
+
+    @DeleteMapping(path = "employee/delete/{id}")
+    public ResponseEntity<Void> deleteEmployeeById(@PathVariable("id") Long id) {
+        employeeService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }

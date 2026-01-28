@@ -7,6 +7,7 @@ import main.java.com.alex.service.validation.IdValidation;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,8 +25,10 @@ public class EmployeeService implements IEmployeeService{
     public Employee save(Employee employee) {
         EmployeeValidation.ensureEmployeePresent(employee);
 
-        Long id = employeeRepository.save(employee);
-        return new Employee(id, employee.getFirstName(), employee.getLastName(), employee.getCreateDate());
+        Employee employeeWithCreateDate = new Employee(employee.getFirstName(), employee.getLastName(), LocalDateTime.now());
+        Long id = employeeRepository.save(employeeWithCreateDate);
+        return new Employee(id, employeeWithCreateDate.getFirstName(), employeeWithCreateDate.getLastName(),
+                employeeWithCreateDate.getCreateDate());
     }
 
     @Transactional
