@@ -17,8 +17,6 @@ public class UserAccountRowMapper implements RowMapper<UserAccount> {
         try {
             //todo move validation to service. Validate only input data
             String userAccountRoleInput = rs.getString("role");
-            UserAccountValidation.validateIfUserAccountRoleIsCorrect(userAccountRoleInput,
-                    "Empty or invalid value from database for: role = " + userAccountRoleInput);
             UserAccountRole userAccountRole = UserAccountRole.valueOf(userAccountRoleInput.toUpperCase());
 
             Timestamp createDate = rs.getTimestamp("create_date");

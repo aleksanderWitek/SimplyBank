@@ -2,6 +2,8 @@ package main.java.com.alex.service;
 
 import main.java.com.alex.dto.UserAccount;
 import main.java.com.alex.repository.IUserAccountRepository;
+import main.java.com.alex.service.validation.IdValidation;
+import main.java.com.alex.service.validation.UserAccountValidation;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,8 @@ public class UserAccountService implements IUserAccountService{
     @Transactional
     @Override
     public UserAccount save(UserAccount userAccount) {
+        UserAccountValidation.ensureUserAccountPresent(userAccount);
+
         Long id = userAccountRepository.save(userAccount);
         return new UserAccount(id, userAccount.getLogin(), userAccount.getPassword(), userAccount.getRole(),
                 userAccount.getCreateDate());
@@ -28,12 +32,17 @@ public class UserAccountService implements IUserAccountService{
     @Transactional
     @Override
     public void updatePassword(Long id, UserAccount userAccount) {
+        IdValidation.ensureIdPresent(id);
+        UserAccountValidation.ensureUserAccountPresent(userAccount);
+
         userAccountRepository.updatePassword(id, userAccount);
     }
 
     @Transactional(readOnly = true)
     @Override
     public Optional<UserAccount> findById(Long id) {
+        IdValidation.ensureIdPresent(id);
+
         return userAccountRepository.findById(id);
     }
 

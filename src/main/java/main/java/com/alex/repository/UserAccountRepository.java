@@ -6,11 +6,13 @@ import main.java.com.alex.exception.DataAccessRuntimeException;
 import main.java.com.alex.exception.UserAccountNotFoundRuntimeException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Component
 public class UserAccountRepository implements IUserAccountRepository{
 
     private final JdbcTemplate jdbcTemplate;

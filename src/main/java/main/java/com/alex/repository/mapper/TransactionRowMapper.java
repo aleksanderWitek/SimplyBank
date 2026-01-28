@@ -72,8 +72,8 @@ public class TransactionRowMapper implements RowMapper<Transaction> {
 
         switch (transactionType) {
             case TRANSFER:
-                BankAccountValidation.ensureBankAccountPresent(bankAccountIdFrom, "TRANSFER transaction must have bank_account_id_from");
-                BankAccountValidation.ensureBankAccountPresent(bankAccountIdTo, "TRANSFER transaction must have bank_account_id_to");
+//                BankAccountValidation.ensureBankAccountPresent(bankAccountIdFrom, "TRANSFER transaction must have bank_account_id_from");
+//                BankAccountValidation.ensureBankAccountPresent(bankAccountIdTo, "TRANSFER transaction must have bank_account_id_to");
                 TransactionValidation.validateIfBankAccountsAreTheSameForTransaction(bankAccountIdFrom, bankAccountIdTo);
                 //todo after creating BankAccountService use findById()
                 bankAccountFrom = new BankAccount();
@@ -81,15 +81,15 @@ public class TransactionRowMapper implements RowMapper<Transaction> {
                 break;
 
             case DEPOSIT:
-                BankAccountValidation.ensureBankAccountNotPresent(bankAccountIdFrom, "DEPOSIT transaction must not have bank_account_id_from");
-                BankAccountValidation.ensureBankAccountPresent(bankAccountIdTo, "DEPOSIT transaction must have bank_account_id_to");
+//                BankAccountValidation.ensureBankAccountNotPresent(bankAccountIdFrom, "DEPOSIT transaction must not have bank_account_id_from");
+//                BankAccountValidation.ensureBankAccountPresent(bankAccountIdTo, "DEPOSIT transaction must have bank_account_id_to");
                 //todo after creating BankAccountService use findById()
                 bankAccountTo = new BankAccount();
                 break;
 
             case WITHDRAWAL:
-                BankAccountValidation.ensureBankAccountPresent(bankAccountIdFrom, "WITHDRAWAL transaction must have bank_account_id_from");
-                BankAccountValidation.ensureBankAccountNotPresent(bankAccountIdTo, "WITHDRAWAL transaction must not have bank_account_id_to");
+//                BankAccountValidation.ensureBankAccountPresent(bankAccountIdFrom, "WITHDRAWAL transaction must have bank_account_id_from");
+//                BankAccountValidation.ensureBankAccountNotPresent(bankAccountIdTo, "WITHDRAWAL transaction must not have bank_account_id_to");
                 //todo after creating BankAccountService use findById()
                 bankAccountFrom = new BankAccount();
                 break;
