@@ -104,3 +104,4 @@ Create Parent class User for Client and Admin or it's not necessary
 *********** QUESTIONS ************
 Validation:
 - should i create EntityValidation instead of making it so detailed for each issue?
+- should i validate each field for each dto is it not null? it looks for me like overkill
