@@ -8,6 +8,7 @@ import main.java.com.alex.service.validation.IdValidation;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,9 +26,12 @@ public class ClientService implements IClientService {
     public Client save(Client client) {
         ClientValidation.ensureClientPresent(client);
 
-        Long id = clientRepository.save(client);
-        return new Client(id, client.getFirstName(), client.getLastName(), client.getCity(), client.getStreet(),
-                client.getHouseNumber(), client.getIdentificationNumber(), client.getCreateDate());
+        Client clientWithCreateDate = new Client(client.getFirstName(), client.getLastName(), client.getCity(), client.getStreet(),
+                client.getHouseNumber(), client.getIdentificationNumber(), LocalDateTime.now());
+        Long id = clientRepository.save(clientWithCreateDate);
+        return new Client(id, clientWithCreateDate.getFirstName(), clientWithCreateDate.getLastName(),
+                clientWithCreateDate.getCity(), clientWithCreateDate.getStreet(), clientWithCreateDate.getHouseNumber(),
+                clientWithCreateDate.getIdentificationNumber(), clientWithCreateDate.getCreateDate());
     }
 
     @Transactional
