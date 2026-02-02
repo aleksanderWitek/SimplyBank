@@ -26,9 +26,23 @@ public class PasswordValidation {
         }
     }
 
-    public static void ensureProvidedPasswordIsDifferentFromExistingPassword(String providedPassword, String currentPassword) {
-        if(providedPassword.equals(currentPassword)){
+    public static void ensureProvidedPasswordIsDifferentFromExistingPassword(String providedNewPassword, String currentPassword) {
+        ensurePasswordExist(providedNewPassword);
+        if(providedNewPassword.equals(currentPassword)){
             throw new IllegalArgumentRuntimeException("New password must be different from current password");
+        }
+    }
+
+    public static void ensureCurrentPasswordMatches(String providedPassword, String currentPassword) {
+        ensurePasswordExist(providedPassword);
+        if(!providedPassword.equals(currentPassword)){
+            throw new IllegalArgumentRuntimeException("Provided Password is not matching account password");
+        }
+    }
+
+    private static void ensurePasswordExist(String providedNewPassword) {
+        if (providedNewPassword == null) {
+            throw new IllegalArgumentRuntimeException("Provided password cannot be null");
         }
     }
 }

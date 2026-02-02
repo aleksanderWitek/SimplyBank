@@ -1,5 +1,7 @@
 package main.java.com.alex.service;
 
+import main.java.com.alex.exception.IllegalArgumentRuntimeException;
+
 import java.security.SecureRandom;
 import java.util.UUID;
 
@@ -7,8 +9,14 @@ public class UserAccountProcessingService implements IUserAccountProcessingServi
 
     @Override
     public String generateLogin(String firstName, String lastName) {
+        if (firstName == null || lastName == null) {
+            throw new IllegalArgumentRuntimeException("firstName and lastName must be provided");
+        }
         String first = firstName.trim();
         String last = lastName.trim();
+        if (first.isEmpty() || last.isEmpty()) {
+            throw new IllegalArgumentRuntimeException("firstName and lastName must be non-blank");
+        }
 
         while(first.length() < 3) {
             first += first;

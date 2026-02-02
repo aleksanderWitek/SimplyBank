@@ -25,15 +25,9 @@ public class UserAccountValidation {
         }
     }
 
-    public static void ensureUserAccountRoleIsCorrect(String userAccountRole){
-        if (userAccountRole == null || userAccountRole.isBlank()) {
-            throw new NullPointerRuntimeException("User Account Role is null or empty");
-        }
-
-        try {
-            UserAccountRole.valueOf(userAccountRole.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentRuntimeException("userAccountRole is invalid: " + userAccountRole);
+    public static void ensureUserAccountRoleIsCorrect(UserAccountRole role){
+        if (role == null) {
+            throw new NullPointerRuntimeException("User Account Role is null");
         }
     }
 }

@@ -10,54 +10,54 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-public class UserAccountClientRepository implements IUserAccountClientRepository {
+public class UserAccountEmployeeRepository implements IUserAccountEmployeeRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public UserAccountClientRepository(JdbcTemplate jdbcTemplate) {
+    public UserAccountEmployeeRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
-    public void linkUserAccountToClient(Long userAccountId, Long clientId) {
+    public void linkUserAccountToEmployee(Long userAccountId, Long employeeId) {
         String query = """
                 INSERT INTO\s
-                user_account_client(user_account_id, client_id, create_date)\s
+                user_account_employee(user_account_id, employee_id, create_date)\s
                 VALUES (?, ?, ?)
                 """;
         try {
-            jdbcTemplate.update(query, userAccountId, clientId, LocalDateTime.now());
+            jdbcTemplate.update(query, userAccountId, employeeId, LocalDateTime.now());
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
         }
     }
 
     @Override
-    public void unlinkUserAccountFromClient(Long userAccountId, Long clientId) {
+    public void unlinkUserAccountFromEmployee(Long userAccountId, Long employeeId) {
         String query = """
-                UPDATE user_account_client\s
+                UPDATE user_account_employee\s
                 SET delete_date = ?\s
                 WHERE user_account_id = ? AND\s
-                client_id = ? AND\s
+                employee_id = ? AND\s
                 delete_date IS NULL
                 """;
         try {
-            jdbcTemplate.update(query, LocalDateTime.now(), userAccountId, clientId);
+            jdbcTemplate.update(query, LocalDateTime.now(), userAccountId, employeeId);
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
         }
     }
 
     @Override
-    public Optional<Long> findUserAccountIdByClientId(Long clientId) {
+    public Optional<Long> findUserAccountIdByEmployeeId(Long employeeId) {
         String query = """
                 SELECT user_account_id\s
-                FROM user_account_client\s
-                WHERE client_id = ? AND delete_date IS NULL
+                FROM user_account_employee\s
+                WHERE employee_id = ? AND delete_date IS NULL
                 """;
         try {
             //todo check all other repositories and change it to return list too
-            List<Long> results = jdbcTemplate.queryForList(query, Long.class, clientId);
+            List<Long> results = jdbcTemplate.queryForList(query, Long.class, employeeId);
             return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());

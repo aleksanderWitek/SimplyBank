@@ -1,10 +1,12 @@
 package main.java.com.alex.service;
 
+import main.java.com.alex.UserAccountRole;
 import main.java.com.alex.dto.Employee;
 import main.java.com.alex.dto.Password;
+import main.java.com.alex.dto.UserAccount;
 import main.java.com.alex.exception.UserAccountNotFoundRuntimeException;
 import main.java.com.alex.repository.IEmployeeRepository;
-import main.java.com.alex.repository.IUserAccountClientRepository;
+import main.java.com.alex.repository.IUserAccountEmployeeRepository;
 import main.java.com.alex.service.validation.EmployeeValidation;
 import main.java.com.alex.service.validation.IdValidation;
 import org.springframework.stereotype.Service;
@@ -18,12 +20,12 @@ import java.util.Optional;
 public class EmployeeService implements IEmployeeService{
 
     private final IEmployeeRepository employeeRepository;
-    private final IUserAccountClientRepository userAccountClientRepository;
+    private final IUserAccountEmployeeRepository userAccountEmployeeRepository;
     private final IUserAccountService userAccountService;
 
-    public EmployeeService(IEmployeeRepository employeeRepository, IUserAccountClientRepository userAccountClientRepository, IUserAccountService userAccountService) {
+    public EmployeeService(IEmployeeRepository employeeRepository, IUserAccountEmployeeRepository userAccountEmployeeRepository, IUserAccountService userAccountService) {
         this.employeeRepository = employeeRepository;
-        this.userAccountClientRepository = userAccountClientRepository;
+        this.userAccountEmployeeRepository = userAccountEmployeeRepository;
         this.userAccountService = userAccountService;
     }
 
@@ -32,10 +34,16 @@ public class EmployeeService implements IEmployeeService{
     public Employee save(Employee employee) {
         EmployeeValidation.ensureEmployeePresent(employee);
 
-        Employee employeeWithCreateDate = new Employee(employee.getFirstName(), employee.getLastName(), LocalDateTime.now());
+        Employee employeeWithCreateDate = new Employee(employee.getFirstName(), employee.getLastName(),
+                LocalDateTime.now());
         Long id = employeeRepository.save(employeeWithCreateDate);
-        return new Employee(id, employeeWithCreateDate.getFirstName(), employeeWithCreateDate.getLastName(),
+        Employee savedEmployee = new Employee(id, employeeWithCreateDate.getFirstName(), employeeWithCreateDate.getLastName(),
                 employeeWithCreateDate.getCreateDate());
+        UserAccount userAccount = userAccountService.save(employee.getFirstName(), employee.getLastName(),
+                UserAccountRole.EMPLOYEE);
+        savedEmployee.addUserAccount(userAccount);
+        userAccountEmployeeRepository.linkUserAccountToEmployee(userAccount.getId(), id);
+        return savedEmployee;
     }
 
     @Transactional
@@ -65,15 +73,18 @@ public class EmployeeService implements IEmployeeService{
     @Override
     public void deleteById(Long id) {
         IdValidation.ensureIdPresent(id);
-
+        Long userAccountId = userAccountEmployeeRepository.findUserAccountIdByEmployeeId(id)
+                .orElseThrow(() -> new UserAccountNotFoundRuntimeException("There is no Employee with provided id:" + id));
+        userAccountEmployeeRepository.unlinkUserAccountFromEmployee(userAccountId, id);
+        userAccountService.deleteById(userAccountId);
         employeeRepository.deleteById(id);
     }
 
     @Override
     public void updatePassword(Long employeeId, Password password) {
         IdValidation.ensureIdPresent(employeeId);
-        Long userAccountId = userAccountClientRepository.findUserAccountIdByClientId(employeeId)
-                .orElseThrow(() -> new UserAccountNotFoundRuntimeException("There is no Client with provided id:" + employeeId));
+        Long userAccountId = userAccountEmployeeRepository.findUserAccountIdByEmployeeId(employeeId)
+                .orElseThrow(() -> new UserAccountNotFoundRuntimeException("There is no Employee with provided id:" + employeeId));
 
         userAccountService.updatePassword(userAccountId, password);
     }

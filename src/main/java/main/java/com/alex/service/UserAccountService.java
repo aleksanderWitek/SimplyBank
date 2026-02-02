@@ -32,7 +32,7 @@ public class UserAccountService implements IUserAccountService{
     public UserAccount save(String firstName, String lastName, UserAccountRole role) {
         UserAccountValidation.ensureFirstNamePresent(firstName);
         UserAccountValidation.ensureLastNamePresent(lastName);
-        UserAccountValidation.ensureUserAccountRoleIsCorrect(role.toString());
+        UserAccountValidation.ensureUserAccountRoleIsCorrect(role);
 
         String login = userAccountProcessingService.generateLogin(firstName, lastName);
         String password = userAccountProcessingService.generatePassword();
@@ -50,6 +50,7 @@ public class UserAccountService implements IUserAccountService{
 
         UserAccount userAccount = findById(userAccountId)
                 .orElseThrow(() -> new UserAccountNotFoundRuntimeException("There is no User Account with provided id:" + userAccountId));
+        PasswordValidation.ensureCurrentPasswordMatches(password.getCurrentPassword(), userAccount.getPassword());
         PasswordValidation.ensureProvidedPasswordIsDifferentFromExistingPassword(password.getNewPassword(),
                 userAccount.getPassword());
 
