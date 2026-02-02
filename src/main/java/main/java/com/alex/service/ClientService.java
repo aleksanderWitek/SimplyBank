@@ -1,8 +1,12 @@
 package main.java.com.alex.service;
 
+import main.java.com.alex.UserAccountRole;
 import main.java.com.alex.dto.Client;
-import main.java.com.alex.exception.NullPointerRuntimeException;
+import main.java.com.alex.dto.Password;
+import main.java.com.alex.dto.UserAccount;
+import main.java.com.alex.exception.UserAccountNotFoundRuntimeException;
 import main.java.com.alex.repository.IClientRepository;
+import main.java.com.alex.repository.IUserAccountClientRepository;
 import main.java.com.alex.service.validation.ClientValidation;
 import main.java.com.alex.service.validation.IdValidation;
 import org.springframework.stereotype.Service;
@@ -16,9 +20,13 @@ import java.util.Optional;
 public class ClientService implements IClientService {
 
     private final IClientRepository clientRepository;
+    private final IUserAccountClientRepository userAccountClientRepository;
+    private final IUserAccountService userAccountService;
 
-    public ClientService(IClientRepository clientRepository) {
+    public ClientService(IClientRepository clientRepository, IUserAccountClientRepository userAccountClientRepository, IUserAccountService userAccountService) {
         this.clientRepository = clientRepository;
+        this.userAccountClientRepository = userAccountClientRepository;
+        this.userAccountService = userAccountService;
     }
 
     @Transactional
@@ -26,12 +34,17 @@ public class ClientService implements IClientService {
     public Client save(Client client) {
         ClientValidation.ensureClientPresent(client);
 
-        Client clientWithCreateDate = new Client(client.getFirstName(), client.getLastName(), client.getCity(), client.getStreet(),
-                client.getHouseNumber(), client.getIdentificationNumber(), LocalDateTime.now());
+        Client clientWithCreateDate = new Client(client.getFirstName(), client.getLastName(), client.getCity(),
+                client.getStreet(), client.getHouseNumber(), client.getIdentificationNumber(), LocalDateTime.now());
         Long id = clientRepository.save(clientWithCreateDate);
-        return new Client(id, clientWithCreateDate.getFirstName(), clientWithCreateDate.getLastName(),
+        Client savedClient = new Client(id, clientWithCreateDate.getFirstName(), clientWithCreateDate.getLastName(),
                 clientWithCreateDate.getCity(), clientWithCreateDate.getStreet(), clientWithCreateDate.getHouseNumber(),
                 clientWithCreateDate.getIdentificationNumber(), clientWithCreateDate.getCreateDate());
+        UserAccount userAccount = userAccountService.save(client.getFirstName(), client.getLastName(),
+                UserAccountRole.CLIENT);
+        savedClient.addUserAccount(userAccount);
+        userAccountClientRepository.linkUserAccountToClient(userAccount.getId(), id);
+        return savedClient;
     }
 
     @Transactional
@@ -60,6 +73,19 @@ public class ClientService implements IClientService {
     @Override
     public void deleteById(Long id) {
         IdValidation.ensureIdPresent(id);
+        Long userAccountId = userAccountClientRepository.findUserAccountIdByClientId(id)
+                .orElseThrow(() -> new UserAccountNotFoundRuntimeException("There is no User Account with provided id:" + id));
+        userAccountClientRepository.unlinkUserAccountFromClient(userAccountId, id);
+        userAccountService.deleteById(userAccountId);
         clientRepository.deleteById(id);
+    }
+
+    @Override
+    public void updatePassword(Long clientId, Password password) {
+        IdValidation.ensureIdPresent(clientId);
+        Long userAccountId = userAccountClientRepository.findUserAccountIdByClientId(clientId)
+                .orElseThrow(() -> new UserAccountNotFoundRuntimeException("There is no Client with provided id:" + clientId));
+
+        userAccountService.updatePassword(userAccountId, password);
     }
 }

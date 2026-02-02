@@ -1,7 +1,10 @@
 package main.java.com.alex.service;
 
 import main.java.com.alex.dto.Employee;
+import main.java.com.alex.dto.Password;
+import main.java.com.alex.exception.UserAccountNotFoundRuntimeException;
 import main.java.com.alex.repository.IEmployeeRepository;
+import main.java.com.alex.repository.IUserAccountClientRepository;
 import main.java.com.alex.service.validation.EmployeeValidation;
 import main.java.com.alex.service.validation.IdValidation;
 import org.springframework.stereotype.Service;
@@ -15,9 +18,13 @@ import java.util.Optional;
 public class EmployeeService implements IEmployeeService{
 
     private final IEmployeeRepository employeeRepository;
+    private final IUserAccountClientRepository userAccountClientRepository;
+    private final IUserAccountService userAccountService;
 
-    public EmployeeService(IEmployeeRepository employeeRepository) {
+    public EmployeeService(IEmployeeRepository employeeRepository, IUserAccountClientRepository userAccountClientRepository, IUserAccountService userAccountService) {
         this.employeeRepository = employeeRepository;
+        this.userAccountClientRepository = userAccountClientRepository;
+        this.userAccountService = userAccountService;
     }
 
     @Transactional
@@ -60,5 +67,14 @@ public class EmployeeService implements IEmployeeService{
         IdValidation.ensureIdPresent(id);
 
         employeeRepository.deleteById(id);
+    }
+
+    @Override
+    public void updatePassword(Long employeeId, Password password) {
+        IdValidation.ensureIdPresent(employeeId);
+        Long userAccountId = userAccountClientRepository.findUserAccountIdByClientId(employeeId)
+                .orElseThrow(() -> new UserAccountNotFoundRuntimeException("There is no Client with provided id:" + employeeId));
+
+        userAccountService.updatePassword(userAccountId, password);
     }
 }

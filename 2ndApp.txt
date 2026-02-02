@@ -105,3 +105,4 @@ Create Parent class User for Client and Admin or it's not necessary
 Validation:
 - should i create EntityValidation instead of making it so detailed for each issue?
 - should i validate each field for each dto is it not null? it looks for me like overkill
+- TABLE user_account_client if I don't use Hibernate i have to add user account and client manually to the table?

@@ -1,5 +1,6 @@
 package main.java.com.alex.repository;
 
+import main.java.com.alex.dto.Password;
 import main.java.com.alex.dto.UserAccount;
 import main.java.com.alex.repository.mapper.UserAccountRowMapper;
 import main.java.com.alex.exception.DataAccessRuntimeException;
@@ -76,7 +77,7 @@ public class UserAccountRepository implements IUserAccountRepository{
     }
 
     @Override
-    public void updatePassword(Long id, UserAccount userAccount) {
+    public void updatePassword(Long id, Password password) {
         String query = """
                 UPDATE user_account\s
                 SET password = ?,\s
@@ -85,8 +86,8 @@ public class UserAccountRepository implements IUserAccountRepository{
                """;
         try {
             int rowAffected = jdbcTemplate.update(query,
-                    userAccount.getPassword(),
-                    userAccount.getModifyDate(),
+                    password.getNewPassword(),
+                    LocalDateTime.now(),
                     id);
             if(rowAffected == 0) {
                 throw new UserAccountNotFoundRuntimeException("There is no User Account with provided id = " + id);

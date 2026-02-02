@@ -1,13 +1,16 @@
 package main.java.com.alex.service;
 
+import main.java.com.alex.UserAccountRole;
+import main.java.com.alex.dto.Password;
 import main.java.com.alex.dto.UserAccount;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface IUserAccountService {
-    UserAccount save(UserAccount userAccount);
-    void updatePassword(Long id, UserAccount userAccount);
+    UserAccount save(String firstName, String lastName, UserAccountRole role);
+    void updatePassword(Long userAccountId, Password password);
     Optional<UserAccount> findById(Long id);
     List<UserAccount> findAll();
+    void deleteById(Long id);
 }

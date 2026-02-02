@@ -2,6 +2,8 @@ package main.java.com.alex;
 
 import main.java.com.alex.dto.Client;
 import main.java.com.alex.dto.Employee;
+import main.java.com.alex.dto.Password;
+import main.java.com.alex.dto.UserAccount;
 import main.java.com.alex.exception.ClientNotFoundRuntimeException;
 import main.java.com.alex.exception.EmployeeNotFoundRuntimeException;
 import main.java.com.alex.service.IClientService;
@@ -54,6 +56,13 @@ public class ApplicationApi {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping(path = "client/update_password/{client_id}", consumes = "application/json")
+    public ResponseEntity<Void> updateClientPassword(@PathVariable("client_id") Long clientId,
+                                                     @RequestBody Password password) {
+        clientService.updatePassword(clientId, password);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping(path = "employee/save", consumes = "application/json", produces = "application/json; charset=UTF-8")
     public ResponseEntity<Employee> saveEmployee(@RequestBody Employee employee) {
         Employee employeeResult = employeeService.save(employee);
@@ -81,6 +90,13 @@ public class ApplicationApi {
     @DeleteMapping(path = "employee/delete/{id}")
     public ResponseEntity<Void> deleteEmployeeById(@PathVariable("id") Long id) {
         employeeService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping(path = "employee/update_password/{employee_id}", consumes = "application/json")
+    public ResponseEntity<Void> updateEmployeePassword(@PathVariable("employee_id") Long employeeId,
+                                                     @RequestBody Password password) {
+        employeeService.updatePassword(employeeId, password);
         return ResponseEntity.noContent().build();
     }
 }

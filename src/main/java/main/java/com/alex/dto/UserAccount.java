@@ -67,7 +67,8 @@ public class UserAccount {
         this.createDate = createDate;
     }
 
-    public UserAccount(Long id, String login, String password, UserAccountRole role, LocalDateTime createDate, LocalDateTime modifyDate, LocalDateTime deleteDate) {
+    public UserAccount(Long id, String login, String password, UserAccountRole role, LocalDateTime createDate,
+                       LocalDateTime modifyDate, LocalDateTime deleteDate) {
         this.id = id;
         this.login = login;
         this.password = password;

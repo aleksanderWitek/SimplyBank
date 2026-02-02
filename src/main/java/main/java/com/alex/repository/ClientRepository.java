@@ -41,6 +41,7 @@ public class ClientRepository implements IClientRepository {
 
     @Override
     public Optional<Client> findById(Long id) {
+        //todo pointless select for ua should be only client because i get it somewhere else
         String query = """
                  SELECT c.id,\s
                  c.first_name,\s
@@ -68,6 +69,7 @@ public class ClientRepository implements IClientRepository {
 
     @Override
     public List<Client> findAll() {
+        //todo pointless select for ua should be only client because i get it somewhere else
         String query = """
                 SELECT c.id,\s
                 c.first_name,\s
