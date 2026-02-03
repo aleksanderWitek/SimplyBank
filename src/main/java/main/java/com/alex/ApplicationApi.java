@@ -8,6 +8,8 @@ import main.java.com.alex.exception.ClientNotFoundRuntimeException;
 import main.java.com.alex.exception.EmployeeNotFoundRuntimeException;
 import main.java.com.alex.service.IClientService;
 import main.java.com.alex.service.IEmployeeService;
+import org.springframework.boot.actuate.autoconfigure.observation.ObservationProperties;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +31,7 @@ public class ApplicationApi {
     @PostMapping(path = "client/save", consumes = "application/json", produces = "application/json; charset=UTF-8")
     public ResponseEntity<Client> saveClient(@RequestBody Client client) {
         Client clientResult = clientService.save(client);
-        return ResponseEntity.ok(clientResult);
+        return ResponseEntity.status(HttpStatus.CREATED).body(clientResult);
     }
 
     @PutMapping(path = "client/update/{id}", consumes = "application/json")
@@ -66,7 +68,7 @@ public class ApplicationApi {
     @PostMapping(path = "employee/save", consumes = "application/json", produces = "application/json; charset=UTF-8")
     public ResponseEntity<Employee> saveEmployee(@RequestBody Employee employee) {
         Employee employeeResult = employeeService.save(employee);
-        return ResponseEntity.ok(employeeResult);
+        return ResponseEntity.status(HttpStatus.CREATED).body(employeeResult);
     }
 
     @PutMapping(path = "employee/update/{id}", consumes = "application/json")

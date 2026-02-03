@@ -50,7 +50,7 @@ public class UserAccountService implements IUserAccountService{
     @Transactional
     @Override
     public void updatePassword(Long userAccountId, Password password) {
-        PasswordValidation.ensurePasswordMeetsRequirements(password.getNewPassword());
+        PasswordValidation.ensurePasswordMeetsRequirements(password.getNewPassword(), 12);
 
         UserAccount userAccount = findById(userAccountId)
                 .orElseThrow(() -> new UserAccountNotFoundRuntimeException(

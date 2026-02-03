@@ -80,6 +80,7 @@ public class EmployeeService implements IEmployeeService{
         employeeRepository.deleteById(id);
     }
 
+    @Transactional
     @Override
     public void updatePassword(Long employeeId, Password password) {
         IdValidation.ensureIdPresent(employeeId);

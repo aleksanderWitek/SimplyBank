@@ -30,7 +30,7 @@ public class UserAccountProcessingService implements IUserAccountProcessingServi
         StringBuilder login = new StringBuilder();
         login.append(first, 0, 3);
         login.append(last, 0, 3);
-        login.append(UUID.randomUUID().toString(), 0, 6);
+        login.append(UUID.randomUUID().toString(), 0, 8);
 
         return login.toString().toLowerCase();
     }
@@ -40,10 +40,10 @@ public class UserAccountProcessingService implements IUserAccountProcessingServi
         SecureRandom random = new SecureRandom();
         StringBuilder password = new StringBuilder();
 
-        addToPasswordCapitalLetters(password, random);
-        addToPasswordSmallLetters(password, random);
-        addToPasswordNumbers(password, random);
-        addToPasswordSpecialSymbols(password, random);
+        addToPasswordCapitalLetters(password, random, 4);
+        addToPasswordSmallLetters(password, random, 4);
+        addToPasswordNumbers(password, random, 2);
+        addToPasswordSpecialSymbols(password, random, 2);
 
         return shufflePassword(password.toString(), random);
     }
@@ -59,27 +59,27 @@ public class UserAccountProcessingService implements IUserAccountProcessingServi
         return new String(result);
     }
 
-    private void addToPasswordSpecialSymbols(StringBuilder password, SecureRandom random) {
+    private void addToPasswordSpecialSymbols(StringBuilder password, SecureRandom random, int count) {
         String special = "!@#$%^&*";
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < count; i++) {
             password.append(special.charAt(random.nextInt(special.length())));
         }
     }
 
-    private void addToPasswordNumbers(StringBuilder password, SecureRandom random) {
-        for (int i = 0; i < 2; i++) {
+    private void addToPasswordNumbers(StringBuilder password, SecureRandom random, int count) {
+        for (int i = 0; i < count; i++) {
             password.append(random.nextInt(10));
         }
     }
 
-    private void addToPasswordSmallLetters(StringBuilder password, SecureRandom random) {
-        for (int i = 0; i < 3; i++) {
+    private void addToPasswordSmallLetters(StringBuilder password, SecureRandom random, int count) {
+        for (int i = 0; i < count; i++) {
             password.append((char) (random.nextInt(26) + 'a'));
         }
     }
 
-    private void addToPasswordCapitalLetters(StringBuilder password, SecureRandom random) {
-        for (int i = 0; i < 3; i++) {
+    private void addToPasswordCapitalLetters(StringBuilder password, SecureRandom random, int count) {
+        for (int i = 0; i < count; i++) {
             password.append((char) (random.nextInt(26) + 'A'));
         }
     }

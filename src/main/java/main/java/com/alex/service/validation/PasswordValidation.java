@@ -5,9 +5,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class PasswordValidation {
 
-    public static void ensurePasswordMeetsRequirements(String password) {
-        if (password == null || password.length() < 10) {
-            throw new IllegalArgumentRuntimeException("Password must be at least 10 characters long");
+    public static void ensurePasswordMeetsRequirements(String password, int passwordLength) {
+        if (password == null || password.length() < passwordLength) {
+            throw new IllegalArgumentRuntimeException("Password must be at least " + passwordLength + " characters long");
         }
 
         if (!password.matches(".*[A-Z].*")) {

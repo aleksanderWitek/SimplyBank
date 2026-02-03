@@ -80,6 +80,7 @@ public class ClientService implements IClientService {
         clientRepository.deleteById(id);
     }
 
+    @Transactional
     @Override
     public void updatePassword(Long clientId, Password password) {
         IdValidation.ensureIdPresent(clientId);
