@@ -44,6 +44,7 @@ public class UserAccountRepository implements IUserAccountRepository{
         String query = """
                 SELECT ua.id,\s
                 ua.login,\s
+                ua.password,\s
                 ua.role,\s
                 ua.create_date,\s
                 ua.modify_date\s
@@ -63,6 +64,7 @@ public class UserAccountRepository implements IUserAccountRepository{
         String query = """
                 SELECT ua.id,\s
                 ua.login,\s
+                ua.password,\s
                 ua.role,\s
                 ua.create_date,\s
                 ua.modify_date\s

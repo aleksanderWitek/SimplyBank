@@ -43,7 +43,7 @@ public class UserAccountService implements IUserAccountService{
 
         UserAccount userAccount = new UserAccount(login, encodedPassword, role, LocalDateTime.now());
         Long id = userAccountRepository.save(userAccount);
-        return new UserAccount(id, userAccount.getLogin(), userAccount.getPassword(), userAccount.getRole(),
+        return new UserAccount(id, userAccount.getLogin(), password, userAccount.getRole(),
                 userAccount.getCreateDate());
     }
 
