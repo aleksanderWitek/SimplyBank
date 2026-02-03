@@ -77,7 +77,7 @@ public class UserAccountRepository implements IUserAccountRepository{
     }
 
     @Override
-    public void updatePassword(Long id, Password password) {
+    public void updatePassword(Long id, String encodedNewPassword) {
         String query = """
                 UPDATE user_account\s
                 SET password = ?,\s
@@ -86,7 +86,7 @@ public class UserAccountRepository implements IUserAccountRepository{
                """;
         try {
             int rowAffected = jdbcTemplate.update(query,
-                    password.getNewPassword(),
+                    encodedNewPassword,
                     LocalDateTime.now(),
                     id);
             if(rowAffected == 0) {

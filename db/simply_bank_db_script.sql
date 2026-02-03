@@ -5,7 +5,7 @@ USE simply_bank_db;
 CREATE TABLE user_account (
     id INT NOT NULL AUTO_INCREMENT,
     login VARCHAR(12) NOT NULL,
-    password VARCHAR(12) NOT NULL,
+    password VARCHAR(60) NOT NULL,
     role VARCHAR(50) NOT NULL,
     create_date DATETIME NOT NULL,
     modify_date DATETIME,

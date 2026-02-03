@@ -8,6 +8,7 @@ import main.java.com.alex.repository.IUserAccountRepository;
 import main.java.com.alex.service.validation.IdValidation;
 import main.java.com.alex.service.validation.PasswordValidation;
 import main.java.com.alex.service.validation.UserAccountValidation;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,11 +21,13 @@ public class UserAccountService implements IUserAccountService{
 
     private final IUserAccountRepository userAccountRepository;
     private final IUserAccountProcessingService userAccountProcessingService;
+    private final PasswordEncoder passwordEncoder;
 
     public UserAccountService(IUserAccountRepository userAccountRepository,
-                              IUserAccountProcessingService userAccountProcessingService) {
+                              IUserAccountProcessingService userAccountProcessingService, PasswordEncoder passwordEncoder) {
         this.userAccountRepository = userAccountRepository;
         this.userAccountProcessingService = userAccountProcessingService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -36,8 +39,9 @@ public class UserAccountService implements IUserAccountService{
 
         String login = userAccountProcessingService.generateLogin(firstName, lastName);
         String password = userAccountProcessingService.generatePassword();
+        String encodedPassword = passwordEncoder.encode(password);
 
-        UserAccount userAccount = new UserAccount(login, password, role, LocalDateTime.now());
+        UserAccount userAccount = new UserAccount(login, encodedPassword, role, LocalDateTime.now());
         Long id = userAccountRepository.save(userAccount);
         return new UserAccount(id, userAccount.getLogin(), userAccount.getPassword(), userAccount.getRole(),
                 userAccount.getCreateDate());
@@ -49,12 +53,19 @@ public class UserAccountService implements IUserAccountService{
         PasswordValidation.ensurePasswordMeetsRequirements(password.getNewPassword());
 
         UserAccount userAccount = findById(userAccountId)
-                .orElseThrow(() -> new UserAccountNotFoundRuntimeException("There is no User Account with provided id:" + userAccountId));
-        PasswordValidation.ensureCurrentPasswordMatches(password.getCurrentPassword(), userAccount.getPassword());
-        PasswordValidation.ensureProvidedPasswordIsDifferentFromExistingPassword(password.getNewPassword(),
-                userAccount.getPassword());
+                .orElseThrow(() -> new UserAccountNotFoundRuntimeException(
+                        "There is no User Account with provided id:" + userAccountId));
+        PasswordValidation.authenticatePassword(
+                password.getCurrentPassword(),
+                userAccount.getPassword(),
+                passwordEncoder);
+        PasswordValidation.ensureProvidedPasswordIsDifferentFromExistingPassword(
+                password.getNewPassword(),
+                userAccount.getPassword(),
+                passwordEncoder);
 
-        userAccountRepository.updatePassword(userAccountId, password);
+        String encodedNewPassword = passwordEncoder.encode(password.getNewPassword());
+        userAccountRepository.updatePassword(userAccountId, encodedNewPassword);
     }
 
     @Transactional(readOnly = true)

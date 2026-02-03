@@ -1,10 +1,12 @@
 package main.java.com.alex.service;
 
 import main.java.com.alex.exception.IllegalArgumentRuntimeException;
+import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.util.UUID;
 
+@Service
 public class UserAccountProcessingService implements IUserAccountProcessingService{
 
     @Override

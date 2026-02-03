@@ -1,6 +1,7 @@
 package main.java.com.alex.service.validation;
 
 import main.java.com.alex.exception.IllegalArgumentRuntimeException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class PasswordValidation {
 
@@ -26,17 +27,23 @@ public class PasswordValidation {
         }
     }
 
-    public static void ensureProvidedPasswordIsDifferentFromExistingPassword(String providedNewPassword, String currentPassword) {
+    public static void ensureProvidedPasswordIsDifferentFromExistingPassword(
+            String providedNewPassword,
+            String currentEncodedPassword,
+            PasswordEncoder passwordEncoder) {
         ensurePasswordExist(providedNewPassword);
-        if(providedNewPassword.equals(currentPassword)){
+        if(passwordEncoder.matches(providedNewPassword, currentEncodedPassword)){
             throw new IllegalArgumentRuntimeException("New password must be different from current password");
         }
     }
 
-    public static void ensureCurrentPasswordMatches(String providedPassword, String currentPassword) {
+    public static void authenticatePassword(
+            String providedPassword,
+            String storedPassword,
+            PasswordEncoder passwordEncoder) {
         ensurePasswordExist(providedPassword);
-        if(!providedPassword.equals(currentPassword)){
-            throw new IllegalArgumentRuntimeException("Provided Password is not matching account password");
+        if(!passwordEncoder.matches(providedPassword, storedPassword)){
+            throw new IllegalArgumentRuntimeException("Invalid password");
         }
     }
 

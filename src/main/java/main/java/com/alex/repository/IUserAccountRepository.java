@@ -10,6 +10,6 @@ public interface IUserAccountRepository {
     Long save(UserAccount userAccount);
     Optional<UserAccount> findById(Long id);
     List<UserAccount> findAll();
-    void updatePassword(Long id, Password password);
+    void updatePassword(Long id, String encodedNewPassword);
     void deleteById(Long id);
 }

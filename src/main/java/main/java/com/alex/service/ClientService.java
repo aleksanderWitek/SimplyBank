@@ -74,7 +74,7 @@ public class ClientService implements IClientService {
     public void deleteById(Long id) {
         IdValidation.ensureIdPresent(id);
         Long userAccountId = userAccountClientRepository.findUserAccountIdByClientId(id)
-                .orElseThrow(() -> new UserAccountNotFoundRuntimeException("There is no User Account with provided id:" + id));
+                .orElseThrow(() -> new UserAccountNotFoundRuntimeException("There is no User Account linked to Client with id:" + id));
         userAccountClientRepository.unlinkUserAccountFromClient(userAccountId, id);
         userAccountService.deleteById(userAccountId);
         clientRepository.deleteById(id);
