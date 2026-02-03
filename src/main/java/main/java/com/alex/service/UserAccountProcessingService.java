@@ -30,7 +30,7 @@ public class UserAccountProcessingService implements IUserAccountProcessingServi
         StringBuilder login = new StringBuilder();
         login.append(first, 0, 3);
         login.append(last, 0, 3);
-        login.append(UUID.randomUUID().toString(), 0, 8);
+        login.append(UUID.randomUUID().toString().replace("-", ""), 0, 8);
 
         return login.toString().toLowerCase();
     }
