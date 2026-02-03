@@ -1,10 +1,9 @@
 package main.java.com.alex.repository;
 
-import main.java.com.alex.dto.Password;
 import main.java.com.alex.dto.UserAccount;
-import main.java.com.alex.repository.mapper.UserAccountRowMapper;
 import main.java.com.alex.exception.DataAccessRuntimeException;
 import main.java.com.alex.exception.UserAccountNotFoundRuntimeException;
+import main.java.com.alex.repository.mapper.UserAccountRowMapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;

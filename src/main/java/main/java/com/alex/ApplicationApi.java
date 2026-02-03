@@ -6,8 +6,10 @@ import main.java.com.alex.dto.Password;
 import main.java.com.alex.dto.UserAccount;
 import main.java.com.alex.exception.ClientNotFoundRuntimeException;
 import main.java.com.alex.exception.EmployeeNotFoundRuntimeException;
+import main.java.com.alex.exception.UserAccountNotFoundRuntimeException;
 import main.java.com.alex.service.IClientService;
 import main.java.com.alex.service.IEmployeeService;
+import main.java.com.alex.service.IUserAccountService;
 import org.springframework.boot.actuate.autoconfigure.observation.ObservationProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +24,13 @@ public class ApplicationApi {
 
     private final IClientService clientService;
     private final IEmployeeService employeeService;
+    private final IUserAccountService userAccountService;
 
-    public ApplicationApi(IClientService clientService, IEmployeeService employeeService) {
+    public ApplicationApi(IClientService clientService, IEmployeeService employeeService,
+                          IUserAccountService userAccountService) {
         this.clientService = clientService;
         this.employeeService = employeeService;
+        this.userAccountService = userAccountService;
     }
 
     @PostMapping(path = "client/save", consumes = "application/json", produces = "application/json; charset=UTF-8")
@@ -42,7 +47,8 @@ public class ApplicationApi {
 
     @GetMapping(path = "client/get/{id}", produces = "application/json; charset=UTF-8")
     public ResponseEntity<Client> findClientById(@PathVariable("id") Long id) {
-        Client client = clientService.findById(id).orElseThrow(() -> new ClientNotFoundRuntimeException("There is no Client with provided id:" + id));
+        Client client = clientService.findById(id).orElseThrow(
+                () -> new ClientNotFoundRuntimeException("There is no Client with provided id:" + id));
         return ResponseEntity.ok(client);
     }
 
@@ -79,7 +85,8 @@ public class ApplicationApi {
 
     @GetMapping(path = "employee/get/{id}", produces = "application/json; charset=UTF-8")
     public ResponseEntity<Employee> findEmployeeById(@PathVariable("id") Long id) {
-        Employee employee = employeeService.findById(id).orElseThrow(() -> new EmployeeNotFoundRuntimeException("There is no Employee with provided id:" + id));
+        Employee employee = employeeService.findById(id).orElseThrow(
+                () -> new EmployeeNotFoundRuntimeException("There is no Employee with provided id:" + id));
         return ResponseEntity.ok(employee);
     }
 
@@ -100,5 +107,18 @@ public class ApplicationApi {
                                                      @RequestBody Password password) {
         employeeService.updatePassword(employeeId, password);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(path = "user_account/get/{id}", produces = "application/json; charset=UTF-8")
+    public ResponseEntity<UserAccount> findUserAccountById(@PathVariable("id") Long id) {
+        UserAccount userAccount = userAccountService.findById(id).orElseThrow(
+                () -> new UserAccountNotFoundRuntimeException("There is no User with provided id:" + id));
+        return ResponseEntity.ok(userAccount);
+    }
+
+    @GetMapping(path = "user_account/find_all", produces = "application/json; charset=UTF-8")
+    public ResponseEntity<List<UserAccount>> findAllUserAccounts() {
+        List<UserAccount> userAccounts = userAccountService.findAll();
+        return ResponseEntity.ok(userAccounts);
     }
 }
