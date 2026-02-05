@@ -9,4 +9,7 @@ public interface ITransactionRepository {
     Long save(Transaction transaction);
     Optional<Transaction> findById(Long id);
     List<Transaction> findAll();
+    List<Transaction> findTransactionsByBankAccountFromId(Long bankAccountFromId);
+    List<Transaction> findTransactionsByBankAccountToId(Long bankAccountToId);
+    List<Transaction> findTransactionsBetweenBankAccounts(Long bankAccountFromId, Long bankAccountToId);
 }

@@ -1,6 +1,7 @@
 package main.java.com.alex.service.validation;
 
 import main.java.com.alex.Currency;
+import main.java.com.alex.exception.IllegalArgumentRuntimeException;
 import main.java.com.alex.exception.NullPointerRuntimeException;
 import main.java.com.alex.exception.SQLRuntimeException;
 
@@ -14,7 +15,7 @@ public class CurrencyValidation {
         try {
             Currency.valueOf(currency.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new SQLRuntimeException("Invalid or not supported currency value in database: " + currency);
+            throw new IllegalArgumentRuntimeException(message + ": " + currency);
         }
     }
 }

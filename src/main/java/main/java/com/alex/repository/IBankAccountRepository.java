@@ -9,6 +9,7 @@ public interface IBankAccountRepository {
     Long save(BankAccount bankAccount);
     Optional<BankAccount> findById(Long id);
     List<BankAccount> findAll();
-    void updateBalanceById(Long id, BankAccount bankAccount);
+    void updateBalance(BankAccount bankAccount);
     void deleteById(Long id);
+    boolean existsByNumber(String number);
 }

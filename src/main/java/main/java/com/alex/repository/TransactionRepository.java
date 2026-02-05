@@ -42,19 +42,36 @@ public class TransactionRepository implements ITransactionRepository{
     @Override
     public Optional<Transaction> findById(Long id) {
         String query = """
-                SELECT t.id,\s
-                t.transaction_type,\s
-                t.currency,\s
-                t.amount,\s
-                baf.number,\s
-                bat.number,\s
-                t.description,\s
-                t.create_date\s
+                SELECT\s
+                    t.id,\s
+                    t.transaction_type,\s
+                    t.currency,\s
+                    t.amount,\s
+                    t.description,\s
+                    t.create_date,\s
+                    t.modify_date,\s
+                    t.delete_date,\s
+                    baf.id AS baf_id,\s
+                    baf.number AS baf_number,\s
+                    baf.account_type AS baf_account_type,\s
+                    baf.currency AS baf_currency,\s
+                    baf.balance AS baf_balance,\s
+                    baf.create_date AS baf_create_date,\s
+                    baf.modify_date AS baf_modify_date,\s
+                    baf.delete_date AS baf_delete_date,\s
+                    bat.id AS bat_id,\s
+                    bat.number AS bat_number,\s
+                    bat.account_type AS bat_account_type,\s
+                    bat.currency AS bat_currency,\s
+                    bat.balance AS bat_balance,\s
+                    bat.create_date AS bat_create_date,\s
+                    bat.modify_date AS bat_modify_date,\s
+                    bat.delete_date AS bat_delete_date\s
                 FROM transaction AS t\s
                 LEFT JOIN bank_account AS baf ON t.bank_account_id_from = baf.id\s
                 LEFT JOIN bank_account AS bat ON t.bank_account_id_to = bat.id\s
                 WHERE t.id = ? AND t.delete_date IS NULL
-                """;
+               """;
         try {
             Transaction transaction = jdbcTemplate.queryForObject(query, new TransactionRowMapper(), id);
             return Optional.ofNullable(transaction);
@@ -66,21 +83,160 @@ public class TransactionRepository implements ITransactionRepository{
     @Override
     public List<Transaction> findAll() {
         String query = """
-                SELECT t.id,\s
-                t.transaction_type,\s
-                t.currency,\s
-                t.amount,\s
-                baf.number,\s
-                bat.number,\s
-                t.description,\s
-                t.create_date\s
+                SELECT\s
+                    t.id,\s
+                    t.transaction_type,\s
+                    t.currency,\s
+                    t.amount,\s
+                    t.description,\s
+                    t.create_date,\s
+                    t.modify_date,\s
+                    t.delete_date,\s
+                    baf.id AS baf_id,\s
+                    baf.number AS baf_number,\s
+                    baf.account_type AS baf_account_type,\s
+                    baf.currency AS baf_currency,\s
+                    baf.balance AS baf_balance,\s
+                    baf.create_date AS baf_create_date,\s
+                    baf.modify_date AS baf_modify_date,\s
+                    baf.delete_date AS baf_delete_date,\s
+                    bat.id AS bat_id,\s
+                    bat.number AS bat_number,\s
+                    bat.account_type AS bat_account_type,\s
+                    bat.currency AS bat_currency,\s
+                    bat.balance AS bat_balance,\s
+                    bat.create_date AS bat_create_date,\s
+                    bat.modify_date AS bat_modify_date,\s
+                    bat.delete_date AS bat_delete_date\s
                 FROM transaction AS t\s
                 LEFT JOIN bank_account AS baf ON t.bank_account_id_from = baf.id\s
                 LEFT JOIN bank_account AS bat ON t.bank_account_id_to = bat.id\s
                 WHERE t.delete_date IS NULL
-                """;
+               """;
         try {
             return jdbcTemplate.query(query, new TransactionRowMapper());
+        } catch (DataAccessException e) {
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<Transaction> findTransactionsByBankAccountFromId(Long bankAccountFromId) {
+        String query = """
+                SELECT\s
+                    t.id,\s
+                    t.transaction_type,\s
+                    t.currency,\s
+                    t.amount,\s
+                    t.description,\s
+                    t.create_date,\s
+                    t.modify_date,\s
+                    t.delete_date,\s
+                    baf.id AS baf_id,\s
+                    baf.number AS baf_number,\s
+                    baf.account_type AS baf_account_type,\s
+                    baf.currency AS baf_currency,\s
+                    baf.balance AS baf_balance,\s
+                    baf.create_date AS baf_create_date,\s
+                    baf.modify_date AS baf_modify_date,\s
+                    baf.delete_date AS baf_delete_date,\s
+                    bat.id AS bat_id,\s
+                    bat.number AS bat_number,\s
+                    bat.account_type AS bat_account_type,\s
+                    bat.currency AS bat_currency,\s
+                    bat.balance AS bat_balance,\s
+                    bat.create_date AS bat_create_date,\s
+                    bat.modify_date AS bat_modify_date,\s
+                    bat.delete_date AS bat_delete_date\s
+                FROM transaction AS t\s
+                LEFT JOIN bank_account AS baf ON t.bank_account_id_from = baf.id\s
+                LEFT JOIN bank_account AS bat ON t.bank_account_id_to = bat.id\s
+                WHERE t.bank_account_id_from = ? AND t.delete_date IS NULL
+               """;
+        try {
+            return jdbcTemplate.query(query, new TransactionRowMapper(), bankAccountFromId);
+        } catch (DataAccessException e) {
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<Transaction> findTransactionsByBankAccountToId(Long bankAccountToId) {
+        String query = """
+                SELECT\s
+                    t.id,\s
+                    t.transaction_type,\s
+                    t.currency,\s
+                    t.amount,\s
+                    t.description,\s
+                    t.create_date,\s
+                    t.modify_date,\s
+                    t.delete_date,\s
+                    baf.id AS baf_id,\s
+                    baf.number AS baf_number,\s
+                    baf.account_type AS baf_account_type,\s
+                    baf.currency AS baf_currency,\s
+                    baf.balance AS baf_balance,\s
+                    baf.create_date AS baf_create_date,\s
+                    baf.modify_date AS baf_modify_date,\s
+                    baf.delete_date AS baf_delete_date,\s
+                    bat.id AS bat_id,\s
+                    bat.number AS bat_number,\s
+                    bat.account_type AS bat_account_type,\s
+                    bat.currency AS bat_currency,\s
+                    bat.balance AS bat_balance,\s
+                    bat.create_date AS bat_create_date,\s
+                    bat.modify_date AS bat_modify_date,\s
+                    bat.delete_date AS bat_delete_date\s
+                FROM transaction AS t\s
+                LEFT JOIN bank_account AS baf ON t.bank_account_id_from = baf.id\s
+                LEFT JOIN bank_account AS bat ON t.bank_account_id_to = bat.id\s
+                WHERE t.bank_account_id_to = ? AND t.delete_date IS NULL
+               """;
+        try {
+            return jdbcTemplate.query(query, new TransactionRowMapper(), bankAccountToId);
+        } catch (DataAccessException e) {
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<Transaction> findTransactionsBetweenBankAccounts(Long bankAccountFromId, Long bankAccountToId) {
+        String query = """
+                SELECT\s
+                    t.id,\s
+                    t.transaction_type,\s
+                    t.currency,\s
+                    t.amount,\s
+                    t.description,\s
+                    t.create_date,\s
+                    t.modify_date,\s
+                    t.delete_date,\s
+                    baf.id AS baf_id,\s
+                    baf.number AS baf_number,\s
+                    baf.account_type AS baf_account_type,\s
+                    baf.currency AS baf_currency,\s
+                    baf.balance AS baf_balance,\s
+                    baf.create_date AS baf_create_date,\s
+                    baf.modify_date AS baf_modify_date,\s
+                    baf.delete_date AS baf_delete_date,\s
+                    bat.id AS bat_id,\s
+                    bat.number AS bat_number,\s
+                    bat.account_type AS bat_account_type,\s
+                    bat.currency AS bat_currency,\s
+                    bat.balance AS bat_balance,\s
+                    bat.create_date AS bat_create_date,\s
+                    bat.modify_date AS bat_modify_date,\s
+                    bat.delete_date AS bat_delete_date\s
+                FROM transaction AS t\s
+                LEFT JOIN bank_account AS baf ON t.bank_account_id_from = baf.id\s
+                LEFT JOIN bank_account AS bat ON t.bank_account_id_to = bat.id\s
+                WHERE t.bank_account_id_from = ?\s
+                  AND t.bank_account_id_to = ?\s
+                  AND t.delete_date IS NULL
+               """;
+        try {
+            return jdbcTemplate.query(query, new TransactionRowMapper(), bankAccountFromId, bankAccountToId);
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
         }

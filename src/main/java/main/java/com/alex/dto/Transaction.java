@@ -40,9 +40,6 @@ public class Transaction {
     @Column(name = "create_date", nullable = false)
     private LocalDateTime createDate;
 
-    @Column(name = "modify_date")
-    private LocalDateTime modifyDate;
-
     @Column(name = "delete_date")
     private LocalDateTime deleteDate;
 
@@ -76,7 +73,7 @@ public class Transaction {
 
     public Transaction(Long id, TransactionType transactionType, Currency currency, BigDecimal amount,
                        BankAccount bankAccountFrom, BankAccount bankAccountTo, String description,
-                       LocalDateTime createDate, LocalDateTime modifyDate, LocalDateTime deleteDate) {
+                       LocalDateTime createDate, LocalDateTime deleteDate) {
         this.id = id;
         this.transactionType = transactionType;
         this.currency = currency;
@@ -85,7 +82,6 @@ public class Transaction {
         this.bankAccountTo = bankAccountTo;
         this.description = description;
         this.createDate = createDate;
-        this.modifyDate = modifyDate;
         this.deleteDate = deleteDate;
     }
 
@@ -119,10 +115,6 @@ public class Transaction {
 
     public LocalDateTime getCreateDate() {
         return createDate;
-    }
-
-    public LocalDateTime getModifyDate() {
-        return modifyDate;
     }
 
     public LocalDateTime getDeleteDate() {

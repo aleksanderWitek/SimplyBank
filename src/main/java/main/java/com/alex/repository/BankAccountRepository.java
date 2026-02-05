@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-public class BankAccountRepository implements IBankAccountRepository{
+public class BankAccountRepository implements IBankAccountRepository {
 
     private final JdbcTemplate jdbcTemplate;
     private final ICommonJdbcRepository commonJdbcRepository;
@@ -77,7 +77,7 @@ public class BankAccountRepository implements IBankAccountRepository{
     }
 
     @Override
-    public void updateBalanceById(Long id, BankAccount bankAccount) {
+    public void updateBalance(BankAccount bankAccount) {
         String query = """
                 UPDATE bank_account\s
                 SET balance = ?,\s
@@ -88,9 +88,9 @@ public class BankAccountRepository implements IBankAccountRepository{
             int rowAffected = jdbcTemplate.update(query,
                     bankAccount.getBalance(),
                     bankAccount.getModifyDate(),
-                    id);
+                    bankAccount.getId());
             if(rowAffected == 0) {
-                throw new BankAccountNotFoundRuntimeException("There is no Bank Account with provided id = " + id);
+                throw new BankAccountNotFoundRuntimeException("There is no Bank Account with provided id = " + bankAccount.getId());
             }
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
@@ -111,6 +111,21 @@ public class BankAccountRepository implements IBankAccountRepository{
             if(rowAffected == 0) {
                 throw new BankAccountNotFoundRuntimeException("There is no Bank Account with provided id = " + id);
             }
+        } catch (DataAccessException e) {
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public boolean existsByNumber(String number) {
+        String query = """
+            SELECT COUNT(*)\s
+            FROM bank_account\s
+            WHERE number = ? AND delete_date IS NULL
+           """;
+        try {
+            Integer count = jdbcTemplate.queryForObject(query, Integer.class, number);
+            return count != null && count > 0;
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
         }

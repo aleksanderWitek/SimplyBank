@@ -1,12 +1,11 @@
 package main.java.com.alex;
 
-import main.java.com.alex.dto.Client;
-import main.java.com.alex.dto.Employee;
-import main.java.com.alex.dto.Password;
-import main.java.com.alex.dto.UserAccount;
+import main.java.com.alex.dto.*;
+import main.java.com.alex.exception.BankAccountNotFoundRuntimeException;
 import main.java.com.alex.exception.ClientNotFoundRuntimeException;
 import main.java.com.alex.exception.EmployeeNotFoundRuntimeException;
 import main.java.com.alex.exception.UserAccountNotFoundRuntimeException;
+import main.java.com.alex.service.IBankAccountService;
 import main.java.com.alex.service.IClientService;
 import main.java.com.alex.service.IEmployeeService;
 import main.java.com.alex.service.IUserAccountService;
@@ -25,12 +24,14 @@ public class ApplicationApi {
     private final IClientService clientService;
     private final IEmployeeService employeeService;
     private final IUserAccountService userAccountService;
+    private final IBankAccountService bankAccountService;
 
     public ApplicationApi(IClientService clientService, IEmployeeService employeeService,
-                          IUserAccountService userAccountService) {
+                          IUserAccountService userAccountService, IBankAccountService bankAccountService) {
         this.clientService = clientService;
         this.employeeService = employeeService;
         this.userAccountService = userAccountService;
+        this.bankAccountService = bankAccountService;
     }
 
     @PostMapping(path = "client/save", consumes = "application/json", produces = "application/json; charset=UTF-8")
@@ -120,5 +121,28 @@ public class ApplicationApi {
     public ResponseEntity<List<UserAccount>> findAllUserAccounts() {
         List<UserAccount> userAccounts = userAccountService.findAll();
         return ResponseEntity.ok(userAccounts);
+    }
+
+    @PostMapping(path = "bank_account/save", consumes = "application/json", produces = "application/json; charset=UTF-8")
+    public ResponseEntity<BankAccount> saveBankAccount(
+            @RequestParam(value = "client_id") Long clientId,
+            @RequestParam(value = "bank_account_type") String bankAccountType,
+            @RequestParam(value = "bank_account_currency") String bankAccountCurrency
+    ) {
+        BankAccount bankAccount = bankAccountService.save(clientId, bankAccountType, bankAccountCurrency);
+        return ResponseEntity.status(HttpStatus.CREATED).body(bankAccount);
+    }
+
+    @GetMapping(path = "bank_account/get/{id}", produces = "application/json; charset=UTF-8")
+    public ResponseEntity<BankAccount> findBankAccountById(@PathVariable("id") Long id) {
+        BankAccount bankAccount = bankAccountService.findById(id).orElseThrow(
+                () -> new BankAccountNotFoundRuntimeException("There is no bank account with provided id:" + id));
+        return ResponseEntity.ok(bankAccount);
+    }
+
+    @GetMapping(path = "bank_account/find_all", produces = "application/json; charset=UTF-8")
+    public ResponseEntity<List<BankAccount>> findAllBankAccounts() {
+        List<BankAccount> bankAccounts = bankAccountService.findAll();
+        return ResponseEntity.ok(bankAccounts);
     }
 }

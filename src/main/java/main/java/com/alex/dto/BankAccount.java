@@ -46,6 +46,9 @@ public class BankAccount {
     @OneToMany(mappedBy = "bankAccountTo", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Transaction> transactionsTo = new ArrayList<>();
 
+    @ManyToMany(mappedBy = "bankAccounts")
+    private List<Client> clients = new ArrayList<>();
+
     public BankAccount() {
     }
 
@@ -109,5 +112,25 @@ public class BankAccount {
 
     public LocalDateTime getDeleteDate() {
         return deleteDate;
+    }
+
+    public List<Transaction> getTransactionsFrom() {
+        return transactionsFrom;
+    }
+
+    public List<Transaction> getTransactionsTo() {
+        return transactionsTo;
+    }
+
+    public List<Client> getClients() {
+        return clients;
+    }
+
+    public void addTransactionFrom(Transaction transaction) {
+        this.transactionsFrom.add(transaction);
+    }
+
+    public void addTransactionTo(Transaction transaction) {
+        this.transactionsTo.add(transaction);
     }
 }

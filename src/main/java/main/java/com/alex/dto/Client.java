@@ -44,6 +44,14 @@ public class Client {
     @ManyToMany(mappedBy = "client")
     private final List<UserAccount> userAccount = new ArrayList<>();
 
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "bank_account_client",
+            joinColumns = @JoinColumn(name = "client_id"),
+            inverseJoinColumns = @JoinColumn(name = "bank_account_id")
+    )
+    private final List<BankAccount> bankAccounts = new ArrayList<>();
+
     public Client() {
     }
 
@@ -129,13 +137,17 @@ public class Client {
         return userAccount;
     }
 
-    public void addUserAccount(UserAccount userAccount) {
-        this.userAccount.add(userAccount);
-        userAccount.getClient().add(this);
+    public List<BankAccount> getBankAccounts() {
+        return bankAccounts;
     }
 
-    public void removeUserAccount(UserAccount userAccount) {
-        this.userAccount.remove(userAccount);
-        userAccount.getClient().remove(this);
+    public void addBankAccount(BankAccount bankAccount){
+        this.bankAccounts.add(bankAccount);
+        bankAccount.getClients().add(this);
+    }
+
+    public void removeBankAccount(BankAccount bankAccount){
+        this.bankAccounts.remove(bankAccount);
+        bankAccount.getClients().remove(this);
     }
 }

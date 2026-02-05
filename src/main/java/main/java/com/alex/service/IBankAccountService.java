@@ -6,9 +6,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IBankAccountService {
-    BankAccount save(BankAccount bankAccount);
-    void updateBalanceById(Long id, BankAccount bankAccount);
+    BankAccount save(Long clientId, String bankAccountType, String bankAccountCurrency);
+    void updateBalance(BankAccount bankAccount);
     Optional<BankAccount> findById(Long id);
     List<BankAccount> findAll();
     void deleteById(Long id);
+    String generateUniqueBankAccountNumber();
 }

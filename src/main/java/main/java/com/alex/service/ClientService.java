@@ -23,7 +23,8 @@ public class ClientService implements IClientService {
     private final IUserAccountClientRepository userAccountClientRepository;
     private final IUserAccountService userAccountService;
 
-    public ClientService(IClientRepository clientRepository, IUserAccountClientRepository userAccountClientRepository, IUserAccountService userAccountService) {
+    public ClientService(IClientRepository clientRepository, IUserAccountClientRepository userAccountClientRepository,
+                         IUserAccountService userAccountService) {
         this.clientRepository = clientRepository;
         this.userAccountClientRepository = userAccountClientRepository;
         this.userAccountService = userAccountService;
@@ -42,7 +43,9 @@ public class ClientService implements IClientService {
                 clientWithCreateDate.getIdentificationNumber(), clientWithCreateDate.getCreateDate());
         UserAccount userAccount = userAccountService.save(client.getFirstName(), client.getLastName(),
                 UserAccountRole.CLIENT);
-        savedClient.addUserAccount(userAccount);
+        //todo Check if there is reason to use helper methods for JdbcTemplate
+        // because it looks for me like it is not needed
+        userAccount.addClient(savedClient);
         userAccountClientRepository.linkUserAccountToClient(userAccount.getId(), id);
         return savedClient;
     }
@@ -52,7 +55,6 @@ public class ClientService implements IClientService {
     public void updateById(Long id, Client client) {
         IdValidation.ensureIdPresent(id);
         ClientValidation.ensureClientPresent(client);
-
         clientRepository.updateById(id, client);
     }
 

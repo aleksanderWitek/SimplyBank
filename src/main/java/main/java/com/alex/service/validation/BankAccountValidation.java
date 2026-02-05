@@ -2,6 +2,8 @@ package main.java.com.alex.service.validation;
 
 import main.java.com.alex.BankAccountType;
 import main.java.com.alex.dto.BankAccount;
+import main.java.com.alex.exception.IllegalArgumentRuntimeException;
+import main.java.com.alex.exception.IllegalStateRuntimeException;
 import main.java.com.alex.exception.NullPointerRuntimeException;
 import main.java.com.alex.exception.SQLRuntimeException;
 
@@ -27,7 +29,7 @@ public class BankAccountValidation {
         try {
             BankAccountType.valueOf(bankAccountType.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new SQLRuntimeException(message);
+            throw new IllegalArgumentRuntimeException(message + ": " + bankAccountType);
         }
     }
 }
