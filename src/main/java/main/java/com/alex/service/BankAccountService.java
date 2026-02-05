@@ -5,6 +5,7 @@ import main.java.com.alex.Currency;
 import main.java.com.alex.dto.BankAccount;
 import main.java.com.alex.dto.Client;
 import main.java.com.alex.exception.ClientNotFoundRuntimeException;
+import main.java.com.alex.exception.IllegalStateRuntimeException;
 import main.java.com.alex.repository.IBankAccountClientRepository;
 import main.java.com.alex.repository.IBankAccountRepository;
 import main.java.com.alex.service.validation.BankAccountValidation;
@@ -39,6 +40,7 @@ public class BankAccountService implements IBankAccountService{
     @Transactional
     @Override
     public BankAccount save(Long clientId, String bankAccountType, String bankAccountCurrency) {
+        IdValidation.ensureIdPresent(clientId);
         BankAccountValidation.validateIfBankAccountTypeIsCorrect(bankAccountType, "Invalid bank account type");
         CurrencyValidation.validateIfCurrencyIsCorrect(bankAccountCurrency, "Invalid or not supported currency value");
 
@@ -64,7 +66,7 @@ public class BankAccountService implements IBankAccountService{
         );
         bankAccountClientRepository.linkBankAccountToClient(id, clientId);
         Client client = clientService.findById(clientId).orElseThrow(() ->
-                new ClientNotFoundRuntimeException("There is no Client with id:" + id));
+                new ClientNotFoundRuntimeException("There is no Client with id:" + clientId));
         client.addBankAccount(saveBankAccount);
         return saveBankAccount;
     }
@@ -110,7 +112,7 @@ public class BankAccountService implements IBankAccountService{
             }
             attempts++;
         }
-        throw new RuntimeException("Unable to generate unique bank account number after "
+        throw new IllegalStateRuntimeException("Unable to generate unique bank account number after "
                 + MAX_GENERATION_ATTEMPTS + " attempts");
     }
 

@@ -9,13 +9,11 @@ import main.java.com.alex.service.IBankAccountService;
 import main.java.com.alex.service.IClientService;
 import main.java.com.alex.service.IEmployeeService;
 import main.java.com.alex.service.IUserAccountService;
-import org.springframework.boot.actuate.autoconfigure.observation.ObservationProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("api/")
