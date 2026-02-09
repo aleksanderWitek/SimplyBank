@@ -33,33 +33,29 @@ public class TransactionService implements ITransactionService {
     @Override
     public Transaction transfer(Long bankAccountFromId, Long bankAccountToId,
                                 BigDecimal amount, String currency, String description) {
-        IdValidation.ensureIdPresent(bankAccountFromId);
-        IdValidation.ensureIdPresent(bankAccountToId);
-        TransactionValidation.validateIfBankAccountsAreTheSameForTransaction(bankAccountFromId, bankAccountToId);
-        CurrencyValidation.validateIfCurrencyIsCorrect(currency, "Invalid or not supported currency value");
-        TransactionValidation.validateAmount(amount);
+        validateTransferInputData(bankAccountFromId, bankAccountToId, amount, currency);
 
-        BankAccount from = bankAccountService.findById(bankAccountFromId)
+        BankAccount bankAccountFrom = bankAccountService.findById(bankAccountFromId)
                 .orElseThrow(() -> new BankAccountNotFoundRuntimeException(
                         "Bank account (from) not found with id: " + bankAccountFromId));
-        BankAccount to = bankAccountService.findById(bankAccountToId)
+        BankAccount bankAccountTo = bankAccountService.findById(bankAccountToId)
                 .orElseThrow(() -> new BankAccountNotFoundRuntimeException(
                         "Bank account (to) not found with id: " + bankAccountToId));
 
-        TransactionValidation.validateSufficientBalance(from, amount);
+        TransactionValidation.validateSufficientBalance(bankAccountFrom, amount);
 
-        BankAccount updatedFrom = new BankAccount(from.getId(), from.getNumber(), from.getAccountType(),
-                from.getCurrency(), from.getBalance().subtract(amount),
-                from.getCreateDate(), LocalDateTime.now(), from.getDeleteDate());
-        BankAccount updatedTo = new BankAccount(to.getId(), to.getNumber(), to.getAccountType(),
-                to.getCurrency(), to.getBalance().add(amount),
-                to.getCreateDate(), LocalDateTime.now(), to.getDeleteDate());
+        BankAccount updatedBankAccountFrom = new BankAccount(bankAccountFrom.getId(), bankAccountFrom.getNumber(), bankAccountFrom.getAccountType(),
+                bankAccountFrom.getCurrency(), bankAccountFrom.getBalance().subtract(amount),
+                bankAccountFrom.getCreateDate(), LocalDateTime.now(), bankAccountFrom.getDeleteDate());
+        BankAccount updatedBankAccountTo = new BankAccount(bankAccountTo.getId(), bankAccountTo.getNumber(), bankAccountTo.getAccountType(),
+                bankAccountTo.getCurrency(), bankAccountTo.getBalance().add(amount),
+                bankAccountTo.getCreateDate(), LocalDateTime.now(), bankAccountTo.getDeleteDate());
 
-        bankAccountService.updateBalance(updatedFrom);
-        bankAccountService.updateBalance(updatedTo);
+        bankAccountService.updateBalance(updatedBankAccountFrom);
+        bankAccountService.updateBalance(updatedBankAccountTo);
 
         Transaction transaction = new Transaction(TransactionType.TRANSFER,
-                Currency.valueOf(currency.toUpperCase()), amount, from, to,
+                Currency.valueOf(currency.toUpperCase()), amount, bankAccountFrom, bankAccountTo,
                 description, LocalDateTime.now());
 
         Long id = transactionRepository.save(transaction);
@@ -72,21 +68,19 @@ public class TransactionService implements ITransactionService {
     @Override
     public Transaction deposit(Long bankAccountToId, BigDecimal amount,
                                String currency, String description) {
-        IdValidation.ensureIdPresent(bankAccountToId);
-        CurrencyValidation.validateIfCurrencyIsCorrect(currency, "Invalid or not supported currency value");
-        TransactionValidation.validateAmount(amount);
+        validateInputData(bankAccountToId, amount, currency);
 
-        BankAccount to = bankAccountService.findById(bankAccountToId)
+        BankAccount bankAccountTo = bankAccountService.findById(bankAccountToId)
                 .orElseThrow(() -> new BankAccountNotFoundRuntimeException(
                         "Bank account not found with id: " + bankAccountToId));
 
-        BankAccount updatedTo = new BankAccount(to.getId(), to.getNumber(), to.getAccountType(),
-                to.getCurrency(), to.getBalance().add(amount),
-                to.getCreateDate(), LocalDateTime.now(), to.getDeleteDate());
-        bankAccountService.updateBalance(updatedTo);
+        BankAccount updatedBankAccountTo = new BankAccount(bankAccountTo.getId(), bankAccountTo.getNumber(),
+                bankAccountTo.getAccountType(), bankAccountTo.getCurrency(), bankAccountTo.getBalance().add(amount),
+                bankAccountTo.getCreateDate(), LocalDateTime.now(), bankAccountTo.getDeleteDate());
+        bankAccountService.updateBalance(updatedBankAccountTo);
 
         Transaction transaction = new Transaction(TransactionType.DEPOSIT,
-                Currency.valueOf(currency.toUpperCase()), amount, null, to,
+                Currency.valueOf(currency.toUpperCase()), amount, null, bankAccountTo,
                 description, LocalDateTime.now());
 
         Long id = transactionRepository.save(transaction);
@@ -99,23 +93,22 @@ public class TransactionService implements ITransactionService {
     @Override
     public Transaction withdraw(Long bankAccountFromId, BigDecimal amount,
                                 String currency, String description) {
-        IdValidation.ensureIdPresent(bankAccountFromId);
-        CurrencyValidation.validateIfCurrencyIsCorrect(currency, "Invalid or not supported currency value");
-        TransactionValidation.validateAmount(amount);
+        validateInputData(bankAccountFromId, amount, currency);
 
-        BankAccount from = bankAccountService.findById(bankAccountFromId)
+        BankAccount bankAccountFrom = bankAccountService.findById(bankAccountFromId)
                 .orElseThrow(() -> new BankAccountNotFoundRuntimeException(
                         "Bank account not found with id: " + bankAccountFromId));
 
-        TransactionValidation.validateSufficientBalance(from, amount);
+        TransactionValidation.validateSufficientBalance(bankAccountFrom, amount);
 
-        BankAccount updatedFrom = new BankAccount(from.getId(), from.getNumber(), from.getAccountType(),
-                from.getCurrency(), from.getBalance().subtract(amount),
-                from.getCreateDate(), LocalDateTime.now(), from.getDeleteDate());
-        bankAccountService.updateBalance(updatedFrom);
+        BankAccount updatedBankAccountFrom = new BankAccount(bankAccountFrom.getId(), bankAccountFrom.getNumber(),
+                bankAccountFrom.getAccountType(), bankAccountFrom.getCurrency(),
+                bankAccountFrom.getBalance().subtract(amount), bankAccountFrom.getCreateDate(), LocalDateTime.now(),
+                bankAccountFrom.getDeleteDate());
+        bankAccountService.updateBalance(updatedBankAccountFrom);
 
         Transaction transaction = new Transaction(TransactionType.WITHDRAWAL,
-                Currency.valueOf(currency.toUpperCase()), amount, from, null,
+                Currency.valueOf(currency.toUpperCase()), amount, bankAccountFrom, null,
                 description, LocalDateTime.now());
 
         Long id = transactionRepository.save(transaction);
@@ -157,5 +150,20 @@ public class TransactionService implements ITransactionService {
         IdValidation.ensureIdPresent(bankAccountFromId);
         IdValidation.ensureIdPresent(bankAccountToId);
         return transactionRepository.findTransactionsBetweenBankAccounts(bankAccountFromId, bankAccountToId);
+    }
+
+    private void validateTransferInputData(Long bankAccountFromId, Long bankAccountToId,
+                                           BigDecimal amount, String currency) {
+        IdValidation.ensureIdPresent(bankAccountFromId);
+        IdValidation.ensureIdPresent(bankAccountToId);
+        TransactionValidation.validateIfBankAccountsAreTheSameForTransaction(bankAccountFromId, bankAccountToId);
+        CurrencyValidation.validateIfCurrencyIsCorrect(currency, "Invalid or not supported currency value");
+        TransactionValidation.validateAmount(amount);
+    }
+
+    private void validateInputData(Long bankAccountId, BigDecimal amount, String currency) {
+        IdValidation.ensureIdPresent(bankAccountId);
+        CurrencyValidation.validateIfCurrencyIsCorrect(currency, "Invalid or not supported currency value");
+        TransactionValidation.validateAmount(amount);
     }
 }

@@ -8,6 +8,9 @@ import main.java.com.alex.repository.IUserAccountRepository;
 import main.java.com.alex.service.validation.IdValidation;
 import main.java.com.alex.service.validation.PasswordValidation;
 import main.java.com.alex.service.validation.UserAccountValidation;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,5 +89,19 @@ public class UserAccountService implements IUserAccountService{
     public void deleteById(Long id) {
         IdValidation.ensureIdPresent(id);
         userAccountRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public UserDetails loadUserByUsername(String login) {
+        UserAccount userAccount = userAccountRepository.findByLogin(login)
+                .orElseThrow(() -> new UsernameNotFoundException(
+                        "User not found with login: " + login));
+
+        return User.builder()
+                .username(userAccount.getLogin())
+                .password(userAccount.getPassword())
+                .roles(userAccount.getRole().name())
+                .build();
     }
 }

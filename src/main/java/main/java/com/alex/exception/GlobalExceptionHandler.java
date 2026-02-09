@@ -70,6 +70,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler(TransactionNotFoundRuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleTransactionNotFound(TransactionNotFoundRuntimeException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
     @ExceptionHandler(IllegalStateRuntimeException.class)
     public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateRuntimeException ex) {
         ErrorResponse error = new ErrorResponse(

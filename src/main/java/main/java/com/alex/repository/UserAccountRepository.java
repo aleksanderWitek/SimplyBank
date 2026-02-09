@@ -59,6 +59,27 @@ public class UserAccountRepository implements IUserAccountRepository{
     }
 
     @Override
+    public Optional<UserAccount> findByLogin(String login) {
+        String query = """
+                SELECT ua.id,\s
+                ua.login,\s
+                ua.password,\s
+                ua.role,\s
+                ua.create_date,\s
+                ua.modify_date,\s
+                ua.delete_date\s
+                FROM user_account AS ua\s
+                WHERE ua.login = ? AND ua.delete_date IS NULL
+                """;
+        try {
+            UserAccount userAccount = jdbcTemplate.queryForObject(query, new UserAccountRowMapper(), login);
+            return Optional.ofNullable(userAccount);
+        } catch (DataAccessException e) {
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
+    }
+
+    @Override
     public List<UserAccount> findAll() {
         String query = """
                 SELECT ua.id,\s
