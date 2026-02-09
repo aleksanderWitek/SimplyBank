@@ -37,8 +37,7 @@ public class TransactionRowMapper implements RowMapper<Transaction> {
                     bankAccountFrom,
                     bankAccountTo,
                     rs.getString("description"),
-                    createDate.toLocalDateTime(),
-                    deleteDate != null ? deleteDate.toLocalDateTime() : null
+                    createDate.toLocalDateTime()
             );
         } catch (SQLException e) {
             throw new SQLRuntimeException("Database exception: " + e.getMessage());

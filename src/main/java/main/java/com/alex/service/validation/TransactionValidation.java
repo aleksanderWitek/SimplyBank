@@ -1,18 +1,13 @@
 package main.java.com.alex.service.validation;
 
-import main.java.com.alex.TransactionType;
 import main.java.com.alex.dto.BankAccount;
-import main.java.com.alex.dto.Transaction;
-import main.java.com.alex.exception.NullPointerRuntimeException;
+import main.java.com.alex.exception.IllegalArgumentRuntimeException;
+import main.java.com.alex.exception.IllegalStateRuntimeException;
 import main.java.com.alex.exception.SQLRuntimeException;
 
-public class TransactionValidation {
+import java.math.BigDecimal;
 
-    public static void ensureTransactionPresent(Transaction transaction) {
-        if (transaction == null) {
-            throw new NullPointerRuntimeException("Transaction is null");
-        }
-    }
+public class TransactionValidation {
 
     public static void validateIfBankAccountsAreTheSameForTransaction(Long bankAccountIdFrom,
                                                                       Long bankAccountIdTo) {
@@ -21,15 +16,15 @@ public class TransactionValidation {
         }
     }
 
-    public static void validateIfTransactionTypeIsCorrect(String transactionType, String message){
-        if (transactionType == null || transactionType.isBlank()) {
-            throw new NullPointerRuntimeException(message);
+    public static void validateAmount(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentRuntimeException("Amount must be greater than zero");
         }
+    }
 
-        try {
-            TransactionType.valueOf(transactionType.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new SQLRuntimeException("Invalid transaction type value in database: " + transactionType);
+    public static void validateSufficientBalance(BankAccount bankAccount, BigDecimal amount) {
+        if (bankAccount.getBalance().compareTo(amount) < 0) {
+            throw new IllegalStateRuntimeException("Insufficient balance on account: " + bankAccount.getNumber());
         }
     }
 }

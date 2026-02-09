@@ -5,6 +5,7 @@ import main.java.com.alex.dto.Client;
 import main.java.com.alex.dto.Password;
 import main.java.com.alex.dto.UserAccount;
 import main.java.com.alex.exception.UserAccountNotFoundRuntimeException;
+import main.java.com.alex.repository.IBankAccountClientRepository;
 import main.java.com.alex.repository.IClientRepository;
 import main.java.com.alex.repository.IUserAccountClientRepository;
 import main.java.com.alex.service.validation.ClientValidation;
@@ -21,12 +22,16 @@ public class ClientService implements IClientService {
 
     private final IClientRepository clientRepository;
     private final IUserAccountClientRepository userAccountClientRepository;
+    private final IBankAccountClientRepository bankAccountClientRepository;
     private final IUserAccountService userAccountService;
 
-    public ClientService(IClientRepository clientRepository, IUserAccountClientRepository userAccountClientRepository,
+    public ClientService(IClientRepository clientRepository,
+                         IUserAccountClientRepository userAccountClientRepository,
+                         IBankAccountClientRepository bankAccountClientRepository,
                          IUserAccountService userAccountService) {
         this.clientRepository = clientRepository;
         this.userAccountClientRepository = userAccountClientRepository;
+        this.bankAccountClientRepository = bankAccountClientRepository;
         this.userAccountService = userAccountService;
     }
 
@@ -77,6 +82,8 @@ public class ClientService implements IClientService {
         IdValidation.ensureIdPresent(id);
         Long userAccountId = userAccountClientRepository.findUserAccountIdByClientId(id)
                 .orElseThrow(() -> new UserAccountNotFoundRuntimeException("There is no User Account linked to Client with id:" + id));
+        List<Long> bankAccountsId = bankAccountClientRepository.findBankAccountsIdLinkedToClientByClientId(id);
+        bankAccountsId.forEach(bankAccountId -> bankAccountClientRepository.unlinkBankAccountToClient(bankAccountId, id));
         userAccountClientRepository.unlinkUserAccountFromClient(userAccountId, id);
         userAccountService.deleteById(userAccountId);
         clientRepository.deleteById(id);

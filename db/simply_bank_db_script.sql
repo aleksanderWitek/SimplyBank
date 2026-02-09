@@ -102,7 +102,6 @@ CREATE TABLE transaction (
     bank_account_id_to INT,
     description VARCHAR(255),
     create_date DATETIME NOT NULL,
-    delete_date DATETIME,
     CONSTRAINT pk_transaction PRIMARY KEY(id),
     CONSTRAINT fk_transaction_bank_account_from FOREIGN KEY(bank_account_id_from) REFERENCES bank_account(id),
     CONSTRAINT fk_transaction_bank_account_to FOREIGN KEY(bank_account_id_to) REFERENCES bank_account(id),
