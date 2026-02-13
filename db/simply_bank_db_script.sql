@@ -4,8 +4,8 @@ USE simply_bank_db;
 
 CREATE TABLE user_account (
     id INT NOT NULL AUTO_INCREMENT,
-    login VARCHAR(12) NOT NULL,
-    password VARCHAR(12) NOT NULL,
+    login VARCHAR(20) NOT NULL,
+    password VARCHAR(60) NOT NULL,
     role VARCHAR(50) NOT NULL,
     create_date DATETIME NOT NULL,
     modify_date DATETIME,
@@ -102,8 +102,6 @@ CREATE TABLE transaction (
     bank_account_id_to INT,
     description VARCHAR(255),
     create_date DATETIME NOT NULL,
-    modify_date DATETIME,
-    delete_date DATETIME,
     CONSTRAINT pk_transaction PRIMARY KEY(id),
     CONSTRAINT fk_transaction_bank_account_from FOREIGN KEY(bank_account_id_from) REFERENCES bank_account(id),
     CONSTRAINT fk_transaction_bank_account_to FOREIGN KEY(bank_account_id_to) REFERENCES bank_account(id),
