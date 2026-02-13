@@ -24,7 +24,17 @@ public class SecurityConfig {
                 .sessionManagement(sm ->
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Allow static resources (CSS, JS, images)
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/*.css", "/*.js").permitAll()
+                        // Allow login page
+                        .requestMatchers("/login.html", "/register.html").permitAll()
+                        // Allow authentication endpoints
                         .requestMatchers("/api/auth/**").permitAll()
+                        // Protect dashboard and other pages (require authentication)
+                        .requestMatchers("/dashboard.html", "/accounts.html", "/transactions.html").authenticated()
+                        // Protect all API endpoints
+                        .requestMatchers("/api/**").authenticated()
+                        // Any other request needs authentication
                         .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());

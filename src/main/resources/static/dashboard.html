@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SimplyBank</title>
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <rect width="32" height="32" rx="8" fill="#2563eb"/>
+                    <path d="M16 8L22 14H18V20H14V14H10L16 8Z" fill="white"/>
+                    <rect x="10" y="22" width="12" height="2" fill="white"/>
+                </svg>
+                <span class="logo-text">SimplyBank</span>
+            </div>
+            <nav class="nav">
+                <a href="#" class="nav-link active">Dashboard</a>
+                <a href="#" class="nav-link">Accounts</a>
+                <a href="#" class="nav-link">Transactions</a>
+                <a href="#" class="nav-link">Transfer</a>
+            </nav>
+            <div class="header-actions">
+                <button class="icon-button">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                        <path d="M15 17v-3a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v3" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="9" cy="4" r="3" stroke-width="2"/>
+                    </svg>
+                </button>
+                <button class="icon-button">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                        <path d="M10 17.5C14.1421 17.5 17.5 14.1421 17.5 10C17.5 5.85786 14.1421 2.5 10 2.5C5.85786 2.5 2.5 5.85786 2.5 10C2.5 14.1421 5.85786 17.5 10 17.5Z" stroke-width="2"/>
+                        <path d="M10 6V10L13 13" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <div class="user-menu">
+                    <span class="user-name">Alex M.</span>
+                    <button class="user-avatar">AM</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Welcome Section -->
+            <section class="welcome-section">
+                <div>
+                    <h1 class="page-title">Welcome back, Alex</h1>
+                    <p class="page-subtitle">Here's what's happening with your accounts today</p>
+                </div>
+                <button class="btn btn-primary">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                        <line x1="10" y1="5" x2="10" y2="15" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="5" y1="10" x2="15" y2="10" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    New Transaction
+                </button>
+            </section>
+
+            <!-- Account Cards -->
+            <section class="accounts-section">
+                <div class="account-card primary">
+                    <div class="account-header">
+                        <div>
+                            <p class="account-label">Main Checking</p>
+                            <p class="account-number">••••5432</p>
+                        </div>
+                        <div class="account-badge">Primary</div>
+                    </div>
+                    <div class="account-balance">
+                        <span class="currency">€</span>
+                        <span class="amount">12,458.50</span>
+                    </div>
+                    <div class="account-footer">
+                        <div class="account-stat">
+                            <span class="stat-label">Available</span>
+                            <span class="stat-value">€12,458.50</span>
+                        </div>
+                        <button class="btn-link">View Details →</button>
+                    </div>
+                </div>
+
+                <div class="account-card">
+                    <div class="account-header">
+                        <div>
+                            <p class="account-label">Savings Account</p>
+                            <p class="account-number">••••7891</p>
+                        </div>
+                    </div>
+                    <div class="account-balance">
+                        <span class="currency">€</span>
+                        <span class="amount">45,230.00</span>
+                    </div>
+                    <div class="account-footer">
+                        <div class="account-stat">
+                            <span class="stat-label">Interest Rate</span>
+                            <span class="stat-value">2.5% APY</span>
+                        </div>
+                        <button class="btn-link">View Details →</button>
+                    </div>
+                </div>
+
+                <div class="account-card">
+                    <div class="account-header">
+                        <div>
+                            <p class="account-label">Credit Card</p>
+                            <p class="account-number">••••3456</p>
+                        </div>
+                    </div>
+                    <div class="account-balance credit">
+                        <span class="currency">€</span>
+                        <span class="amount">1,847.32</span>
+                    </div>
+                    <div class="account-footer">
+                        <div class="account-stat">
+                            <span class="stat-label">Credit Limit</span>
+                            <span class="stat-value">€15,000</span>
+                        </div>
+                        <button class="btn-link">View Details →</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="quick-actions">
+                <h2 class="section-title">Quick Actions</h2>
+                <div class="actions-grid">
+                    <button class="action-card">
+                        <div class="action-icon blue">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M2 17L12 22L22 17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M2 12L12 17L22 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <span class="action-label">Transfer Money</span>
+                    </button>
+                    <button class="action-card">
+                        <div class="action-icon green">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/>
+                                <line x1="12" y1="8" x2="12" y2="16" stroke-width="2" stroke-linecap="round"/>
+                                <line x1="8" y1="12" x2="16" y2="12" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <span class="action-label">Deposit</span>
+                    </button>
+                    <button class="action-card">
+                        <div class="action-icon purple">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M21 4H8L1 12L8 20H21C21.5304 20 22.0391 19.7893 22.4142 19.4142C22.7893 19.0391 23 18.5304 23 18V6C23 5.46957 22.7893 4.96086 22.4142 4.58579C22.0391 4.21071 21.5304 4 21 4Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M14 9L17 12L14 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <span class="action-label">Pay Bills</span>
+                    </button>
+                    <button class="action-card">
+                        <div class="action-icon orange">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M22 12H18L15 21L9 3L6 12H2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <span class="action-label">Analytics</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Recent Transactions -->
+            <section class="transactions-section">
+                <div class="section-header">
+                    <h2 class="section-title">Recent Transactions</h2>
+                    <button class="btn btn-secondary">View All</button>
+                </div>
+                <div class="transactions-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Date</th>
+                                <th>Account</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="transaction-desc">
+                                        <div class="transaction-icon blue">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M10 2C5.58 2 2 5.58 2 10C2 14.42 5.58 18 10 18C14.42 18 18 14.42 18 10C18 5.58 14.42 2 10 2ZM13.5 13.5L9.5 11V6H11V10.2L14 12L13.5 13.5Z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="transaction-name">Amazon Purchase</p>
+                                            <p class="transaction-category">Online Shopping</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Feb 11, 2026</td>
+                                <td>Checking ••5432</td>
+                                <td class="amount negative">-€87.42</td>
+                                <td><span class="status-badge completed">Completed</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="transaction-desc">
+                                        <div class="transaction-icon green">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M16 10C16 13.314 13.314 16 10 16C6.686 16 4 13.314 4 10C4 6.686 6.686 4 10 4C13.314 4 16 6.686 16 10Z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="transaction-name">Salary Deposit</p>
+                                            <p class="transaction-category">Income</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Feb 10, 2026</td>
+                                <td>Checking ••5432</td>
+                                <td class="amount positive">+€3,500.00</td>
+                                <td><span class="status-badge completed">Completed</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="transaction-desc">
+                                        <div class="transaction-icon purple">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M4 4H16V6H4V4ZM4 8H16V16H4V8Z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="transaction-name">Electric Bill</p>
+                                            <p class="transaction-category">Utilities</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Feb 9, 2026</td>
+                                <td>Checking ••5432</td>
+                                <td class="amount negative">-€124.67</td>
+                                <td><span class="status-badge completed">Completed</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="transaction-desc">
+                                        <div class="transaction-icon orange">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M10 2L3 7V17H8V12H12V17H17V7L10 2Z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="transaction-name">Rent Payment</p>
+                                            <p class="transaction-category">Housing</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Feb 5, 2026</td>
+                                <td>Checking ••5432</td>
+                                <td class="amount negative">-€1,200.00</td>
+                                <td><span class="status-badge completed">Completed</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="transaction-desc">
+                                        <div class="transaction-icon blue">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M10 2C5.58 2 2 5.58 2 10C2 14.42 5.58 18 10 18C14.42 18 18 14.42 18 10C18 5.58 14.42 2 10 2ZM13.5 13.5L9.5 11V6H11V10.2L14 12L13.5 13.5Z"/>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="transaction-name">Grocery Store</p>
+                                            <p class="transaction-category">Food & Dining</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Feb 4, 2026</td>
+                                <td>Credit ••3456</td>
+                                <td class="amount negative">-€156.23</td>
+                                <td><span class="status-badge pending">Pending</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Example: Load transactions dynamically
+        function loadTransactions() {
+            $.ajax({
+                url: "/api/transactions/recent",
+                type: "GET",
+                dataType: "json"
+            })
+            .done(function(data) {
+                // Update table with real data
+                console.log("Transactions loaded:", data);
+            })
+            .fail(function(jqxhr, textStatus, errorThrown) {
+                console.error("Failed to load transactions:", errorThrown);
+            });
+        }
+
+        // Example: Load account balances
+        function loadAccountBalances() {
+            $.ajax({
+                url: "/api/accounts/summary",
+                type: "GET",
+                dataType: "json"
+            })
+            .done(function(data) {
+                // Update account cards with real data
+                console.log("Accounts loaded:", data);
+            })
+            .fail(function(jqxhr, textStatus, errorThrown) {
+                console.error("Failed to load accounts:", errorThrown);
+            });
+        }
+
+        // Initialize on page load
+        $(document).ready(function() {
+            // Uncomment when your API endpoints are ready
+            // loadTransactions();
+            // loadAccountBalances();
+        });
+    </script>
+</body>
+</html>
