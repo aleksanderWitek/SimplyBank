@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - SimplyBank</title>
-    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/js/libs/jquery-3.6.0.min.js" defer></script>
+    <script src="/js/dashboard.js" defer></script>
 </head>
 <body>
     <!-- Header -->
@@ -291,47 +293,5 @@
             </section>
         </div>
     </main>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        // Example: Load transactions dynamically
-        function loadTransactions() {
-            $.ajax({
-                url: "/api/transactions/recent",
-                type: "GET",
-                dataType: "json"
-            })
-            .done(function(data) {
-                // Update table with real data
-                console.log("Transactions loaded:", data);
-            })
-            .fail(function(jqxhr, textStatus, errorThrown) {
-                console.error("Failed to load transactions:", errorThrown);
-            });
-        }
-
-        // Example: Load account balances
-        function loadAccountBalances() {
-            $.ajax({
-                url: "/api/accounts/summary",
-                type: "GET",
-                dataType: "json"
-            })
-            .done(function(data) {
-                // Update account cards with real data
-                console.log("Accounts loaded:", data);
-            })
-            .fail(function(jqxhr, textStatus, errorThrown) {
-                console.error("Failed to load accounts:", errorThrown);
-            });
-        }
-
-        // Initialize on page load
-        $(document).ready(function() {
-            // Uncomment when your API endpoints are ready
-            // loadTransactions();
-            // loadAccountBalances();
-        });
-    </script>
 </body>
 </html>
