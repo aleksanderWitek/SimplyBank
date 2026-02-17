@@ -26,8 +26,8 @@ public class EmployeeRepository implements IEmployeeRepository {
     @Override
     public Long save(Employee employee) {
         String query = """
-                INSERT INTO\s
-                employee(first_name, last_name, create_date)\s
+                INSERT INTO
+                employee(first_name, last_name, create_date)
                 VALUES(?, ?, ?)
                 """;
         try {
@@ -41,21 +41,13 @@ public class EmployeeRepository implements IEmployeeRepository {
     @Override
     public Optional<Employee> findById(Long id) {
         String query = """
-                SELECT e.id,\s
-                e.first_name,\s
-                e.last_name,\s
-                e.create_date,\s
-                e.modify_date,\s
-                ua.login,\s
-                ua.role\s
-                FROM employee AS e\s
-                LEFT JOIN user_account_employee AS uae ON e.id = uae.employee_id\s
-                LEFT JOIN user_account AS ua ON uae.user_account_id = ua.id\s
-                WHERE e.id = ? AND e.delete_date IS NULL
+                SELECT id, first_name, last_name, create_date, modify_date, delete_date
+                FROM employee
+                WHERE id = ? AND delete_date IS NULL
                 """;
         try {
-            Employee employee = jdbcTemplate.queryForObject(query, new EmployeeRowMapper(), id);
-            return Optional.ofNullable(employee);
+            List<Employee> results = jdbcTemplate.query(query, new EmployeeRowMapper(), id);
+            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
         } catch (DataAccessException e){
             throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
         }
@@ -64,18 +56,10 @@ public class EmployeeRepository implements IEmployeeRepository {
     @Override
     public List<Employee> findAll() {
         String query = """
-                SELECT e.id,\s
-                e.first_name,\s
-                e.last_name,\s
-                e.create_date,\s
-                e.modify_date,\s
-                ua.login,\s
-                ua.role\s
-                FROM employee AS e\s
-                LEFT JOIN user_account_employee AS uae ON e.id = uae.employee_id\s
-                LEFT JOIN user_account AS ua ON uae.user_account_id = ua.id\s
-                WHERE e.delete_date IS NULL\s
-                ORDER BY e.id
+                SELECT id, first_name, last_name, create_date, modify_date, delete_date
+                FROM employee
+                WHERE delete_date IS NULL
+                ORDER BY id
                 """;
         try {
             return jdbcTemplate.query(query, new EmployeeRowMapper());
@@ -87,10 +71,10 @@ public class EmployeeRepository implements IEmployeeRepository {
     @Override
     public void updateById(Long id, Employee employee) {
         String query = """
-                UPDATE employee\s
-                SET first_name = ?,\s
-                last_name = ?,\s
-                modify_date = ?\s
+                UPDATE employee
+                SET first_name = ?,
+                last_name = ?,
+                modify_date = ?
                 WHERE id = ? AND delete_date IS NULL
                """;
         try {
@@ -110,8 +94,8 @@ public class EmployeeRepository implements IEmployeeRepository {
     @Override
     public void deleteById(Long id) {
         String query = """
-                UPDATE employee\s
-                SET delete_date = ?\s
+                UPDATE employee
+                SET delete_date = ?
                 WHERE id = ? AND delete_date IS NULL
                """;
         try {

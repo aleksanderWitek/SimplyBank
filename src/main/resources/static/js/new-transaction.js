@@ -692,4 +692,14 @@ $(document).ready(function () {
     $("#btnNewTransaction").on("click", function () {
         resetForm();
     });
+
+    var params = new URLSearchParams(window.location.search);
+    var preselectedType = params.get("type");
+    if (preselectedType && VALID_TX_TYPES.indexOf(preselectedType) !== -1) {
+        $(".type-option[data-type='" + preselectedType + "']").addClass("selected");
+        FormState.transactionType = preselectedType;
+        $("#btnToStep2").prop("disabled", false);
+        configureStep2ForType(preselectedType);
+        goToStep(2);
+    }
 });

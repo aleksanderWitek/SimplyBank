@@ -212,23 +212,17 @@ function loadCurrentUser() {
 
 function initNavigation() {
     $(".nav-link").on("click", function (e) {
+        var href = $(this).attr("href");
+        if (href && href !== "#") {
+            return; // let the browser navigate normally
+        }
         e.preventDefault();
-        $(".nav-link").removeClass("active");
-        $(this).addClass("active");
-
         var page = $(this).text().trim().toLowerCase();
         switch (page) {
-            case "dashboard":
-                loadAccountBalances();
-                loadTransactions();
-                break;
             case "accounts":
                 BankAccountService.findAll().done(function (data) {
                     DashboardRenderer.renderAccountCards(Array.isArray(data) ? data : []);
                 });
-                break;
-            case "transactions":
-                loadTransactions();
                 break;
             case "transfer":
                 notify("Transfer page — coming soon", "info");
@@ -246,16 +240,16 @@ function initQuickActions() {
         var action = $(this).find(".action-label").text().trim();
         switch (action) {
             case "Transfer Money":
-                notify("Opening transfer form...", "info");
+                window.location.href = "/new-transaction?type=TRANSFER";
                 break;
             case "Deposit":
-                notify("Opening deposit form...", "info");
+                window.location.href = "/new-transaction?type=DEPOSIT";
                 break;
             case "Pay Bills":
-                notify("Opening bill payment...", "info");
+                window.location.href = "/new-transaction?type=PAYMENT";
                 break;
-            case "Analytics":
-                notify("Loading analytics...", "info");
+            case "Withdrawal":
+                window.location.href = "/new-transaction?type=WITHDRAWAL";
                 break;
         }
     });
@@ -274,10 +268,10 @@ $(document).ready(function () {
     initQuickActions();
 
     $(".btn-primary").on("click", function () {
-        notify("Opening new transaction form...", "info");
+        window.location.href = "/new-transaction";
     });
 
     $(".transactions-section .btn-secondary").on("click", function () {
-        loadTransactions();
+        window.location.href = "/transactions";
     });
 });

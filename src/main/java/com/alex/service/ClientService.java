@@ -10,6 +10,7 @@ import com.alex.repository.IClientRepository;
 import com.alex.repository.IUserAccountClientRepository;
 import com.alex.service.validation.ClientValidation;
 import com.alex.service.validation.IdValidation;
+import com.alex.service.validation.UserAccountValidation;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +40,8 @@ public class ClientService implements IClientService {
     @Override
     public Client save(Client client) {
         ClientValidation.ensureClientPresent(client);
+        UserAccountValidation.ensureFirstNamePresent(client.getFirstName());
+        UserAccountValidation.ensureLastNamePresent(client.getLastName());
 
         Client clientWithCreateDate = new Client(client.getFirstName(), client.getLastName(), client.getCity(),
                 client.getStreet(), client.getHouseNumber(), client.getIdentificationNumber(), LocalDateTime.now());
@@ -60,6 +63,8 @@ public class ClientService implements IClientService {
     public void updateById(Long id, Client client) {
         IdValidation.ensureIdPresent(id);
         ClientValidation.ensureClientPresent(client);
+        UserAccountValidation.ensureFirstNamePresent(client.getFirstName());
+        UserAccountValidation.ensureLastNamePresent(client.getLastName());
         clientRepository.updateById(id, client);
     }
 

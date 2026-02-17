@@ -26,8 +26,8 @@ public class ClientRepository implements IClientRepository {
     @Override
     public Long save(Client client) {
         String query = """
-                INSERT INTO\s
-                client(first_name, last_name, city, street, house_number, identification_number, create_date)\s
+                INSERT INTO
+                client(first_name, last_name, city, street, house_number, identification_number, create_date)
                 VALUES(?, ?, ?, ?, ?, ?, ?)
                """;
         try {
@@ -41,27 +41,23 @@ public class ClientRepository implements IClientRepository {
 
     @Override
     public Optional<Client> findById(Long id) {
-        //todo pointless select for ua should be only client because i get it somewhere else
         String query = """
-                 SELECT c.id,\s
-                 c.first_name,\s
-                 c.last_name,\s
-                 c.city,\s
-                 c.street,\s
-                 c.house_number,\s
-                 c.identification_number,\s
-                 c.create_date,\s
-                 c.modify_date,\s
-                 ua.login,\s
-                 ua.role\s
-                 FROM client AS c\s
-                 LEFT JOIN user_account_client AS uac ON c.id = uac.client_id\s
-                 LEFT JOIN user_account AS ua ON uac.user_account_id = ua.id\s
-                 WHERE c.id = ? AND c.delete_date IS NULL\s
+                 SELECT id,
+                 first_name,
+                 last_name,
+                 city,
+                 street,
+                 house_number,
+                 identification_number,
+                 create_date,
+                 modify_date,
+                 delete_date
+                 FROM client
+                 WHERE id = ? AND delete_date IS NULL
                """;
         try {
-            Client client = jdbcTemplate.queryForObject(query, new ClientRowMapper(), id);
-            return Optional.ofNullable(client);
+            List<Client> results = jdbcTemplate.query(query, new ClientRowMapper(), id);
+            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
         } catch (DataAccessException e){
             throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
         }
@@ -69,24 +65,20 @@ public class ClientRepository implements IClientRepository {
 
     @Override
     public List<Client> findAll() {
-        //todo pointless select for ua should be only client because i get it somewhere else
         String query = """
-                SELECT c.id,\s
-                c.first_name,\s
-                c.last_name,\s
-                c.city,\s
-                c.street,\s
-                c.house_number,\s
-                c.identification_number,\s
-                c.create_date,\s
-                c.modify_date,\s
-                ua.login,\s
-                ua.role\s
-                FROM client AS c\s
-                LEFT JOIN user_account_client AS uac ON c.id = uac.client_id\s
-                LEFT JOIN user_account AS ua ON uac.user_account_id = ua.id\s
-                WHERE c.delete_date IS NULL\s
-                ORDER BY c.id
+                SELECT id,
+                first_name,
+                last_name,
+                city,
+                street,
+                house_number,
+                identification_number,
+                create_date,
+                modify_date,
+                delete_date
+                FROM client
+                WHERE delete_date IS NULL
+                ORDER BY id
                 """;
         try {
             return jdbcTemplate.query(query, new ClientRowMapper());
@@ -99,14 +91,14 @@ public class ClientRepository implements IClientRepository {
     public void updateById(Long id, Client client) {
 
         String query = """
-                UPDATE client\s
-                SET first_name = ?,\s
-                last_name = ?,\s
-                city = ?,\s
-                street = ?,\s
-                house_number = ?,\s
-                identification_number = ?,\s
-                modify_date = ?\s
+                UPDATE client
+                SET first_name = ?,
+                last_name = ?,
+                city = ?,
+                street = ?,
+                house_number = ?,
+                identification_number = ?,
+                modify_date = ?
                 WHERE id = ? AND delete_date IS NULL
                """;
         try {
@@ -130,8 +122,8 @@ public class ClientRepository implements IClientRepository {
     @Override
     public void deleteById(Long id) {
         String query = """
-                UPDATE client\s
-                SET delete_date\s
+                UPDATE client
+                SET delete_date
                 WHERE id = ? AND delete_date IS NULL
                """;
         try {

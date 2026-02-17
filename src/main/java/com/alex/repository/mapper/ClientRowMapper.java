@@ -1,7 +1,6 @@
 package com.alex.repository.mapper;
 
 import com.alex.dto.Client;
-import com.alex.exception.NullPointerRuntimeException;
 import com.alex.exception.SQLRuntimeException;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -13,11 +12,6 @@ public class ClientRowMapper implements RowMapper<Client> {
     @Override
     public Client mapRow(ResultSet rs, int rowNum) {
         try {
-            //todo move validation to service. Validate only input data
-            Timestamp createDate = rs.getTimestamp("create_date");
-            if(createDate == null) {
-                throw new NullPointerRuntimeException("Empty value from database for: create_date");
-            }
             Timestamp modifyDate = rs.getTimestamp("modify_date");
             Timestamp deleteDate = rs.getTimestamp("delete_date");
             return new Client(
@@ -28,7 +22,7 @@ public class ClientRowMapper implements RowMapper<Client> {
                     rs.getString("street"),
                     rs.getString("house_number"),
                     rs.getString("identification_number"),
-                    createDate.toLocalDateTime(),
+                    rs.getTimestamp("create_date").toLocalDateTime(),
                     modifyDate != null ? modifyDate.toLocalDateTime() : null,
                     deleteDate != null ? deleteDate.toLocalDateTime() : null
             );

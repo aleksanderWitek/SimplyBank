@@ -9,6 +9,12 @@ import java.math.BigDecimal;
 
 public class TransactionValidation {
 
+    public static void validateDescriptionLength(String description) {
+        if (description != null && description.length() > 255) {
+            throw new IllegalArgumentRuntimeException("Description must not exceed 255 characters");
+        }
+    }
+
     public static void validateIfBankAccountsAreTheSameForTransaction(Long bankAccountIdFrom,
                                                                       Long bankAccountIdTo) {
         if (bankAccountIdFrom.equals(bankAccountIdTo)) {

@@ -376,7 +376,7 @@ body {
 
 .actions-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
 }
 
@@ -422,6 +422,11 @@ body {
 .action-icon.purple {
     background-color: rgba(139, 92, 246, 0.1);
     color: var(--info);
+}
+
+.action-icon.red {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
 }
 
 .action-icon.orange {

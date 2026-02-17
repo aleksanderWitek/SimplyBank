@@ -20,8 +20,8 @@ public class BankAccountClientRepository implements IBankAccountClientRepository
     @Override
     public void linkBankAccountToClient(Long bankAccountId, Long clientId) {
         String query = """
-                INSERT INTO\s
-                bank_account_client(bank_account_id, client_id, create_date)\s
+                INSERT INTO
+                bank_account_client(bank_account_id, client_id, create_date)
                 VALUES (?, ?, ?)
                 """;
         try {
@@ -34,10 +34,10 @@ public class BankAccountClientRepository implements IBankAccountClientRepository
     @Override
     public void unlinkBankAccountToClient(Long bankAccountId, Long clientId) {
         String query = """
-                UPDATE bank_account_client\s
-                SET delete_date = ?\s
-                WHERE bank_account_id = ? AND\s
-                client_id = ? AND\s
+                UPDATE bank_account_client
+                SET delete_date = ?
+                WHERE bank_account_id = ? AND
+                client_id = ? AND
                 delete_date IS NULL
                 """;
         try {
@@ -50,8 +50,8 @@ public class BankAccountClientRepository implements IBankAccountClientRepository
     @Override
     public List<Long> findBankAccountsIdLinkedToClientByClientId(Long clientId) {
         String query = """
-                SELECT bank_account_id\s
-                FROM bank_account_client\s
+                SELECT bank_account_id
+                FROM bank_account_client
                 WHERE client_id = ? AND delete_date IS NULL
                 """;
         try {
@@ -64,8 +64,8 @@ public class BankAccountClientRepository implements IBankAccountClientRepository
     @Override
     public List<Long> findClientsIdLinkedToBankAccountByBankAccountId(Long bankAccountId) {
         String query = """
-                SELECT client_id\s
-                FROM bank_account_client\s
+                SELECT client_id
+                FROM bank_account_client
                 WHERE bank_account_id = ? AND delete_date IS NULL
                 """;
         try {

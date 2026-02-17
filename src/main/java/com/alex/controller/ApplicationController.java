@@ -10,4 +10,14 @@ public class ApplicationController {
     public String home() {
         return "dashboard";
     }
+
+    @GetMapping(path = "/transactions")
+    public String transactions() {
+        return "transactions";
+    }
+
+    @GetMapping(path = "/new-transaction")
+    public String newTransaction() {
+        return "new-transaction";
+    }
 }

@@ -1,7 +1,6 @@
 package com.alex.repository.mapper;
 
 import com.alex.dto.Employee;
-import com.alex.exception.NullPointerRuntimeException;
 import com.alex.exception.SQLRuntimeException;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -13,18 +12,13 @@ public class EmployeeRowMapper implements RowMapper<Employee> {
     @Override
     public Employee mapRow(ResultSet rs, int rowNum) {
         try {
-            //todo move validation to service. Validate only input data
-            Timestamp createDate = rs.getTimestamp("create_date");
-            if(createDate == null) {
-                throw new NullPointerRuntimeException("Empty value from database for: create_date");
-            }
             Timestamp modifyDate = rs.getTimestamp("modify_date");
             Timestamp deleteDate = rs.getTimestamp("delete_date");
             return new Employee(
                     rs.getLong("id"),
                     rs.getString("first_name"),
                     rs.getString("last_name"),
-                    createDate.toLocalDateTime(),
+                    rs.getTimestamp("create_date").toLocalDateTime(),
                     modifyDate != null ? modifyDate.toLocalDateTime() : null,
                     deleteDate != null ? deleteDate.toLocalDateTime() : null
             );
