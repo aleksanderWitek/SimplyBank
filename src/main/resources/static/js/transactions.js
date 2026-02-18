@@ -374,17 +374,6 @@ function renderModal(tx) {
     $("#modalOverlay").addClass("open");
 }
 
-function addField(arr, label, value, fullWidth) {
-    if (value !== null && value !== undefined && value !== "" && value !== "N/A" && value !== "null") {
-        arr.push({ label: label, value: value, fullWidth: !!fullWidth });
-    }
-}
-
-function formatId(id) {
-    if (id === null || id === undefined) return null;
-    return "#" + id;
-}
-
 function closeModal() {
     $("#modalOverlay").removeClass("open");
 }

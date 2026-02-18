@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transactions - SimplyBank</title>
-    <link rel="stylesheet" href="/css/transactions.css">
+    <title>Account - SimplyBank</title>
+    <link rel="stylesheet" href="/css/account.css">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
     <script src="/js/libs/jquery-3.6.0.min.js" defer></script>
     <script src="/js/common.js" defer></script>
-    <script src="/js/transactions.js" defer></script>
+    <script src="/js/account.js" defer></script>
 </head>
 <body>
     <!-- Header -->
@@ -24,8 +24,8 @@
             </div>
             <nav class="nav">
                 <a href="/" class="nav-link">Dashboard</a>
-                <a href="/accounts" class="nav-link">Accounts</a>
-                <a href="/transactions" class="nav-link active">Transactions</a>
+                <a href="/accounts" class="nav-link active">Accounts</a>
+                <a href="/transactions" class="nav-link">Transactions</a>
                 <a href="/new-transaction" class="nav-link">Transfer</a>
             </nav>
             <div class="header-actions">
@@ -53,11 +53,27 @@
     <main class="main-content">
         <div class="container">
 
-            <!-- Page Header -->
-            <section class="page-header">
+            <!-- Back Link -->
+            <a href="/accounts" class="back-link">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"/>
+                </svg>
+                Back to Accounts
+            </a>
+
+            <!-- Account Hero (above summary strip) — populated by JS -->
+            <section class="account-hero" id="accountHero">
+                <div class="loading-state" id="heroLoading">
+                    <div class="spinner"></div>
+                    <p>Loading account&hellip;</p>
+                </div>
+            </section>
+
+            <!-- Page Header with filter -->
+            <section class="page-header" id="txPageHeader" style="display:none;">
                 <div class="page-header-left">
-                    <h1 class="page-title">Transactions</h1>
-                    <p class="page-subtitle">Review your complete transaction history</p>
+                    <h2 class="page-title">Transactions</h2>
+                    <p class="page-subtitle">Transaction history for this account</p>
                 </div>
                 <div class="page-header-right">
                     <div class="filter-group">
@@ -68,20 +84,11 @@
                             <option value="OUTGOING">Outgoing</option>
                         </select>
                     </div>
-                    <div class="filter-group">
-                        <label for="filterStatus" class="filter-label">Status</label>
-                        <select id="filterStatus" class="filter-select">
-                            <option value="ALL">All</option>
-                            <option value="COMPLETED">Completed</option>
-                            <option value="PENDING">Pending</option>
-                            <option value="FAILED">Failed</option>
-                        </select>
-                    </div>
                 </div>
             </section>
 
             <!-- Summary Strip -->
-            <section class="summary-strip">
+            <section class="summary-strip" id="summaryStrip" style="display:none;">
                 <div class="summary-card">
                     <div class="summary-icon total">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -90,7 +97,7 @@
                     </div>
                     <div class="summary-info">
                         <span class="summary-label">Total Transactions</span>
-                        <span class="summary-value" id="totalCount">—</span>
+                        <span class="summary-value" id="totalCount">&mdash;</span>
                     </div>
                 </div>
                 <div class="summary-card">
@@ -101,7 +108,7 @@
                     </div>
                     <div class="summary-info">
                         <span class="summary-label">Total Incoming</span>
-                        <span class="summary-value" id="totalIncoming">—</span>
+                        <span class="summary-value" id="totalIncoming">&mdash;</span>
                     </div>
                 </div>
                 <div class="summary-card">
@@ -112,13 +119,13 @@
                     </div>
                     <div class="summary-info">
                         <span class="summary-label">Total Outgoing</span>
-                        <span class="summary-value" id="totalOutgoing">—</span>
+                        <span class="summary-value" id="totalOutgoing">&mdash;</span>
                     </div>
                 </div>
             </section>
 
-            <!-- Transactions Table -->
-            <section class="transactions-section">
+            <!-- Transactions Section -->
+            <section class="transactions-section" id="transactionsSection" style="display:none;">
                 <div class="transactions-table-wrapper">
                     <table class="transactions-table" id="transactionsTable">
                         <thead>
@@ -143,13 +150,13 @@
                         <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
                     </svg>
                     <p class="empty-title">No transactions found</p>
-                    <p class="empty-subtitle">Adjust your filters or check back later</p>
+                    <p class="empty-subtitle">Adjust your filter or check back later</p>
                 </div>
 
-                <!-- Loading State -->
-                <div class="loading-state" id="loadingState">
+                <!-- Tx Loading State -->
+                <div class="loading-state" id="txLoadingState" style="display:none;">
                     <div class="spinner"></div>
-                    <p>Loading transactions…</p>
+                    <p>Loading transactions&hellip;</p>
                 </div>
 
                 <!-- Pagination -->
@@ -169,6 +176,7 @@
                     </button>
                 </div>
             </section>
+
         </div>
     </main>
 

@@ -27,20 +27,6 @@ var BankAccountService = {
                     : "Failed to load bank accounts";
                 notify(msg, "error");
             });
-    },
-
-    findById: function (id) {
-        if (id === null || id === undefined) {
-            notify("Account ID is required", "error");
-            return $.Deferred().reject("Id is null").promise();
-        }
-        return ajax(DashboardAPI.BANK_ACCOUNT + "/" + id, "GET")
-            .fail(function (jqxhr) {
-                var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
-                    ? jqxhr.responseJSON.message
-                    : "Bank account not found";
-                notify(msg, "error");
-            });
     }
 };
 
@@ -167,10 +153,7 @@ var DashboardRenderer = {
     },
 
     onViewAccountDetails: function (accountId) {
-        BankAccountService.findById(accountId)
-            .done(function (account) {
-                notify("Viewing account " + maskAccount(account.number || account.accountNumber), "info");
-            });
+        window.location.href = "/account?id=" + accountId;
     }
 };
 
@@ -207,31 +190,6 @@ function loadCurrentUser() {
 }
 
 // ============================================================
-// NAV LINK HANDLERS
-// ============================================================
-
-function initNavigation() {
-    $(".nav-link").on("click", function (e) {
-        var href = $(this).attr("href");
-        if (href && href !== "#") {
-            return; // let the browser navigate normally
-        }
-        e.preventDefault();
-        var page = $(this).text().trim().toLowerCase();
-        switch (page) {
-            case "accounts":
-                BankAccountService.findAll().done(function (data) {
-                    DashboardRenderer.renderAccountCards(Array.isArray(data) ? data : []);
-                });
-                break;
-            case "transfer":
-                notify("Transfer page — coming soon", "info");
-                break;
-        }
-    });
-}
-
-// ============================================================
 // QUICK ACTION HANDLERS
 // ============================================================
 
@@ -264,7 +222,6 @@ $(document).ready(function () {
     loadAccountBalances();
     loadTransactions();
 
-    initNavigation();
     initQuickActions();
 
     $(".btn-primary").on("click", function () {

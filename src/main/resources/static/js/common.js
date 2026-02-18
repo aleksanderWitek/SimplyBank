@@ -100,3 +100,18 @@ function renderUserHeader(user) {
         $("#headerUserName").text(first + " " + last.charAt(0) + ".");
     }
 }
+
+// ============================================================
+// MODAL FIELD HELPERS  (shared by transactions.js and account.js)
+// ============================================================
+
+function addField(arr, label, value, fullWidth) {
+    if (value !== null && value !== undefined && value !== "" && value !== "N/A" && value !== "null") {
+        arr.push({ label: label, value: value, fullWidth: !!fullWidth });
+    }
+}
+
+function formatId(id) {
+    if (id === null || id === undefined) return null;
+    return "#" + id;
+}

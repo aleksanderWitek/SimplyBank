@@ -20,4 +20,14 @@ public class ApplicationController {
     public String newTransaction() {
         return "new-transaction";
     }
+
+    @GetMapping(path = "/accounts")
+    public String accounts() {
+        return "accounts";
+    }
+
+    @GetMapping(path = "/account")
+    public String account() {
+        return "account";
+    }
 }
