@@ -115,3 +115,21 @@ function formatId(id) {
     if (id === null || id === undefined) return null;
     return "#" + id;
 }
+
+// ============================================================
+// PROFILE NAVIGATION
+// ============================================================
+
+function initProfileLinks() {
+    var profileUrl = "/user-profile?id=1";
+    $(".icon-button[title='Profile']").on("click", function () {
+        window.location.href = profileUrl;
+    });
+    $(".user-avatar, .user-name").css("cursor", "pointer").on("click", function () {
+        window.location.href = profileUrl;
+    });
+}
+
+$(document).ready(function () {
+    initProfileLinks();
+});
