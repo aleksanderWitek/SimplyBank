@@ -30,4 +30,9 @@ public class ApplicationController {
     public String account() {
         return "account";
     }
+
+    @GetMapping(path = "/user-profile")
+    public String userProfile() {
+        return "user-profile";
+    }
 }
