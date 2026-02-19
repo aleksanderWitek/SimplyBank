@@ -9,6 +9,7 @@ import com.alex.repository.IEmployeeRepository;
 import com.alex.repository.IUserAccountEmployeeRepository;
 import com.alex.service.validation.EmployeeValidation;
 import com.alex.service.validation.IdValidation;
+import com.alex.service.validation.UserAccountValidation;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +34,8 @@ public class EmployeeService implements IEmployeeService{
     @Override
     public Employee save(Employee employee) {
         EmployeeValidation.ensureEmployeePresent(employee);
+        UserAccountValidation.ensureFirstNamePresent(employee.getFirstName());
+        UserAccountValidation.ensureLastNamePresent(employee.getLastName());
 
         Employee employeeWithCreateDate = new Employee(employee.getFirstName(), employee.getLastName(),
                 LocalDateTime.now());
@@ -51,6 +54,8 @@ public class EmployeeService implements IEmployeeService{
     public void updateById(Long id, Employee employee) {
         IdValidation.ensureIdPresent(id);
         EmployeeValidation.ensureEmployeePresent(employee);
+        UserAccountValidation.ensureFirstNamePresent(employee.getFirstName());
+        UserAccountValidation.ensureLastNamePresent(employee.getLastName());
 
         employeeRepository.updateById(id, employee);
     }

@@ -33,7 +33,7 @@ public class TransactionService implements ITransactionService {
     @Override
     public Transaction transfer(Long bankAccountFromId, Long bankAccountToId,
                                 BigDecimal amount, String currency, String description) {
-        validateTransferInputData(bankAccountFromId, bankAccountToId, amount, currency);
+        validateTransferInputData(bankAccountFromId, bankAccountToId, amount, currency, description);
 
         BankAccount bankAccountFrom = bankAccountService.findById(bankAccountFromId)
                 .orElseThrow(() -> new BankAccountNotFoundRuntimeException(
@@ -68,7 +68,7 @@ public class TransactionService implements ITransactionService {
     @Override
     public Transaction deposit(Long bankAccountToId, BigDecimal amount,
                                String currency, String description) {
-        validateInputData(bankAccountToId, amount, currency);
+        validateInputData(bankAccountToId, amount, currency, description);
 
         BankAccount bankAccountTo = bankAccountService.findById(bankAccountToId)
                 .orElseThrow(() -> new BankAccountNotFoundRuntimeException(
@@ -93,7 +93,7 @@ public class TransactionService implements ITransactionService {
     @Override
     public Transaction withdraw(Long bankAccountFromId, BigDecimal amount,
                                 String currency, String description) {
-        validateInputData(bankAccountFromId, amount, currency);
+        validateInputData(bankAccountFromId, amount, currency, description);
 
         BankAccount bankAccountFrom = bankAccountService.findById(bankAccountFromId)
                 .orElseThrow(() -> new BankAccountNotFoundRuntimeException(
@@ -153,17 +153,19 @@ public class TransactionService implements ITransactionService {
     }
 
     private void validateTransferInputData(Long bankAccountFromId, Long bankAccountToId,
-                                           BigDecimal amount, String currency) {
+                                           BigDecimal amount, String currency, String description) {
         IdValidation.ensureIdPresent(bankAccountFromId);
         IdValidation.ensureIdPresent(bankAccountToId);
         TransactionValidation.validateIfBankAccountsAreTheSameForTransaction(bankAccountFromId, bankAccountToId);
         CurrencyValidation.validateIfCurrencyIsCorrect(currency, "Invalid or not supported currency value");
         TransactionValidation.validateAmount(amount);
+        TransactionValidation.validateDescriptionLength(description);
     }
 
-    private void validateInputData(Long bankAccountId, BigDecimal amount, String currency) {
+    private void validateInputData(Long bankAccountId, BigDecimal amount, String currency, String description) {
         IdValidation.ensureIdPresent(bankAccountId);
         CurrencyValidation.validateIfCurrencyIsCorrect(currency, "Invalid or not supported currency value");
         TransactionValidation.validateAmount(amount);
+        TransactionValidation.validateDescriptionLength(description);
     }
 }

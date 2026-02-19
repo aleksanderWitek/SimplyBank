@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - SimplyBank</title>
+    <link rel="stylesheet" href="/css/transactions.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <script src="/js/libs/jquery-3.6.0.min.js" defer></script>
+    <script src="/js/common.js" defer></script>
+    <script src="/js/transactions.js" defer></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <rect width="32" height="32" rx="8" fill="#2563eb"/>
+                    <path d="M16 8L22 14H18V20H14V14H10L16 8Z" fill="white"/>
+                    <rect x="10" y="22" width="12" height="2" fill="white"/>
+                </svg>
+                <span class="logo-text">SimplyBank</span>
+            </div>
+            <nav class="nav">
+                <a href="/" class="nav-link">Dashboard</a>
+                <a href="/accounts" class="nav-link">Accounts</a>
+                <a href="/transactions" class="nav-link active">Transactions</a>
+                <a href="/new-transaction" class="nav-link">Transfer</a>
+            </nav>
+            <div class="header-actions">
+                <button class="icon-button" title="Profile">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                        <path d="M15 17v-3a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v3" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="9" cy="4" r="3" stroke-width="2"/>
+                    </svg>
+                </button>
+                <button class="icon-button" title="Activity">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                        <path d="M10 17.5C14.1421 17.5 17.5 14.1421 17.5 10C17.5 5.85786 14.1421 2.5 10 2.5C5.85786 2.5 2.5 5.85786 2.5 10C2.5 14.1421 5.85786 17.5 10 17.5Z" stroke-width="2"/>
+                        <path d="M10 6V10L13 13" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <div class="user-menu">
+                    <span class="user-name" id="headerUserName">Alex M.</span>
+                    <button class="user-avatar" id="headerUserAvatar">AM</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+
+            <!-- Page Header -->
+            <section class="page-header">
+                <div class="page-header-left">
+                    <h1 class="page-title">Transactions</h1>
+                    <p class="page-subtitle">Review your complete transaction history</p>
+                </div>
+                <div class="page-header-right">
+                    <div class="filter-group">
+                        <label for="filterType" class="filter-label">Type</label>
+                        <select id="filterType" class="filter-select">
+                            <option value="ALL">All</option>
+                            <option value="INCOMING">Incoming</option>
+                            <option value="OUTGOING">Outgoing</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterStatus" class="filter-label">Status</label>
+                        <select id="filterStatus" class="filter-select">
+                            <option value="ALL">All</option>
+                            <option value="COMPLETED">Completed</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="FAILED">Failed</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Summary Strip -->
+            <section class="summary-strip">
+                <div class="summary-card">
+                    <div class="summary-icon total">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                    </div>
+                    <div class="summary-info">
+                        <span class="summary-label">Total Transactions</span>
+                        <span class="summary-value" id="totalCount">—</span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon incoming">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+                        </svg>
+                    </div>
+                    <div class="summary-info">
+                        <span class="summary-label">Total Incoming</span>
+                        <span class="summary-value" id="totalIncoming">—</span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon outgoing">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>
+                        </svg>
+                    </div>
+                    <div class="summary-info">
+                        <span class="summary-label">Total Outgoing</span>
+                        <span class="summary-value" id="totalOutgoing">—</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transactions Table -->
+            <section class="transactions-section">
+                <div class="transactions-table-wrapper">
+                    <table class="transactions-table" id="transactionsTable">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Date</th>
+                                <th>From / To</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState" style="display:none;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                    <p class="empty-title">No transactions found</p>
+                    <p class="empty-subtitle">Adjust your filters or check back later</p>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-state" id="loadingState">
+                    <div class="spinner"></div>
+                    <p>Loading transactions…</p>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="pagination" style="display:none;">
+                    <button class="pagination-btn" id="btnPrevPage" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"/>
+                        </svg>
+                        Previous
+                    </button>
+                    <div class="pagination-info" id="paginationInfo">Page 1 of 1</div>
+                    <button class="pagination-btn" id="btnNextPage" disabled>
+                        Next
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 6 15 12 9 18"/>
+                        </svg>
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Transaction Detail Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="detailModal">
+            <div class="modal-header">
+                <h2 class="modal-title">Transaction Details</h2>
+                <button class="modal-close" id="modalClose" title="Close">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Filled by JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="modalCloseBtn">Close</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
