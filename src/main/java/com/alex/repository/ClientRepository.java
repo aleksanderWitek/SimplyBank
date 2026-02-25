@@ -1,8 +1,10 @@
 package com.alex.repository;
 
 import com.alex.dto.Client;
+import com.alex.dto.ClientProfile;
 import com.alex.exception.ClientNotFoundRuntimeException;
 import com.alex.exception.DataAccessRuntimeException;
+import com.alex.repository.mapper.ClientProfileRowMapper;
 import com.alex.repository.mapper.ClientRowMapper;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -114,6 +116,37 @@ public class ClientRepository implements IClientRepository {
             if(rowAffected == 0) {
                 throw new ClientNotFoundRuntimeException("There is no Client with provided id = " + id);
             }
+        } catch (DataAccessException e) {
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Optional<ClientProfile> findProfileByUserAccountId(Long userAccountId) {
+        String query = """
+                SELECT c.id            AS client_id,
+                       c.first_name,
+                       c.last_name,
+                       c.city,
+                       c.street,
+                       c.house_number,
+                       c.identification_number,
+                       c.create_date  AS client_create_date,
+                       c.modify_date  AS client_modify_date,
+                       ua.id          AS user_account_id,
+                       ua.login,
+                       ua.role,
+                       ua.create_date AS account_create_date
+                FROM client c
+                JOIN user_account_client uac ON uac.client_id = c.id
+                JOIN user_account ua ON ua.id = uac.user_account_id
+                WHERE ua.id = ?
+                  AND c.delete_date IS NULL
+                  AND ua.delete_date IS NULL
+                """;
+        try {
+            List<ClientProfile> results = jdbcTemplate.query(query, new ClientProfileRowMapper(), userAccountId);
+            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
         }

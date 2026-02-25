@@ -1,43 +1,27 @@
 package com.alex.dto;
 
-import jakarta.persistence.*;
 import com.alex.Currency;
 import com.alex.TransactionType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "transaction")
 public class Transaction {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "transaction_type", nullable = false)
     private TransactionType transactionType;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "currency", nullable = false, length = 3)
     private Currency currency;
 
-    @Column(name = "amount", nullable = false, precision = 14, scale = 2)
     private BigDecimal amount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bank_account_id_from")
     private BankAccount bankAccountFrom;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bank_account_id_to")
     private BankAccount bankAccountTo;
 
-    @Column(name = "description", length = 255)
     private String description;
 
-    @Column(name = "create_date", nullable = false)
     private LocalDateTime createDate;
 
     public Transaction() {

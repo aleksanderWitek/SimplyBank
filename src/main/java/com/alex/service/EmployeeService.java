@@ -44,7 +44,6 @@ public class EmployeeService implements IEmployeeService{
                 employeeWithCreateDate.getCreateDate());
         UserAccount userAccount = userAccountService.save(employee.getFirstName(), employee.getLastName(),
                 UserAccountRole.EMPLOYEE);
-        savedEmployee.addUserAccount(userAccount);
         userAccountEmployeeRepository.linkUserAccountToEmployee(userAccount.getId(), id);
         return savedEmployee;
     }
