@@ -340,7 +340,7 @@ function renderModal(tx) {
     addField(fields, "From Account",     tx.fromAccountNumber || tx.senderAccountNumber || maskAccount(tx.bankAccountNumberFrom) || formatId(tx.bankAccountIdFrom || tx.fromAccountId || tx.senderAccountId));
     addField(fields, "To Account",       tx.toAccountNumber || tx.receiverAccountNumber || maskAccount(tx.bankAccountNumberTo) || formatId(tx.bankAccountIdTo || tx.toAccountId || tx.receiverAccountId));
     addField(fields, "Currency",         (currency || "").toUpperCase());
-    addField(fields, "Bank Account Type", tx.bankAccountType || tx.accountType);
+    addField(fields, "Bank Account Type", tx.accountType);
     addField(fields, "Reference",        tx.reference || tx.referenceNumber);
     addField(fields, "Note",             tx.note || tx.notes || tx.memo, true);
     addField(fields, "Created By",       tx.createdBy || tx.initiatedBy);

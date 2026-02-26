@@ -47,12 +47,12 @@ var DashboardRenderer = {
 
         accounts.forEach(function (account, index) {
             var isPrimary = index === 0;
-            var isCredit = (account.bankAccountType || account.type || "").toUpperCase() === "CREDIT";
+            var isCredit = (account.accountType || "").toUpperCase() === "CREDIT";
             var currency = (account.currency || account.bankAccountCurrency || "EUR").toUpperCase();
             var balance = parseFloat(account.balance) || 0;
             var formattedBalance = formatCurrency(balance, currency);
             var displayNumber = maskAccount(account.number || account.accountNumber);
-            var typeName = (account.bankAccountType || account.type || "Account")
+            var typeName = (account.accountType || "Account")
                 .replace(/_/g, " ")
                 .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
 

@@ -100,11 +100,11 @@ function renderAccountRows(accounts) {
         var id            = account.id;
         var currency      = (account.currency || account.bankAccountCurrency || "EUR").toUpperCase();
         var balance       = parseFloat(account.balance) || 0;
-        var typeName      = (account.bankAccountType || account.type || "Account")
+        var typeName      = (account.accountType || "Account")
             .replace(/_/g, " ")
             .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
         var displayNumber = maskAccount(account.number || account.accountNumber);
-        var iconClass     = getTypeIconClass(account.bankAccountType || account.type || "");
+        var iconClass     = getTypeIconClass(account.accountType || "");
 
         var row =
             '<div class="account-row" data-account-id="' + escapeHtml(String(id)) + '">' +

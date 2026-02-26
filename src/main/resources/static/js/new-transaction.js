@@ -406,7 +406,7 @@ function populateAccountDropdowns(accounts) {
 }
 
 function buildAccountLabel(acct) {
-    var type = (acct.bankAccountType || acct.type || "Account")
+    var type = (acct.accountType || "Account")
         .replace(/_/g, " ")
         .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
     var num  = maskAccount(acct.number || acct.accountNumber);
