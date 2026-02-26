@@ -106,7 +106,7 @@ function renderAccountInfo(profile) {
 
     appendField($fields, "Login",           escapeHtml(profile.login || "N/A"));
     appendField($fields, "Role",            escapeHtml(capitalize(profile.role || "N/A")));
-    appendField($fields, "Account Created", formatDate(profile.createDate));
+    appendField($fields, "Account Created", formatDate(profile.accountCreateDate || profile.createDate));
 }
 
 function renderPersonalInfo(profile) {

@@ -57,7 +57,7 @@ function loadAccounts() {
 function loadAllStats(accounts) {
     accounts.forEach(function (account) {
         var id       = account.id;
-        var currency = (account.currency || account.bankAccountCurrency || "EUR").toUpperCase();
+        var currency = (account.currency || "EUR").toUpperCase();
 
         var fromReq = ajax(AccountsAPI.TRANSACTION_FROM + "/" + id, "GET");
         var toReq   = ajax(AccountsAPI.TRANSACTION_TO   + "/" + id, "GET");
@@ -98,13 +98,13 @@ function renderAccountRows(accounts) {
 
     accounts.forEach(function (account) {
         var id            = account.id;
-        var currency      = (account.currency || account.bankAccountCurrency || "EUR").toUpperCase();
+        var currency      = (account.currency || "EUR").toUpperCase();
         var balance       = parseFloat(account.balance) || 0;
-        var typeName      = (account.bankAccountType || account.type || "Account")
+        var typeName      = (account.accountType || "Account")
             .replace(/_/g, " ")
             .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
-        var displayNumber = maskAccount(account.number || account.accountNumber);
-        var iconClass     = getTypeIconClass(account.bankAccountType || account.type || "");
+        var displayNumber = maskAccount(account.number);
+        var iconClass     = getTypeIconClass(account.accountType || "");
 
         var row =
             '<div class="account-row" data-account-id="' + escapeHtml(String(id)) + '">' +

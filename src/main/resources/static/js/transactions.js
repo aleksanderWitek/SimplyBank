@@ -40,8 +40,8 @@ var State = {
 function getDirection(tx) {
     var userIds = State.currentUserBankAccountIds;
 
-    var toId   = tx.bankAccountIdTo   || tx.toAccountId   || tx.receiverAccountId || null;
-    var fromId = tx.bankAccountIdFrom || tx.fromAccountId  || tx.senderAccountId   || null;
+    var toId   = (tx.bankAccountTo && tx.bankAccountTo.id) || null;
+    var fromId = (tx.bankAccountFrom && tx.bankAccountFrom.id) || null;
 
     if (userIds.length > 0) {
         if (toId !== null && userIds.indexOf(toId) !== -1)   return "incoming";
@@ -208,13 +208,13 @@ function renderTransactionRows(transactions) {
         var dir       = tx._direction || getDirection(tx);
         var isIn      = dir === "incoming";
         var amount    = parseFloat(tx.amount) || 0;
-        var currency  = tx.currency || tx.bankAccountCurrency || "EUR";
+        var currency  = tx.currency || "EUR";
         var sign      = isIn ? "+" : "-";
         var formatted = sign + formatCurrency(amount, currency);
-        var status    = (tx.status || "completed").toLowerCase();
+        var status    = "completed";
 
-        var fromLabel = tx.fromAccountNumber || tx.senderAccountNumber || maskAccount(tx.bankAccountNumberFrom) || "\u2014";
-        var toLabel   = tx.toAccountNumber   || tx.receiverAccountNumber || maskAccount(tx.bankAccountNumberTo) || "\u2014";
+        var fromLabel = (tx.bankAccountFrom && tx.bankAccountFrom.number) ? maskAccount(tx.bankAccountFrom.number) : "\u2014";
+        var toLabel   = (tx.bankAccountTo && tx.bankAccountTo.number) ? maskAccount(tx.bankAccountTo.number) : "\u2014";
         var counterparty = isIn ? ("From " + maskAccount(fromLabel)) : ("To " + maskAccount(toLabel));
 
         var arrowSvg = isIn
@@ -227,12 +227,12 @@ function renderTransactionRows(transactions) {
                     '<div class="tx-desc">' +
                         '<div class="tx-icon ' + dir + '">' + arrowSvg + '</div>' +
                         '<div>' +
-                            '<p class="tx-name">' + escapeHtml(tx.description || tx.name || tx.type || "Transaction") + '</p>' +
-                            '<p class="tx-category">' + escapeHtml(tx.category || capitalize(dir)) + '</p>' +
+                            '<p class="tx-name">' + escapeHtml(tx.description || "Transaction") + '</p>' +
+                            '<p class="tx-category">' + escapeHtml(capitalize(dir)) + '</p>' +
                         '</div>' +
                     '</div>' +
                 '</td>' +
-                '<td>' + formatDate(tx.date || tx.createdAt || tx.timestamp) + '</td>' +
+                '<td>' + formatDate(tx.createDate) + '</td>' +
                 '<td>' + escapeHtml(counterparty) + '</td>' +
                 '<td class="amount-cell ' + (isIn ? 'positive' : 'negative') + '">' + formatted + '</td>' +
                 '<td><span class="status-badge ' + escapeHtml(status) + '">' + capitalize(status) + '</span></td>' +
@@ -323,7 +323,7 @@ function renderModal(tx) {
     var dir      = tx._direction || getDirection(tx);
     var isIn     = dir === "incoming";
     var amount   = parseFloat(tx.amount) || 0;
-    var currency = tx.currency || tx.bankAccountCurrency || "EUR";
+    var currency = tx.currency || "EUR";
     var sign     = isIn ? "+" : "-";
 
     var arrowSvg = isIn
@@ -333,18 +333,11 @@ function renderModal(tx) {
     var fields = [];
 
     addField(fields, "Transaction ID",   tx.id);
-    addField(fields, "Description",      tx.description || tx.name || tx.type, true);
-    addField(fields, "Category",         tx.category);
-    addField(fields, "Status",           capitalize(tx.status));
-    addField(fields, "Date",             formatDateTime(tx.date || tx.createdAt || tx.timestamp));
-    addField(fields, "From Account",     tx.fromAccountNumber || tx.senderAccountNumber || maskAccount(tx.bankAccountNumberFrom) || formatId(tx.bankAccountIdFrom || tx.fromAccountId || tx.senderAccountId));
-    addField(fields, "To Account",       tx.toAccountNumber || tx.receiverAccountNumber || maskAccount(tx.bankAccountNumberTo) || formatId(tx.bankAccountIdTo || tx.toAccountId || tx.receiverAccountId));
+    addField(fields, "Description",      tx.description, true);
+    addField(fields, "Date",             formatDateTime(tx.createDate));
+    addField(fields, "From Account",     tx.bankAccountFrom ? maskAccount(tx.bankAccountFrom.number) || formatId(tx.bankAccountFrom.id) : null);
+    addField(fields, "To Account",       tx.bankAccountTo ? maskAccount(tx.bankAccountTo.number) || formatId(tx.bankAccountTo.id) : null);
     addField(fields, "Currency",         (currency || "").toUpperCase());
-    addField(fields, "Bank Account Type", tx.bankAccountType || tx.accountType);
-    addField(fields, "Reference",        tx.reference || tx.referenceNumber);
-    addField(fields, "Note",             tx.note || tx.notes || tx.memo, true);
-    addField(fields, "Created By",       tx.createdBy || tx.initiatedBy);
-    addField(fields, "Updated At",       formatDateTime(tx.updatedAt || tx.modifiedAt));
 
     var gridHtml = "";
     fields.forEach(function (f) {
