@@ -130,7 +130,7 @@ var TxValidation = {
         var balance = parseFloat(account.balance) || 0;
         var amt = parseFloat(amount) || 0;
         if (balance < amt) {
-            this.addError("amount", "Insufficient balance on account " + maskAccount(account.number || account.accountNumber) + ". Available: " + formatCurrency(balance, account.currency || "EUR"));
+            this.addError("amount", "Insufficient balance on account " + maskAccount(account.number) + ". Available: " + formatCurrency(balance, account.currency || "EUR"));
             return false;
         }
         return true;
@@ -409,8 +409,8 @@ function buildAccountLabel(acct) {
     var type = (acct.accountType || "Account")
         .replace(/_/g, " ")
         .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
-    var num  = maskAccount(acct.number || acct.accountNumber);
-    var bal  = formatCurrency(acct.balance, acct.currency || acct.bankAccountCurrency || "EUR");
+    var num  = maskAccount(acct.number);
+    var bal  = formatCurrency(acct.balance, acct.currency || "EUR");
     return type + " " + num + "  \u2014  " + bal;
 }
 

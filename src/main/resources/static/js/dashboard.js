@@ -48,10 +48,10 @@ var DashboardRenderer = {
         accounts.forEach(function (account, index) {
             var isPrimary = index === 0;
             var isCredit = (account.accountType || "").toUpperCase() === "CREDIT";
-            var currency = (account.currency || account.bankAccountCurrency || "EUR").toUpperCase();
+            var currency = (account.currency || "EUR").toUpperCase();
             var balance = parseFloat(account.balance) || 0;
             var formattedBalance = formatCurrency(balance, currency);
-            var displayNumber = maskAccount(account.number || account.accountNumber);
+            var displayNumber = maskAccount(account.number);
             var typeName = (account.accountType || "Account")
                 .replace(/_/g, " ")
                 .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
@@ -116,7 +116,7 @@ var DashboardRenderer = {
             var amount = parseFloat(tx.amount) || 0;
             var isPositive = amount >= 0;
             var formattedAmount = (isPositive ? "+" : "-") + formatCurrency(Math.abs(amount), tx.currency || "EUR");
-            var statusClass = (tx.status || "completed").toLowerCase();
+            var statusClass = "completed";
 
             var rowHtml =
                 '<tr>' +
@@ -126,13 +126,13 @@ var DashboardRenderer = {
                                 '<svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><circle cx="10" cy="10" r="8"/></svg>' +
                             '</div>' +
                             '<div>' +
-                                '<p class="transaction-name">' + escapeHtml(tx.description || tx.name || "Transaction") + '</p>' +
-                                '<p class="transaction-category">' + escapeHtml(tx.category || "General") + '</p>' +
+                                '<p class="transaction-name">' + escapeHtml(tx.description || "Transaction") + '</p>' +
+                                '<p class="transaction-category">' + escapeHtml("General") + '</p>' +
                             '</div>' +
                         '</div>' +
                     '</td>' +
-                    '<td>' + formatDate(tx.date || tx.createdAt) + '</td>' +
-                    '<td>' + escapeHtml(tx.accountLabel || maskAccount(tx.accountNumber)) + '</td>' +
+                    '<td>' + formatDate(tx.createDate) + '</td>' +
+                    '<td>' + escapeHtml(maskAccount(tx.bankAccountTo && tx.bankAccountTo.number) || maskAccount(tx.bankAccountFrom && tx.bankAccountFrom.number) || "\u2014") + '</td>' +
                     '<td class="amount ' + (isPositive ? 'positive' : 'negative') + '">' + formattedAmount + '</td>' +
                     '<td><span class="status-badge ' + escapeHtml(statusClass) + '">' + capitalize(statusClass) + '</span></td>' +
                 '</tr>';

@@ -125,12 +125,12 @@ function loadTransactions(id) {
 // ============================================================
 
 function renderAccountHero(account) {
-    var currency      = (account.currency || account.bankAccountCurrency || "EUR").toUpperCase();
+    var currency      = (account.currency || "EUR").toUpperCase();
     var balance       = parseFloat(account.balance) || 0;
     var typeName      = (account.accountType || "Account")
         .replace(/_/g, " ")
         .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
-    var displayNumber = maskAccount(account.number || account.accountNumber);
+    var displayNumber = maskAccount(account.number);
     var iconClass     = getTypeIconClass(account.accountType || "");
 
     var heroHtml =
@@ -205,7 +205,7 @@ function renderPage() {
 
 function renderSummary(list) {
     var currency = State.account
-        ? (State.account.currency || State.account.bankAccountCurrency || "EUR").toUpperCase()
+        ? (State.account.currency || "EUR").toUpperCase()
         : "EUR";
     var inTotal  = 0;
     var outTotal = 0;
@@ -240,7 +240,7 @@ function renderTransactionRows(transactions) {
     $("#emptyState").hide();
 
     var accountCurrency = State.account
-        ? (State.account.currency || State.account.bankAccountCurrency || "EUR").toUpperCase()
+        ? (State.account.currency || "EUR").toUpperCase()
         : "EUR";
 
     transactions.forEach(function (tx) {
@@ -250,10 +250,10 @@ function renderTransactionRows(transactions) {
         var currency = (tx.currency || accountCurrency).toUpperCase();
         var sign     = isIn ? "+" : "-";
         var formatted = sign + formatCurrency(amount, currency);
-        var status    = (tx.status || "completed").toLowerCase();
+        var status    = "completed";
 
-        var fromLabel    = tx.fromAccountNumber || maskAccount(tx.bankAccountNumberFrom) || "\u2014";
-        var toLabel      = tx.toAccountNumber   || maskAccount(tx.bankAccountNumberTo)   || "\u2014";
+        var fromLabel    = (tx.bankAccountFrom && tx.bankAccountFrom.number) ? maskAccount(tx.bankAccountFrom.number) : "\u2014";
+        var toLabel      = (tx.bankAccountTo && tx.bankAccountTo.number) ? maskAccount(tx.bankAccountTo.number) : "\u2014";
         var counterparty = isIn ? ("From " + maskAccount(fromLabel)) : ("To " + maskAccount(toLabel));
 
         var arrowSvg = isIn
@@ -266,12 +266,12 @@ function renderTransactionRows(transactions) {
                     '<div class="tx-desc">' +
                         '<div class="tx-icon ' + dir + '">' + arrowSvg + '</div>' +
                         '<div>' +
-                            '<p class="tx-name">' + escapeHtml(tx.description || tx.name || tx.type || "Transaction") + '</p>' +
-                            '<p class="tx-category">' + escapeHtml(tx.category || capitalize(dir)) + '</p>' +
+                            '<p class="tx-name">' + escapeHtml(tx.description || "Transaction") + '</p>' +
+                            '<p class="tx-category">' + escapeHtml(capitalize(dir)) + '</p>' +
                         '</div>' +
                     '</div>' +
                 '</td>' +
-                '<td>' + formatDate(tx.date || tx.createdAt || tx.timestamp) + '</td>' +
+                '<td>' + formatDate(tx.createDate) + '</td>' +
                 '<td>' + escapeHtml(counterparty) + '</td>' +
                 '<td class="amount-cell ' + (isIn ? 'positive' : 'negative') + '">' + formatted + '</td>' +
                 '<td><span class="status-badge ' + escapeHtml(status) + '">' + capitalize(status) + '</span></td>' +
@@ -334,12 +334,10 @@ function renderModal(tx) {
 
     var fields = [];
     addField(fields, "Transaction ID", tx.id);
-    addField(fields, "Description",    tx.description || tx.name || tx.type, true);
-    addField(fields, "Category",       tx.category);
-    addField(fields, "Status",         capitalize(tx.status));
-    addField(fields, "Date",           formatDateTime(tx.date || tx.createdAt || tx.timestamp));
-    addField(fields, "From Account",   tx.fromAccountNumber || maskAccount(tx.bankAccountNumberFrom) || formatId(tx.bankAccountIdFrom));
-    addField(fields, "To Account",     tx.toAccountNumber   || maskAccount(tx.bankAccountNumberTo)   || formatId(tx.bankAccountIdTo));
+    addField(fields, "Description",    tx.description, true);
+    addField(fields, "Date",           formatDateTime(tx.createDate));
+    addField(fields, "From Account",   tx.bankAccountFrom ? maskAccount(tx.bankAccountFrom.number) || formatId(tx.bankAccountFrom.id) : null);
+    addField(fields, "To Account",     tx.bankAccountTo ? maskAccount(tx.bankAccountTo.number) || formatId(tx.bankAccountTo.id) : null);
     addField(fields, "Currency",       currency);
 
     var gridHtml = "";
