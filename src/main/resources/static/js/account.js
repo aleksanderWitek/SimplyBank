@@ -127,9 +127,7 @@ function loadTransactions(id) {
 function renderAccountHero(account) {
     var currency      = (account.currency || "EUR").toUpperCase();
     var balance       = parseFloat(account.balance) || 0;
-    var typeName      = (account.accountType || "Account")
-        .replace(/_/g, " ")
-        .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+    var typeName      = formatAccountType(account.accountType);
     var displayNumber = maskAccount(account.number);
     var iconClass     = getTypeIconClass(account.accountType || "");
 
@@ -157,15 +155,6 @@ function renderAccountHero(account) {
     $("#txPageHeader").show();
     $("#summaryStrip").show();
     $("#transactionsSection").show();
-}
-
-function getTypeIconClass(type) {
-    var t = (type || "").toUpperCase();
-    if (t === "CHECKING")         return "blue";
-    if (t === "SAVING")           return "green";
-    if (t === "BUSINESS")         return "purple";
-    if (t === "FOREIGN_CURRENCY") return "amber";
-    return "blue";
 }
 
 // ============================================================
@@ -196,7 +185,7 @@ function renderPage() {
     var start = (State.currentPage - 1) * PAGE_SIZE;
     var page  = State.filtered.slice(start, start + PAGE_SIZE);
     renderTransactionRows(page);
-    renderPagination();
+    renderPagination(State);
 }
 
 // ============================================================
@@ -252,13 +241,8 @@ function renderTransactionRows(transactions) {
         var formatted = sign + formatCurrency(amount, currency);
         var status    = "completed";
 
-        var fromLabel    = (tx.bankAccountFrom && tx.bankAccountFrom.number) ? maskAccount(tx.bankAccountFrom.number) : "\u2014";
-        var toLabel      = (tx.bankAccountTo && tx.bankAccountTo.number) ? maskAccount(tx.bankAccountTo.number) : "\u2014";
-        var counterparty = isIn ? ("From " + maskAccount(fromLabel)) : ("To " + maskAccount(toLabel));
-
-        var arrowSvg = isIn
-            ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>'
-            : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>';
+        var counterparty = buildCounterpartyLabel(tx, isIn);
+        var arrowSvg    = getDirectionArrowSvg(isIn, 20);
 
         var row =
             '<tr class="row-' + dir + '" data-tx-id="' + escapeHtml(String(tx.id)) + '">' +
@@ -282,21 +266,6 @@ function renderTransactionRows(transactions) {
 
         $tbody.append(row);
     });
-}
-
-// ============================================================
-// RENDER: Pagination
-// ============================================================
-
-function renderPagination() {
-    if (State.filtered.length === 0) {
-        $("#pagination").hide();
-        return;
-    }
-    $("#pagination").show();
-    $("#paginationInfo").text("Page " + State.currentPage + " of " + State.totalPages);
-    $("#btnPrevPage").prop("disabled", State.currentPage <= 1);
-    $("#btnNextPage").prop("disabled", State.currentPage >= State.totalPages);
 }
 
 // ============================================================
@@ -328,27 +297,9 @@ function renderModal(tx) {
     var currency = (tx.currency || (State.account ? State.account.currency : "EUR") || "EUR").toUpperCase();
     var sign     = isIn ? "+" : "-";
 
-    var arrowSvg = isIn
-        ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>'
-        : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>';
-
-    var fields = [];
-    addField(fields, "Transaction ID", tx.id);
-    addField(fields, "Description",    tx.description, true);
-    addField(fields, "Date",           formatDateTime(tx.createDate));
-    addField(fields, "From Account",   tx.bankAccountFrom ? maskAccount(tx.bankAccountFrom.number) || formatId(tx.bankAccountFrom.id) : null);
-    addField(fields, "To Account",     tx.bankAccountTo ? maskAccount(tx.bankAccountTo.number) || formatId(tx.bankAccountTo.id) : null);
-    addField(fields, "Currency",       currency);
-
-    var gridHtml = "";
-    fields.forEach(function (f) {
-        var cls = f.fullWidth ? " full-width" : "";
-        gridHtml +=
-            '<div class="detail-item' + cls + '">' +
-                '<div class="detail-label">' + escapeHtml(f.label) + '</div>' +
-                '<div class="detail-value">' + escapeHtml(String(f.value)) + '</div>' +
-            '</div>';
-    });
+    var arrowSvg = getDirectionArrowSvg(isIn, 18);
+    var fields   = buildTransactionDetailFields(tx, currency);
+    var gridHtml = renderDetailGrid(fields);
 
     var html =
         '<div class="detail-direction">' +
@@ -363,10 +314,6 @@ function renderModal(tx) {
 
     $("#modalBody").html(html);
     $("#modalOverlay").addClass("open");
-}
-
-function closeModal() {
-    $("#modalOverlay").removeClass("open");
 }
 
 // ============================================================
@@ -385,7 +332,7 @@ $(document).ready(function () {
         if (State.currentPage > 1) {
             State.currentPage--;
             renderPage();
-            scrollToTable();
+            scrollToTable("#transactionsSection");
         }
     });
 
@@ -393,7 +340,7 @@ $(document).ready(function () {
         if (State.currentPage < State.totalPages) {
             State.currentPage++;
             renderPage();
-            scrollToTable();
+            scrollToTable("#transactionsSection");
         }
     });
 
@@ -402,17 +349,5 @@ $(document).ready(function () {
         openDetail(txId);
     });
 
-    $("#modalClose, #modalCloseBtn").on("click", closeModal);
-    $("#modalOverlay").on("click", function (e) {
-        if (e.target === this) closeModal();
-    });
-    $(document).on("keydown", function (e) {
-        if (e.key === "Escape") closeModal();
-    });
+    initModalClose();
 });
-
-function scrollToTable() {
-    $("html, body").animate({
-        scrollTop: $("#transactionsSection").offset().top - 80
-    }, 250);
-}

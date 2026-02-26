@@ -100,9 +100,7 @@ function renderAccountRows(accounts) {
         var id            = account.id;
         var currency      = (account.currency || "EUR").toUpperCase();
         var balance       = parseFloat(account.balance) || 0;
-        var typeName      = (account.accountType || "Account")
-            .replace(/_/g, " ")
-            .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+        var typeName      = formatAccountType(account.accountType);
         var displayNumber = maskAccount(account.number);
         var iconClass     = getTypeIconClass(account.accountType || "");
 
@@ -177,15 +175,6 @@ function renderAccountRows(accounts) {
 
     showLoading(false);
     $list.show();
-}
-
-function getTypeIconClass(type) {
-    var t = (type || "").toUpperCase();
-    if (t === "CHECKING")         return "blue";
-    if (t === "SAVING")           return "green";
-    if (t === "BUSINESS")         return "purple";
-    if (t === "FOREIGN_CURRENCY") return "amber";
-    return "blue";
 }
 
 // ============================================================

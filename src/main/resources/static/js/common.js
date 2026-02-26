@@ -117,6 +117,107 @@ function formatId(id) {
 }
 
 // ============================================================
+// ACCOUNT HELPERS
+// ============================================================
+
+function getTypeIconClass(type) {
+    var t = (type || "").toUpperCase();
+    if (t === "CHECKING")         return "blue";
+    if (t === "SAVING")           return "green";
+    if (t === "BUSINESS")         return "purple";
+    if (t === "FOREIGN_CURRENCY") return "amber";
+    return "blue";
+}
+
+function formatAccountType(type) {
+    return (type || "Account")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+}
+
+// ============================================================
+// TRANSACTION HELPERS
+// ============================================================
+
+function getDirectionArrowSvg(isIncoming, size) {
+    var s = size || 20;
+    if (isIncoming) {
+        return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>';
+    }
+    return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>';
+}
+
+function buildCounterpartyLabel(tx, isIncoming) {
+    var fromLabel = (tx.bankAccountFrom && tx.bankAccountFrom.number) ? maskAccount(tx.bankAccountFrom.number) : "\u2014";
+    var toLabel   = (tx.bankAccountTo && tx.bankAccountTo.number) ? maskAccount(tx.bankAccountTo.number) : "\u2014";
+    return isIncoming ? ("From " + fromLabel) : ("To " + toLabel);
+}
+
+function buildTransactionDetailFields(tx, currency) {
+    var fields = [];
+    addField(fields, "Transaction ID", tx.id);
+    addField(fields, "Description",    tx.description, true);
+    addField(fields, "Date",           formatDateTime(tx.createDate));
+    addField(fields, "From Account",   tx.bankAccountFrom ? maskAccount(tx.bankAccountFrom.number) || formatId(tx.bankAccountFrom.id) : null);
+    addField(fields, "To Account",     tx.bankAccountTo ? maskAccount(tx.bankAccountTo.number) || formatId(tx.bankAccountTo.id) : null);
+    addField(fields, "Currency",       (currency || "").toUpperCase());
+    return fields;
+}
+
+function renderDetailGrid(fields) {
+    var html = "";
+    fields.forEach(function (f) {
+        var cls = f.fullWidth ? " full-width" : "";
+        html +=
+            '<div class="detail-item' + cls + '">' +
+                '<div class="detail-label">' + escapeHtml(f.label) + '</div>' +
+                '<div class="detail-value">' + escapeHtml(String(f.value)) + '</div>' +
+            '</div>';
+    });
+    return html;
+}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+
+function closeModal() {
+    $("#modalOverlay").removeClass("open");
+}
+
+function initModalClose() {
+    $("#modalClose, #modalCloseBtn").on("click", closeModal);
+    $("#modalOverlay").on("click", function (e) {
+        if (e.target === this) closeModal();
+    });
+    $(document).on("keydown", function (e) {
+        if (e.key === "Escape") closeModal();
+    });
+}
+
+// ============================================================
+// PAGINATION & SCROLL
+// ============================================================
+
+function renderPagination(state) {
+    if (state.filtered.length === 0) {
+        $("#pagination").hide();
+        return;
+    }
+    $("#pagination").show();
+    $("#paginationInfo").text("Page " + state.currentPage + " of " + state.totalPages);
+    $("#btnPrevPage").prop("disabled", state.currentPage <= 1);
+    $("#btnNextPage").prop("disabled", state.currentPage >= state.totalPages);
+}
+
+function scrollToTable(selector) {
+    var $el = $(selector);
+    if ($el.length) {
+        $("html, body").animate({ scrollTop: $el.offset().top - 80 }, 250);
+    }
+}
+
+// ============================================================
 // PROFILE NAVIGATION
 // ============================================================
 
