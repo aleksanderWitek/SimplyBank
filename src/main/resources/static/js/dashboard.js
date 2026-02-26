@@ -52,9 +52,7 @@ var DashboardRenderer = {
             var balance = parseFloat(account.balance) || 0;
             var formattedBalance = formatCurrency(balance, currency);
             var displayNumber = maskAccount(account.number);
-            var typeName = (account.accountType || "Account")
-                .replace(/_/g, " ")
-                .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+            var typeName = formatAccountType(account.accountType);
 
             var footerStatLabel, footerStatValue;
             if (isCredit) {

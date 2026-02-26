@@ -406,9 +406,7 @@ function populateAccountDropdowns(accounts) {
 }
 
 function buildAccountLabel(acct) {
-    var type = (acct.accountType || "Account")
-        .replace(/_/g, " ")
-        .replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+    var type = formatAccountType(acct.accountType);
     var num  = maskAccount(acct.number);
     var bal  = formatCurrency(acct.balance, acct.currency || "EUR");
     return type + " " + num + "  \u2014  " + bal;
