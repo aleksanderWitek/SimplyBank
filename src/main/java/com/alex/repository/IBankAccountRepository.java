@@ -11,7 +11,6 @@ public interface IBankAccountRepository {
     Optional<BankAccount> findById(Long id);
     Optional<BankAccount> findByIdForUpdate(Long id);
     List<BankAccount> findAll();
-    void updateBalance(BankAccount bankAccount);
     void addToBalance(Long id, BigDecimal amount);
     void subtractFromBalance(Long id, BigDecimal amount);
     void deleteById(Long id);
