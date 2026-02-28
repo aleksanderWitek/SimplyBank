@@ -8,7 +8,6 @@ import java.util.Optional;
 
 public interface IBankAccountService {
     BankAccount save(Long clientId, String bankAccountType, String bankAccountCurrency);
-    void updateBalance(BankAccount bankAccount);
     Optional<BankAccount> findById(Long id);
     Optional<BankAccount> findByIdForUpdate(Long id);
     void addToBalance(Long id, BigDecimal amount);

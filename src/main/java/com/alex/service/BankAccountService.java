@@ -66,13 +66,6 @@ public class BankAccountService implements IBankAccountService{
         return saveBankAccount;
     }
 
-    @Transactional
-    @Override
-    public void updateBalance(BankAccount bankAccount) {
-        BankAccountValidation.ensureBankAccountPresent(bankAccount);
-        bankAccountRepository.updateBalance(bankAccount);
-    }
-
     @Transactional(readOnly = true)
     @Override
     public Optional<BankAccount> findById(Long id) {

@@ -39,4 +39,10 @@ public class BankAccountController {
         List<BankAccount> bankAccounts = bankAccountService.findAll();
         return ResponseEntity.ok(bankAccounts);
     }
+
+    @DeleteMapping(path = "/{id}")
+    public ResponseEntity<Void> deleteBankAccountById(@PathVariable("id") Long id) {
+        bankAccountService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }

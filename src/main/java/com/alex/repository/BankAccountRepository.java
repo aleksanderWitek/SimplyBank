@@ -101,27 +101,6 @@ public class BankAccountRepository implements IBankAccountRepository {
     }
 
     @Override
-    public void updateBalance(BankAccount bankAccount) {
-        String query = """
-                UPDATE bank_account
-                SET balance = ?,
-                modify_date = ?
-                WHERE id = ? AND delete_date IS NULL
-                """;
-        try {
-            int rowAffected = jdbcTemplate.update(query,
-                    bankAccount.getBalance(),
-                    bankAccount.getModifyDate(),
-                    bankAccount.getId());
-            if(rowAffected == 0) {
-                throw new BankAccountNotFoundRuntimeException("There is no Bank Account with provided id = " + bankAccount.getId());
-            }
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
-    }
-
-    @Override
     public void addToBalance(Long id, BigDecimal amount) {
         String query = """
                 UPDATE bank_account
