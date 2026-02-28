@@ -2,6 +2,7 @@ package com.alex.service;
 
 import com.alex.UserAccountRole;
 import com.alex.dto.Client;
+import com.alex.dto.ClientProfile;
 import com.alex.dto.Password;
 import com.alex.dto.UserAccount;
 import com.alex.exception.UserAccountNotFoundRuntimeException;
@@ -10,6 +11,7 @@ import com.alex.repository.IClientRepository;
 import com.alex.repository.IUserAccountClientRepository;
 import com.alex.service.validation.ClientValidation;
 import com.alex.service.validation.IdValidation;
+import com.alex.service.validation.UserAccountValidation;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +41,8 @@ public class ClientService implements IClientService {
     @Override
     public Client save(Client client) {
         ClientValidation.ensureClientPresent(client);
+        UserAccountValidation.ensureFirstNamePresent(client.getFirstName());
+        UserAccountValidation.ensureLastNamePresent(client.getLastName());
 
         Client clientWithCreateDate = new Client(client.getFirstName(), client.getLastName(), client.getCity(),
                 client.getStreet(), client.getHouseNumber(), client.getIdentificationNumber(), LocalDateTime.now());
@@ -48,9 +52,6 @@ public class ClientService implements IClientService {
                 clientWithCreateDate.getIdentificationNumber(), clientWithCreateDate.getCreateDate());
         UserAccount userAccount = userAccountService.save(client.getFirstName(), client.getLastName(),
                 UserAccountRole.CLIENT);
-        //todo Check if there is reason to use helper methods for JdbcTemplate
-        // because it looks for me like it is not needed
-        userAccount.addClient(savedClient);
         userAccountClientRepository.linkUserAccountToClient(userAccount.getId(), id);
         return savedClient;
     }
@@ -60,6 +61,8 @@ public class ClientService implements IClientService {
     public void updateById(Long id, Client client) {
         IdValidation.ensureIdPresent(id);
         ClientValidation.ensureClientPresent(client);
+        UserAccountValidation.ensureFirstNamePresent(client.getFirstName());
+        UserAccountValidation.ensureLastNamePresent(client.getLastName());
         clientRepository.updateById(id, client);
     }
 
@@ -87,6 +90,13 @@ public class ClientService implements IClientService {
         userAccountClientRepository.unlinkUserAccountFromClient(userAccountId, id);
         userAccountService.deleteById(userAccountId);
         clientRepository.deleteById(id);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Optional<ClientProfile> findProfileByUserAccountId(Long userAccountId) {
+        IdValidation.ensureIdPresent(userAccountId);
+        return clientRepository.findProfileByUserAccountId(userAccountId);
     }
 
     @Transactional

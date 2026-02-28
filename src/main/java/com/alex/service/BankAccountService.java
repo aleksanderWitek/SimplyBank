@@ -3,8 +3,6 @@ package com.alex.service;
 import com.alex.BankAccountType;
 import com.alex.Currency;
 import com.alex.dto.BankAccount;
-import com.alex.dto.Client;
-import com.alex.exception.ClientNotFoundRuntimeException;
 import com.alex.exception.IllegalStateRuntimeException;
 import com.alex.repository.IBankAccountClientRepository;
 import com.alex.repository.IBankAccountRepository;
@@ -65,17 +63,7 @@ public class BankAccountService implements IBankAccountService{
                 bankAccountWithCreateDate.getCreateDate()
         );
         bankAccountClientRepository.linkBankAccountToClient(id, clientId);
-        Client client = clientService.findById(clientId).orElseThrow(() ->
-                new ClientNotFoundRuntimeException("There is no Client with id:" + clientId));
-        client.addBankAccount(saveBankAccount);
         return saveBankAccount;
-    }
-
-    @Transactional
-    @Override
-    public void updateBalance(BankAccount bankAccount) {
-        BankAccountValidation.ensureBankAccountPresent(bankAccount);
-        bankAccountRepository.updateBalance(bankAccount);
     }
 
     @Transactional(readOnly = true)
@@ -83,6 +71,27 @@ public class BankAccountService implements IBankAccountService{
     public Optional<BankAccount> findById(Long id) {
         IdValidation.ensureIdPresent(id);
         return bankAccountRepository.findById(id);
+    }
+
+    @Transactional
+    @Override
+    public Optional<BankAccount> findByIdForUpdate(Long id) {
+        IdValidation.ensureIdPresent(id);
+        return bankAccountRepository.findByIdForUpdate(id);
+    }
+
+    @Transactional
+    @Override
+    public void addToBalance(Long id, BigDecimal amount) {
+        IdValidation.ensureIdPresent(id);
+        bankAccountRepository.addToBalance(id, amount);
+    }
+
+    @Transactional
+    @Override
+    public void subtractFromBalance(Long id, BigDecimal amount) {
+        IdValidation.ensureIdPresent(id);
+        bankAccountRepository.subtractFromBalance(id, amount);
     }
 
     @Transactional(readOnly = true)

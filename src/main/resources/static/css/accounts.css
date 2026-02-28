@@ -1,0 +1,473 @@
+/* ============================================================
+   SimplyBank — Accounts Page
+   ============================================================ */
+
+/* --- Reset & Base --- */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    /* Brand */
+    --blue-600: #2563eb;
+    --blue-500: #3b82f6;
+    --blue-100: #dbeafe;
+    --blue-50:  #eff6ff;
+
+    /* Green */
+    --green-600: #059669;
+    --green-500: #10b981;
+    --green-100: #d1fae5;
+
+    /* Red */
+    --red-600:  #dc2626;
+    --red-500:  #ef4444;
+    --red-100:  #fee2e2;
+
+    /* Purple */
+    --purple-600: #7c3aed;
+    --purple-100: #ede9fe;
+
+    /* Amber */
+    --amber-600: #d97706;
+    --amber-100: #fef3c7;
+
+    /* Neutral */
+    --gray-50:   #f8fafc;
+    --gray-100:  #f1f5f9;
+    --gray-200:  #e2e8f0;
+    --gray-300:  #cbd5e1;
+    --gray-400:  #94a3b8;
+    --gray-500:  #64748b;
+    --gray-600:  #475569;
+    --gray-700:  #334155;
+    --gray-800:  #1e293b;
+    --gray-900:  #0f172a;
+
+    --white: #ffffff;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.07);
+    --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+
+    --font: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body {
+    font-family: var(--font);
+    background: var(--gray-50);
+    color: var(--gray-800);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   Header  (mirrors transactions)
+   ============================================================ */
+.header {
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.header-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.logo-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+    letter-spacing: -0.3px;
+}
+.nav {
+    display: flex;
+    gap: 4px;
+}
+.nav-link {
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gray-500);
+    transition: background .15s, color .15s;
+}
+.nav-link:hover {
+    color: var(--gray-800);
+    background: var(--gray-100);
+}
+.nav-link.active {
+    color: var(--blue-600);
+    background: var(--blue-50);
+}
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.icon-button {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--gray-100);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-500);
+    transition: background .15s, color .15s;
+}
+.icon-button:hover {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 8px;
+}
+.user-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gray-700);
+}
+.user-avatar {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: var(--blue-600);
+    color: var(--white);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font);
+}
+
+/* ============================================================
+   Main Content
+   ============================================================ */
+.main-content {
+    padding: 32px 0 64px;
+}
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* --- Page Header --- */
+.page-header {
+    margin-bottom: 28px;
+}
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gray-900);
+    letter-spacing: -0.5px;
+    line-height: 1.15;
+}
+.page-subtitle {
+    font-size: 15px;
+    color: var(--gray-400);
+    margin-top: 4px;
+}
+
+/* ============================================================
+   Accounts List
+   ============================================================ */
+.accounts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.account-row {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: 1fr 2fr 40px;
+    align-items: center;
+    gap: 24px;
+    cursor: pointer;
+    transition: box-shadow .2s, border-color .2s, transform .15s;
+}
+.account-row:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--blue-500);
+    transform: translateY(-1px);
+}
+
+/* --- Left: Account Info --- */
+.account-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.account-type-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.account-type-icon.blue   { background: var(--blue-100);   color: var(--blue-600); }
+.account-type-icon.green  { background: var(--green-100);  color: var(--green-600); }
+.account-type-icon.purple { background: var(--purple-100); color: var(--purple-600); }
+.account-type-icon.amber  { background: var(--amber-100);  color: var(--amber-600); }
+
+.account-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+}
+.account-type {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-800);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.account-number {
+    font-size: 13px;
+    color: var(--gray-400);
+    letter-spacing: 0.5px;
+}
+
+.account-balance-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    flex-shrink: 0;
+}
+.account-balance {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gray-900);
+    letter-spacing: -0.3px;
+    font-variant-numeric: tabular-nums;
+}
+.account-currency {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--gray-400);
+}
+
+/* --- Right: Stats --- */
+.account-right {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    border-left: 1px solid var(--gray-100);
+    padding-left: 24px;
+}
+
+.account-stat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    background: var(--gray-50);
+    border: 1px solid var(--gray-100);
+    transition: background .15s, border-color .15s;
+}
+.account-row:hover .account-stat {
+    background: var(--white);
+    border-color: var(--gray-200);
+}
+
+.stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.stat-icon.total    { background: var(--blue-100);  color: var(--blue-600); }
+.stat-icon.incoming { background: var(--green-100); color: var(--green-600); }
+.stat-icon.outgoing { background: var(--red-100);   color: var(--red-600); }
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    overflow: hidden;
+}
+.stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray-400);
+    white-space: nowrap;
+}
+.stat-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gray-900);
+    letter-spacing: -0.2px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.stat-value.incoming-val { color: var(--green-600); }
+.stat-value.outgoing-val { color: var(--red-600); }
+
+/* --- Arrow --- */
+.account-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-300);
+    transition: color .2s, transform .2s;
+}
+.account-row:hover .account-arrow {
+    color: var(--blue-500);
+    transform: translateX(3px);
+}
+
+/* ============================================================
+   Empty State & Loading
+   ============================================================ */
+.empty-state,
+.loading-state {
+    text-align: center;
+    padding: 80px 24px;
+    color: var(--gray-400);
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+}
+.empty-state svg {
+    margin-bottom: 16px;
+    opacity: 0.4;
+}
+.empty-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-600);
+    margin-bottom: 4px;
+}
+.empty-subtitle {
+    font-size: 14px;
+    color: var(--gray-400);
+}
+.spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--gray-200);
+    border-top-color: var(--blue-600);
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    animation: spin 0.7s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================================
+   Notification Toast
+   ============================================================ */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    padding: 14px 24px;
+    border-radius: var(--radius-md);
+    color: var(--white);
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    animation: slideIn 0.3s ease-out;
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 1100px) {
+    .account-right {
+        gap: 6px;
+    }
+    .account-stat {
+        padding: 10px 10px;
+    }
+    .stat-value {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 860px) {
+    .account-row {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    .account-right {
+        padding-left: 0;
+        border-left: none;
+        border-top: 1px solid var(--gray-100);
+        padding-top: 16px;
+    }
+    .account-arrow {
+        display: none;
+    }
+    .account-balance-section {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 640px) {
+    .nav { display: none; }
+    .header-container { padding: 0 16px; }
+    .container { padding: 0 16px; }
+    .account-right {
+        grid-template-columns: 1fr;
+    }
+    .account-stat {
+        padding: 10px 12px;
+    }
+}

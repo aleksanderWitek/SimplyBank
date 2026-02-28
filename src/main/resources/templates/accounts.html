@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounts - SimplyBank</title>
+    <link rel="stylesheet" href="/css/accounts.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <script src="/js/libs/jquery-3.6.0.min.js" defer></script>
+    <script src="/js/common.js" defer></script>
+    <script src="/js/accounts.js" defer></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <rect width="32" height="32" rx="8" fill="#2563eb"/>
+                    <path d="M16 8L22 14H18V20H14V14H10L16 8Z" fill="white"/>
+                    <rect x="10" y="22" width="12" height="2" fill="white"/>
+                </svg>
+                <span class="logo-text">SimplyBank</span>
+            </div>
+            <nav class="nav">
+                <a href="/" class="nav-link">Dashboard</a>
+                <a href="/accounts" class="nav-link active">Accounts</a>
+                <a href="/transactions" class="nav-link">Transactions</a>
+                <a href="/new-transaction" class="nav-link">Transfer</a>
+            </nav>
+            <div class="header-actions">
+                <button class="icon-button" title="Profile">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                        <path d="M15 17v-3a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v3" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="9" cy="4" r="3" stroke-width="2"/>
+                    </svg>
+                </button>
+                <button class="icon-button" title="Activity">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                        <path d="M10 17.5C14.1421 17.5 17.5 14.1421 17.5 10C17.5 5.85786 14.1421 2.5 10 2.5C5.85786 2.5 2.5 5.85786 2.5 10C2.5 14.1421 5.85786 17.5 10 17.5Z" stroke-width="2"/>
+                        <path d="M10 6V10L13 13" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <div class="user-menu">
+                    <span class="user-name" id="headerUserName">Alex M.</span>
+                    <button class="user-avatar" id="headerUserAvatar">AM</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+
+            <!-- Page Header -->
+            <section class="page-header">
+                <div class="page-header-left">
+                    <h1 class="page-title">My Accounts</h1>
+                    <p class="page-subtitle">Overview of all your bank accounts and activity</p>
+                </div>
+            </section>
+
+            <!-- Loading State -->
+            <div class="loading-state" id="loadingState">
+                <div class="spinner"></div>
+                <p>Loading accounts&hellip;</p>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="emptyState" style="display:none;">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2"/>
+                    <line x1="2" y1="10" x2="22" y2="10"/>
+                </svg>
+                <p class="empty-title">No accounts found</p>
+                <p class="empty-subtitle">You don&rsquo;t have any bank accounts yet</p>
+            </div>
+
+            <!-- Accounts List -->
+            <section class="accounts-list" id="accountsList" style="display:none;">
+                <!-- Populated by JS -->
+            </section>
+
+        </div>
+    </main>
+</body>
+</html>

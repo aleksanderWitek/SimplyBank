@@ -21,8 +21,8 @@ public class UserAccountClientRepository implements IUserAccountClientRepository
     @Override
     public void linkUserAccountToClient(Long userAccountId, Long clientId) {
         String query = """
-                INSERT INTO\s
-                user_account_client(user_account_id, client_id, create_date)\s
+                INSERT INTO
+                user_account_client(user_account_id, client_id, create_date)
                 VALUES (?, ?, ?)
                 """;
         try {
@@ -35,10 +35,10 @@ public class UserAccountClientRepository implements IUserAccountClientRepository
     @Override
     public void unlinkUserAccountFromClient(Long userAccountId, Long clientId) {
         String query = """
-                UPDATE user_account_client\s
-                SET delete_date = ?\s
-                WHERE user_account_id = ? AND\s
-                client_id = ? AND\s
+                UPDATE user_account_client
+                SET delete_date = ?
+                WHERE user_account_id = ? AND
+                client_id = ? AND
                 delete_date IS NULL
                 """;
         try {
@@ -51,12 +51,11 @@ public class UserAccountClientRepository implements IUserAccountClientRepository
     @Override
     public Optional<Long> findUserAccountIdByClientId(Long clientId) {
         String query = """
-                SELECT user_account_id\s
-                FROM user_account_client\s
+                SELECT user_account_id
+                FROM user_account_client
                 WHERE client_id = ? AND delete_date IS NULL
                 """;
         try {
-            //todo check all other repositories and change it to return list too
             List<Long> results = jdbcTemplate.queryForList(query, Long.class, clientId);
             return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
         } catch (DataAccessException e) {

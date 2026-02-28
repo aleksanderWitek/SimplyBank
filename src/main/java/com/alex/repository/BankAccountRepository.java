@@ -8,6 +8,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -26,8 +27,8 @@ public class BankAccountRepository implements IBankAccountRepository {
     @Override
     public Long save(BankAccount bankAccount) {
         String query = """
-                INSERT INTO\s
-                bank_account(number, account_type, currency, balance, create_date)\s
+                INSERT INTO
+                bank_account(number, account_type, currency, balance, create_date)
                 VALUES(?, ?, ?, ?, ?)
                 """;
         try {
@@ -42,18 +43,40 @@ public class BankAccountRepository implements IBankAccountRepository {
     @Override
     public Optional<BankAccount> findById(Long id) {
         String query = """
-                SELECT ba.number,\s
-                ba.account_type,\s
-                ba.currency,\s
-                ba.balance,\s
-                ba.create_date\s
-                FROM bank_account AS ba\s
+                SELECT ba.id,
+                ba.number,
+                ba.account_type,
+                ba.currency,
+                ba.balance,
+                ba.create_date
+                FROM bank_account AS ba
                 WHERE ba.id = ? AND ba.delete_date IS NULL
                 """;
         try {
-            BankAccount bankAccount = jdbcTemplate.queryForObject(query, new BankAccountRowMapper(), id);
-            return Optional.ofNullable(bankAccount);
+            List<BankAccount> results = jdbcTemplate.query(query, new BankAccountRowMapper(), id);
+            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
         } catch (DataAccessException e){
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Optional<BankAccount> findByIdForUpdate(Long id) {
+        String query = """
+                SELECT ba.id,
+                ba.number,
+                ba.account_type,
+                ba.currency,
+                ba.balance,
+                ba.create_date
+                FROM bank_account AS ba
+                WHERE ba.id = ? AND ba.delete_date IS NULL
+                FOR UPDATE
+                """;
+        try {
+            List<BankAccount> results = jdbcTemplate.query(query, new BankAccountRowMapper(), id);
+            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
+        } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
         }
     }
@@ -61,12 +84,13 @@ public class BankAccountRepository implements IBankAccountRepository {
     @Override
     public List<BankAccount> findAll() {
         String query = """
-                SELECT ba.number,\s
-                ba.account_type,\s
-                ba.currency,\s
-                ba.balance,\s
-                ba.create_date\s
-                FROM bank_account AS ba\s
+                SELECT ba.id,
+                ba.number,
+                ba.account_type,
+                ba.currency,
+                ba.balance,
+                ba.create_date
+                FROM bank_account AS ba
                 WHERE ba.delete_date IS NULL
                 """;
         try {
@@ -77,20 +101,35 @@ public class BankAccountRepository implements IBankAccountRepository {
     }
 
     @Override
-    public void updateBalance(BankAccount bankAccount) {
+    public void addToBalance(Long id, BigDecimal amount) {
         String query = """
-                UPDATE bank_account\s
-                SET balance = ?,\s
-                modify_date = ?\s
+                UPDATE bank_account
+                SET balance = balance + ?,
+                modify_date = ?
                 WHERE id = ? AND delete_date IS NULL
                 """;
         try {
-            int rowAffected = jdbcTemplate.update(query,
-                    bankAccount.getBalance(),
-                    bankAccount.getModifyDate(),
-                    bankAccount.getId());
-            if(rowAffected == 0) {
-                throw new BankAccountNotFoundRuntimeException("There is no Bank Account with provided id = " + bankAccount.getId());
+            int rowAffected = jdbcTemplate.update(query, amount, LocalDateTime.now(), id);
+            if (rowAffected == 0) {
+                throw new BankAccountNotFoundRuntimeException("There is no Bank Account with provided id = " + id);
+            }
+        } catch (DataAccessException e) {
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void subtractFromBalance(Long id, BigDecimal amount) {
+        String query = """
+                UPDATE bank_account
+                SET balance = balance - ?,
+                modify_date = ?
+                WHERE id = ? AND delete_date IS NULL
+                """;
+        try {
+            int rowAffected = jdbcTemplate.update(query, amount, LocalDateTime.now(), id);
+            if (rowAffected == 0) {
+                throw new BankAccountNotFoundRuntimeException("There is no Bank Account with provided id = " + id);
             }
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
@@ -100,8 +139,8 @@ public class BankAccountRepository implements IBankAccountRepository {
     @Override
     public void deleteById(Long id) {
         String query = """
-                UPDATE bank_account\s
-                delete_date = ?\s
+                UPDATE bank_account
+                SET delete_date = ?
                 WHERE id = ? AND delete_date IS NULL
                 """;
         try {
@@ -119,8 +158,8 @@ public class BankAccountRepository implements IBankAccountRepository {
     @Override
     public boolean existsByNumber(String number) {
         String query = """
-            SELECT COUNT(*)\s
-            FROM bank_account\s
+            SELECT COUNT(*)
+            FROM bank_account
             WHERE number = ? AND delete_date IS NULL
            """;
         try {

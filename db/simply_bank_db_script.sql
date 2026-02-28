@@ -13,6 +13,8 @@ CREATE TABLE user_account (
     CONSTRAINT pk_user_account_id PRIMARY KEY(id)
 );
 
+DROP TABLE user_account;
+
 CREATE TABLE client (
     id INT NOT NULL AUTO_INCREMENT,
     first_name VARCHAR(30) NOT NULL,
@@ -81,6 +83,8 @@ CREATE TABLE bank_account (
     CONSTRAINT pk_bank_account PRIMARY KEY(id)
 );
 
+DROP TABLE bank_account;
+
 CREATE TABLE bank_account_client (
     bank_account_client_id INT NOT NULL AUTO_INCREMENT,
     bank_account_id INT NOT NULL,
@@ -93,6 +97,8 @@ CREATE TABLE bank_account_client (
     CONSTRAINT uk_bank_account_client UNIQUE(bank_account_id, client_id)
 );
 
+DROP TABLE bank_account_client;
+
 CREATE TABLE transaction (
     id INT NOT NULL AUTO_INCREMENT,
     transaction_type ENUM('TRANSFER', 'DEPOSIT', 'WITHDRAWAL') NOT NULL,
@@ -104,11 +110,6 @@ CREATE TABLE transaction (
     create_date DATETIME NOT NULL,
     CONSTRAINT pk_transaction PRIMARY KEY(id),
     CONSTRAINT fk_transaction_bank_account_from FOREIGN KEY(bank_account_id_from) REFERENCES bank_account(id),
-    CONSTRAINT fk_transaction_bank_account_to FOREIGN KEY(bank_account_id_to) REFERENCES bank_account(id),
-    CONSTRAINT chk_different_accounts CHECK (bank_account_id_from != bank_account_id_to),
-    CONSTRAINT chk_transfer_accounts CHECK (
-            (transaction_type = 'TRANSFER' AND bank_account_id_from IS NOT NULL AND bank_account_id_to IS NOT NULL AND bank_account_id_from != bank_account_id_to)
-            OR (transaction_type = 'DEPOSIT' AND bank_account_id_from IS NULL AND bank_account_id_to IS NOT NULL)
-            OR (transaction_type = 'WITHDRAWAL' AND bank_account_id_from IS NOT NULL AND bank_account_id_to IS NULL)
-        )
-);
+    CONSTRAINT fk_transaction_bank_account_to FOREIGN KEY(bank_account_id_to) REFERENCES bank_account(id));
+
+DROP TABLE transaction;

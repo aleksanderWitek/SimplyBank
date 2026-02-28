@@ -4,19 +4,12 @@ import com.alex.BankAccountType;
 import com.alex.dto.BankAccount;
 import com.alex.exception.IllegalArgumentRuntimeException;
 import com.alex.exception.NullPointerRuntimeException;
-import com.alex.exception.SQLRuntimeException;
 
 public class BankAccountValidation {
 
     public static void ensureBankAccountPresent(BankAccount bankAccount) {
         if (bankAccount == null) {
             throw new NullPointerRuntimeException("Bank Account is null");
-        }
-    }
-
-    public static void ensureBankAccountNotPresent(Long bankAccountId, String message) {
-        if (bankAccountId != null) {
-            throw new SQLRuntimeException(message);
         }
     }
 

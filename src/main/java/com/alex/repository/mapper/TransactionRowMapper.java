@@ -27,7 +27,6 @@ public class TransactionRowMapper implements RowMapper<Transaction> {
             BankAccount bankAccountTo = mapBankAccountTo(rs);
 
             Timestamp createDate = rs.getTimestamp("create_date");
-            Timestamp deleteDate = rs.getTimestamp("delete_date");
 
             return new Transaction(
                     rs.getLong("id"),

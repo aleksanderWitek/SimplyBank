@@ -26,8 +26,8 @@ public class UserAccountRepository implements IUserAccountRepository{
     @Override
     public Long save(UserAccount userAccount) {
         String query = """
-                INSERT INTO\s
-                user_account(login, password, role, create_date)\s
+                INSERT INTO
+                user_account(login, password, role, create_date)
                 VALUES(?, ?, ?, ?)
                 """;
         try {
@@ -41,18 +41,18 @@ public class UserAccountRepository implements IUserAccountRepository{
     @Override
     public Optional<UserAccount> findById(Long id) {
         String query = """
-                SELECT ua.id,\s
-                ua.login,\s
-                ua.password,\s
-                ua.role,\s
-                ua.create_date,\s
-                ua.modify_date\s
-                FROM user_account AS ua\s
+                SELECT ua.id,
+                ua.login,
+                ua.password,
+                ua.role,
+                ua.create_date,
+                ua.modify_date
+                FROM user_account AS ua
                 WHERE ua.id = ? AND ua.delete_date IS NULL
                 """;
         try {
-            UserAccount userAccount = jdbcTemplate.queryForObject(query, new UserAccountRowMapper(), id);
-            return Optional.ofNullable(userAccount);
+            List<UserAccount> results = jdbcTemplate.query(query, new UserAccountRowMapper(), id);
+            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
         } catch (DataAccessException e){
             throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
         }
@@ -61,19 +61,19 @@ public class UserAccountRepository implements IUserAccountRepository{
     @Override
     public Optional<UserAccount> findByLogin(String login) {
         String query = """
-                SELECT ua.id,\s
-                ua.login,\s
-                ua.password,\s
-                ua.role,\s
-                ua.create_date,\s
-                ua.modify_date,\s
-                ua.delete_date\s
-                FROM user_account AS ua\s
+                SELECT ua.id,
+                ua.login,
+                ua.password,
+                ua.role,
+                ua.create_date,
+                ua.modify_date,
+                ua.delete_date
+                FROM user_account AS ua
                 WHERE ua.login = ? AND ua.delete_date IS NULL
                 """;
         try {
-            UserAccount userAccount = jdbcTemplate.queryForObject(query, new UserAccountRowMapper(), login);
-            return Optional.ofNullable(userAccount);
+            List<UserAccount> results = jdbcTemplate.query(query, new UserAccountRowMapper(), login);
+            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
         }
@@ -82,13 +82,13 @@ public class UserAccountRepository implements IUserAccountRepository{
     @Override
     public List<UserAccount> findAll() {
         String query = """
-                SELECT ua.id,\s
-                ua.login,\s
-                ua.password,\s
-                ua.role,\s
-                ua.create_date,\s
-                ua.modify_date\s
-                FROM user_account AS ua\s
+                SELECT ua.id,
+                ua.login,
+                ua.password,
+                ua.role,
+                ua.create_date,
+                ua.modify_date
+                FROM user_account AS ua
                 WHERE ua.delete_date IS NULL
                 """;
         try {
@@ -101,9 +101,9 @@ public class UserAccountRepository implements IUserAccountRepository{
     @Override
     public void updatePassword(Long id, String encodedNewPassword) {
         String query = """
-                UPDATE user_account\s
-                SET password = ?,\s
-                modify_date = ?\s
+                UPDATE user_account
+                SET password = ?,
+                modify_date = ?
                 WHERE id = ? AND delete_date IS NULL
                """;
         try {
@@ -122,8 +122,8 @@ public class UserAccountRepository implements IUserAccountRepository{
     @Override
     public void deleteById(Long id) {
         String query = """
-                UPDATE user_account\s
-                SET delete_date = ?\s
+                UPDATE user_account
+                SET delete_date = ?
                 WHERE id = ? AND delete_date IS NULL
                """;
         try {

@@ -1,6 +1,7 @@
 package com.alex.controller;
 
 import com.alex.dto.Client;
+import com.alex.dto.ClientProfile;
 import com.alex.dto.Password;
 import com.alex.exception.ClientNotFoundRuntimeException;
 import com.alex.service.IClientService;
@@ -30,6 +31,14 @@ public class ClientController {
     public ResponseEntity<Void> updateClient(@PathVariable("id") Long id, @RequestBody Client client) {
         clientService.updateById(id, client);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping(path = "/profile")
+    public ResponseEntity<ClientProfile> findClientProfile(@RequestParam("userAccountId") Long userAccountId) {
+        ClientProfile profile = clientService.findProfileByUserAccountId(userAccountId)
+                .orElseThrow(() -> new ClientNotFoundRuntimeException(
+                        "There is no Client profile for userAccountId: " + userAccountId));
+        return ResponseEntity.ok(profile);
     }
 
     @GetMapping(path = "/{id}")
