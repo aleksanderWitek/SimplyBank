@@ -8,6 +8,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -60,6 +61,27 @@ public class BankAccountRepository implements IBankAccountRepository {
     }
 
     @Override
+    public Optional<BankAccount> findByIdForUpdate(Long id) {
+        String query = """
+                SELECT ba.id,
+                ba.number,
+                ba.account_type,
+                ba.currency,
+                ba.balance,
+                ba.create_date
+                FROM bank_account AS ba
+                WHERE ba.id = ? AND ba.delete_date IS NULL
+                FOR UPDATE
+                """;
+        try {
+            List<BankAccount> results = jdbcTemplate.query(query, new BankAccountRowMapper(), id);
+            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
+        } catch (DataAccessException e) {
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
+    }
+
+    @Override
     public List<BankAccount> findAll() {
         String query = """
                 SELECT ba.id,
@@ -93,6 +115,42 @@ public class BankAccountRepository implements IBankAccountRepository {
                     bankAccount.getId());
             if(rowAffected == 0) {
                 throw new BankAccountNotFoundRuntimeException("There is no Bank Account with provided id = " + bankAccount.getId());
+            }
+        } catch (DataAccessException e) {
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void addToBalance(Long id, BigDecimal amount) {
+        String query = """
+                UPDATE bank_account
+                SET balance = balance + ?,
+                modify_date = ?
+                WHERE id = ? AND delete_date IS NULL
+                """;
+        try {
+            int rowAffected = jdbcTemplate.update(query, amount, LocalDateTime.now(), id);
+            if (rowAffected == 0) {
+                throw new BankAccountNotFoundRuntimeException("There is no Bank Account with provided id = " + id);
+            }
+        } catch (DataAccessException e) {
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void subtractFromBalance(Long id, BigDecimal amount) {
+        String query = """
+                UPDATE bank_account
+                SET balance = balance - ?,
+                modify_date = ?
+                WHERE id = ? AND delete_date IS NULL
+                """;
+        try {
+            int rowAffected = jdbcTemplate.update(query, amount, LocalDateTime.now(), id);
+            if (rowAffected == 0) {
+                throw new BankAccountNotFoundRuntimeException("There is no Bank Account with provided id = " + id);
             }
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());

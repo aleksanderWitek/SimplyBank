@@ -361,9 +361,11 @@ function loadAccounts() {
         .done(function (user) {
             FormState.currentUserId = user.id;
             renderUserHeader(user);
+            initProfileLinks(user.id);
             fetchAccounts(user.id);
         })
         .fail(function () {
+            initProfileLinks();
             fetchAccounts(null);
         });
 }

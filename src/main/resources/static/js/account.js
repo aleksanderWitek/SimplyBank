@@ -53,6 +53,10 @@ function init() {
     ajax(AccountAPI.AUTH_ME, "GET")
         .done(function (user) {
             renderUserHeader(user);
+            initProfileLinks(user.id);
+        })
+        .fail(function () {
+            initProfileLinks();
         })
         .always(function () {
             loadAccount();
@@ -216,9 +220,9 @@ function renderSummary(list) {
 
 function renderTransactionRows(transactions) {
     var $tbody = $("#transactionsBody");
-    $tbody.empty();
 
     if (!transactions || transactions.length === 0) {
+        $tbody.empty();
         $(".transactions-table-wrapper").hide();
         $("#emptyState").show();
         $("#pagination").hide();
@@ -232,6 +236,7 @@ function renderTransactionRows(transactions) {
         ? (State.account.currency || "EUR").toUpperCase()
         : "EUR";
 
+    var allRowsHtml = "";
     transactions.forEach(function (tx) {
         var dir      = tx._direction || "outgoing";
         var isIn     = dir === "incoming";
@@ -244,7 +249,7 @@ function renderTransactionRows(transactions) {
         var counterparty = buildCounterpartyLabel(tx, isIn);
         var arrowSvg    = getDirectionArrowSvg(isIn, 20);
 
-        var row =
+        allRowsHtml +=
             '<tr class="row-' + dir + '" data-tx-id="' + escapeHtml(String(tx.id)) + '">' +
                 '<td>' +
                     '<div class="tx-desc">' +
@@ -263,9 +268,8 @@ function renderTransactionRows(transactions) {
                     '<button class="btn-details" data-tx-id="' + escapeHtml(String(tx.id)) + '">Details</button>' +
                 '</td>' +
             '</tr>';
-
-        $tbody.append(row);
     });
+    $tbody.html(allRowsHtml);
 }
 
 // ============================================================

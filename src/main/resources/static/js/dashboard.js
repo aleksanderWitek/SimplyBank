@@ -181,9 +181,10 @@ function loadCurrentUser() {
     ajax("/api/auth/me", "GET")
         .done(function (user) {
             DashboardRenderer.renderWelcome(user);
+            initProfileLinks(user.id);
         })
         .fail(function () {
-            // User info endpoint not available — keep template defaults
+            initProfileLinks();
         });
 }
 

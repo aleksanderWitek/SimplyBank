@@ -221,8 +221,8 @@ function scrollToTable(selector) {
 // PROFILE NAVIGATION
 // ============================================================
 
-function initProfileLinks() {
-    var profileUrl = "/user-profile?id=1";
+function initProfileLinks(userId) {
+    var profileUrl = userId ? "/user-profile?id=" + userId : "/user-profile";
     $(".icon-button[title='Profile']").on("click", function () {
         window.location.href = profileUrl;
     });
@@ -230,7 +230,3 @@ function initProfileLinks() {
         window.location.href = profileUrl;
     });
 }
-
-$(document).ready(function () {
-    initProfileLinks();
-});

@@ -80,6 +80,27 @@ public class BankAccountService implements IBankAccountService{
         return bankAccountRepository.findById(id);
     }
 
+    @Transactional
+    @Override
+    public Optional<BankAccount> findByIdForUpdate(Long id) {
+        IdValidation.ensureIdPresent(id);
+        return bankAccountRepository.findByIdForUpdate(id);
+    }
+
+    @Transactional
+    @Override
+    public void addToBalance(Long id, BigDecimal amount) {
+        IdValidation.ensureIdPresent(id);
+        bankAccountRepository.addToBalance(id, amount);
+    }
+
+    @Transactional
+    @Override
+    public void subtractFromBalance(Long id, BigDecimal amount) {
+        IdValidation.ensureIdPresent(id);
+        bankAccountRepository.subtractFromBalance(id, amount);
+    }
+
     @Transactional(readOnly = true)
     @Override
     public List<BankAccount> findAll() {
