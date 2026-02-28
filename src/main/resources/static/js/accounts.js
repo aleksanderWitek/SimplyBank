@@ -27,6 +27,10 @@ function init() {
     ajax(AccountsAPI.AUTH_ME, "GET")
         .done(function (user) {
             renderUserHeader(user);
+            initProfileLinks(user.id);
+        })
+        .fail(function () {
+            initProfileLinks();
         })
         .always(function () {
             loadAccounts();
@@ -94,7 +98,7 @@ function loadAllStats(accounts) {
 
 function renderAccountRows(accounts) {
     var $list = $("#accountsList");
-    $list.empty();
+    var allRowsHtml = "";
 
     accounts.forEach(function (account) {
         var id            = account.id;
@@ -104,7 +108,7 @@ function renderAccountRows(accounts) {
         var displayNumber = maskAccount(account.number);
         var iconClass     = getTypeIconClass(account.accountType || "");
 
-        var row =
+        allRowsHtml +=
             '<div class="account-row" data-account-id="' + escapeHtml(String(id)) + '">' +
 
                 // ── Left: account info ──
@@ -169,9 +173,9 @@ function renderAccountRows(accounts) {
                 '</div>' +
 
             '</div>';
-
-        $list.append(row);
     });
+
+    $list.html(allRowsHtml);
 
     showLoading(false);
     $list.show();

@@ -156,7 +156,7 @@ public class ClientRepository implements IClientRepository {
     public void deleteById(Long id) {
         String query = """
                 UPDATE client
-                SET delete_date
+                SET delete_date = ?
                 WHERE id = ? AND delete_date IS NULL
                """;
         try {

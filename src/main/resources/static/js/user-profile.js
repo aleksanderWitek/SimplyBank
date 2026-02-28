@@ -60,11 +60,13 @@ function loadProfile(url) {
         .done(function (profile) {
             renderProfile(profile);
             renderUserHeader(profile);
+            initProfileLinks(profile.userAccountId || profile.id);
             showLoading(false);
             $("#profileContent").show();
         })
         .fail(function (jqxhr) {
             showLoading(false);
+            initProfileLinks();
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to load profile";
