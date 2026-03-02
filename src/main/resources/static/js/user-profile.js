@@ -17,12 +17,15 @@
 // ============================================================
 
 var ProfileAPI = {
-    USER_ACCOUNT:    "/api/user_account/{id}",
-    CLIENT_PROFILE:  "/api/client/profile?userAccountId={id}",
+    USER_ACCOUNT:     "/api/user_account/{id}",
+    CLIENT_PROFILE:   "/api/client/profile?userAccountId={id}",
     EMPLOYEE_PROFILE: "/api/employee/profile?userAccountId={id}",
-    ADMIN_PROFILE:   "/api/employee/admin-profile?userAccountId={id}",
-    AUTH_ME:         "/api/auth/me"
+    ADMIN_PROFILE:    "/api/employee/admin-profile?userAccountId={id}",
+    UPDATE_PASSWORD:  "/api/user_account/{id}/password",
+    AUTH_ME:          "/api/auth/me"
 };
+
+var currentUserAccountId = null;
 
 // ============================================================
 // INITIALIZATION
@@ -85,9 +88,10 @@ function loadProfile(url) {
 
     ajax(url, "GET")
         .done(function (profile) {
+            currentUserAccountId = profile.userAccountId || profile.id || null;
             renderProfile(profile);
             renderUserHeader(profile);
-            initProfileLinks(profile.userAccountId || profile.id);
+            initProfileLinks(currentUserAccountId);
             showLoading(false);
             $("#profileContent").show();
         })
@@ -199,9 +203,133 @@ function showError(msg) {
 }
 
 // ============================================================
+// PASSWORD CHANGE
+// ============================================================
+
+function openPasswordModal() {
+    $("#pwdForm")[0].reset();
+    $(".pwd-field-error").text("");
+    $(".pwd-input").removeClass("invalid valid");
+    $("#pwdRequirements li").removeClass("met");
+    $("#pwdModalOverlay").addClass("open");
+}
+
+function closePasswordModal() {
+    $("#pwdModalOverlay").removeClass("open");
+}
+
+function validatePasswordRequirements(password) {
+    var results = {
+        length:  password.length >= 12,
+        upper:   /[A-Z]/.test(password),
+        lower:   /[a-z]/.test(password),
+        digit:   /[0-9]/.test(password),
+        special: /[!@#$%^&*]/.test(password)
+    };
+
+    $("#reqLength").toggleClass("met", results.length);
+    $("#reqUpper").toggleClass("met", results.upper);
+    $("#reqLower").toggleClass("met", results.lower);
+    $("#reqDigit").toggleClass("met", results.digit);
+    $("#reqSpecial").toggleClass("met", results.special);
+
+    return results.length && results.upper && results.lower && results.digit && results.special;
+}
+
+function validatePasswordForm() {
+    var currentPwd = $("#currentPassword").val();
+    var newPwd     = $("#newPassword").val();
+    var confirmPwd = $("#confirmPassword").val();
+    var valid = true;
+
+    $(".pwd-field-error").text("");
+    $(".pwd-input").removeClass("invalid");
+
+    if (!currentPwd) {
+        $("#currentPasswordError").text("Current password is required");
+        $("#currentPassword").addClass("invalid");
+        valid = false;
+    }
+
+    if (!newPwd) {
+        $("#newPasswordError").text("New password is required");
+        $("#newPassword").addClass("invalid");
+        valid = false;
+    } else if (!validatePasswordRequirements(newPwd)) {
+        $("#newPasswordError").text("Password does not meet all requirements");
+        $("#newPassword").addClass("invalid");
+        valid = false;
+    }
+
+    if (!confirmPwd) {
+        $("#confirmPasswordError").text("Please confirm your new password");
+        $("#confirmPassword").addClass("invalid");
+        valid = false;
+    } else if (newPwd && confirmPwd !== newPwd) {
+        $("#confirmPasswordError").text("Passwords do not match");
+        $("#confirmPassword").addClass("invalid");
+        valid = false;
+    }
+
+    return valid;
+}
+
+function submitPasswordChange() {
+    if (!validatePasswordForm()) return;
+    if (!currentUserAccountId) {
+        notify("Unable to determine user account", "error");
+        return;
+    }
+
+    var url = ProfileAPI.UPDATE_PASSWORD.replace("{id}", currentUserAccountId);
+    var data = {
+        currentPassword: $("#currentPassword").val(),
+        newPassword:     $("#newPassword").val()
+    };
+
+    $("#btnPwdSubmit").prop("disabled", true).text("Updating\u2026");
+
+    ajax(url, "PUT", data)
+        .done(function () {
+            notify("Password updated successfully", "success");
+            closePasswordModal();
+        })
+        .fail(function (jqxhr) {
+            var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
+                ? jqxhr.responseJSON.message
+                : "Failed to update password";
+            notify(msg, "error");
+        })
+        .always(function () {
+            $("#btnPwdSubmit").prop("disabled", false).text("Update Password");
+        });
+}
+
+function initPasswordModal() {
+    $("#btnChangePassword").on("click", openPasswordModal);
+    $("#pwdModalClose, #btnPwdCancel").on("click", closePasswordModal);
+    $("#pwdModalOverlay").on("click", function (e) {
+        if (e.target === this) closePasswordModal();
+    });
+    $(document).on("keydown", function (e) {
+        if (e.key === "Escape" && $("#pwdModalOverlay").hasClass("open")) {
+            closePasswordModal();
+        }
+    });
+    $("#pwdForm").on("submit", function (e) {
+        e.preventDefault();
+        submitPasswordChange();
+    });
+    $("#newPassword").on("input", function () {
+        validatePasswordRequirements($(this).val());
+    });
+}
+
+// ============================================================
 // ENTRY POINT
 // ============================================================
 
 $(document).ready(function () {
     init();
+    initPasswordModal();
 });

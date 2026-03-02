@@ -2,7 +2,6 @@ package com.alex.service;
 
 import com.alex.dto.Employee;
 import com.alex.dto.EmployeeProfile;
-import com.alex.dto.Password;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +12,5 @@ public interface IEmployeeService {
     Optional<Employee> findById(Long id);
     List<Employee> findAll();
     void deleteById(Long id);
-    void updatePassword(Long employeeId, Password password);
     Optional<EmployeeProfile> findProfileByUserAccountId(Long userAccountId);
 }
