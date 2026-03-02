@@ -2,6 +2,7 @@ package com.alex.service;
 
 import com.alex.UserAccountRole;
 import com.alex.dto.Employee;
+import com.alex.dto.EmployeeProfile;
 import com.alex.dto.Password;
 import com.alex.dto.UserAccount;
 import com.alex.exception.UserAccountNotFoundRuntimeException;
@@ -92,5 +93,12 @@ public class EmployeeService implements IEmployeeService{
                 .orElseThrow(() -> new UserAccountNotFoundRuntimeException("There is no Employee with provided id:" + employeeId));
 
         userAccountService.updatePassword(userAccountId, password);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Optional<EmployeeProfile> findProfileByUserAccountId(Long userAccountId) {
+        IdValidation.ensureIdPresent(userAccountId);
+        return employeeRepository.findProfileByUserAccountId(userAccountId);
     }
 }
