@@ -1,6 +1,8 @@
 package com.alex.repository;
 
 import com.alex.dto.Employee;
+import com.alex.dto.EmployeeProfile;
+import com.alex.repository.mapper.EmployeeProfileRowMapper;
 import com.alex.repository.mapper.EmployeeRowMapper;
 import com.alex.exception.DataAccessRuntimeException;
 import com.alex.exception.EmployeeNotFoundRuntimeException;
@@ -105,6 +107,34 @@ public class EmployeeRepository implements IEmployeeRepository {
             if(rowAffected == 0) {
                 throw new EmployeeNotFoundRuntimeException("There is no Employee with provided id = " + id);
             }
+        } catch (DataAccessException e) {
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Optional<EmployeeProfile> findProfileByUserAccountId(Long userAccountId) {
+        String query = """
+                SELECT e.id            AS employee_id,
+                       e.first_name,
+                       e.last_name,
+                       e.create_date   AS employee_create_date,
+                       e.modify_date   AS employee_modify_date,
+                       ua.id           AS user_account_id,
+                       ua.login,
+                       ua.role,
+                       ua.create_date  AS account_create_date
+                FROM employee e
+                JOIN user_account_employee uae ON uae.employee_id = e.id
+                JOIN user_account ua ON ua.id = uae.user_account_id
+                WHERE ua.id = ?
+                  AND e.delete_date IS NULL
+                  AND ua.delete_date IS NULL
+                  AND uae.delete_date IS NULL
+                """;
+        try {
+            List<EmployeeProfile> results = jdbcTemplate.query(query, new EmployeeProfileRowMapper(), userAccountId);
+            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
         }

@@ -2,22 +2,12 @@
  * SimplyBank — User Profile Page Controller
  *
  * Loads user profile data and renders role-appropriate fields.
- * - If URL has ?id=X, calls GET /api/user_account/{id}/profile
+ * - If URL has ?id=X, fetches the user account to determine role,
+ *   then calls the appropriate profile endpoint:
+ *     CLIENT   → GET /api/client/profile?userAccountId=X
+ *     EMPLOYEE → GET /api/employee/profile?userAccountId=X
+ *     ADMIN    → GET /api/employee/admin-profile?userAccountId=X
  * - Otherwise, calls GET /api/auth/me
- *
- * Expected API response shape:
- * {
- *   "userAccountId": 1,
- *   "login": "jdoe",
- *   "role": "CLIENT",
- *   "createDate": "2024-01-15T10:30:00",
- *   "firstName": "John",
- *   "lastName": "Doe",
- *   "city": "Dublin",           // CLIENT only
- *   "street": "O'Connell",      // CLIENT only
- *   "houseNumber": "42",        // CLIENT only
- *   "identificationNumber": "IE123456789"  // CLIENT only
- * }
  *
  * Shared utilities (ajax, formatDate, escapeHtml, etc.) are in common.js.
  */
@@ -27,8 +17,11 @@
 // ============================================================
 
 var ProfileAPI = {
-    PROFILE: "/api/user_account/{id}/profile",
-    AUTH_ME: "/api/auth/me"
+    USER_ACCOUNT:    "/api/user_account/{id}",
+    CLIENT_PROFILE:  "/api/client/profile?userAccountId={id}",
+    EMPLOYEE_PROFILE: "/api/employee/profile?userAccountId={id}",
+    ADMIN_PROFILE:   "/api/employee/admin-profile?userAccountId={id}",
+    AUTH_ME:         "/api/auth/me"
 };
 
 // ============================================================
@@ -43,7 +36,7 @@ function getQueryParam(name) {
 function init() {
     var userId = getQueryParam("id");
     if (userId) {
-        loadProfile(ProfileAPI.PROFILE.replace("{id}", userId));
+        loadProfileByUserAccountId(userId);
     } else {
         loadProfile(ProfileAPI.AUTH_ME);
     }
@@ -52,6 +45,40 @@ function init() {
 // ============================================================
 // DATA LOADING
 // ============================================================
+
+function loadProfileByUserAccountId(userAccountId) {
+    showLoading(true);
+
+    var userAccountUrl = ProfileAPI.USER_ACCOUNT.replace("{id}", userAccountId);
+    ajax(userAccountUrl, "GET")
+        .done(function (userAccount) {
+            var role = (userAccount.role || "").toUpperCase();
+            var profileUrl;
+
+            if (role === "CLIENT") {
+                profileUrl = ProfileAPI.CLIENT_PROFILE.replace("{id}", userAccountId);
+            } else if (role === "EMPLOYEE") {
+                profileUrl = ProfileAPI.EMPLOYEE_PROFILE.replace("{id}", userAccountId);
+            } else if (role === "ADMIN") {
+                profileUrl = ProfileAPI.ADMIN_PROFILE.replace("{id}", userAccountId);
+            } else {
+                showLoading(false);
+                showError("Unknown role: " + role);
+                return;
+            }
+
+            loadProfile(profileUrl);
+        })
+        .fail(function (jqxhr) {
+            showLoading(false);
+            initProfileLinks();
+            var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
+                ? jqxhr.responseJSON.message
+                : "Failed to load user account";
+            showError(msg);
+            notify(msg, "error");
+        });
+}
 
 function loadProfile(url) {
     showLoading(true);
@@ -115,14 +142,19 @@ function renderPersonalInfo(profile) {
     var $fields = $("#personalInfoFields");
     $fields.empty();
 
-    appendField($fields, "First Name", escapeHtml(profile.firstName || "N/A"));
-    appendField($fields, "Last Name",  escapeHtml(profile.lastName || "N/A"));
-
     if (profile.role === "CLIENT") {
-        appendField($fields, "City",                  escapeHtml(profile.city || "N/A"));
-        appendField($fields, "Street",                escapeHtml(profile.street || "N/A"));
-        appendField($fields, "House Number",          escapeHtml(profile.houseNumber || "N/A"));
-        appendField($fields, "Identification Number", escapeHtml(profile.identificationNumber || "N/A"));
+        appendField($fields, "First Name",             escapeHtml(profile.firstName || "N/A"));
+        appendField($fields, "Last Name",              escapeHtml(profile.lastName || "N/A"));
+        appendField($fields, "City",                   escapeHtml(profile.city || "N/A"));
+        appendField($fields, "Street",                 escapeHtml(profile.street || "N/A"));
+        appendField($fields, "House Number",           escapeHtml(profile.houseNumber || "N/A"));
+        appendField($fields, "Identification Number",  escapeHtml(profile.identificationNumber || "N/A"));
+    } else if (profile.role === "EMPLOYEE") {
+        appendField($fields, "First Name", escapeHtml(profile.firstName || "N/A"));
+        appendField($fields, "Last Name",  escapeHtml(profile.lastName || "N/A"));
+    } else if (profile.role === "ADMIN") {
+        appendField($fields, "First Name", escapeHtml(profile.firstName || "N/A"));
+        appendField($fields, "Last Name",  escapeHtml(profile.lastName || "N/A"));
     }
 }
 
