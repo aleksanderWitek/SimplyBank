@@ -3,7 +3,6 @@ package com.alex.service;
 import com.alex.UserAccountRole;
 import com.alex.dto.Employee;
 import com.alex.dto.EmployeeProfile;
-import com.alex.dto.Password;
 import com.alex.dto.UserAccount;
 import com.alex.exception.UserAccountNotFoundRuntimeException;
 import com.alex.repository.IEmployeeRepository;
@@ -83,16 +82,6 @@ public class EmployeeService implements IEmployeeService{
         userAccountEmployeeRepository.unlinkUserAccountFromEmployee(userAccountId, id);
         userAccountService.deleteById(userAccountId);
         employeeRepository.deleteById(id);
-    }
-
-    @Transactional
-    @Override
-    public void updatePassword(Long employeeId, Password password) {
-        IdValidation.ensureIdPresent(employeeId);
-        Long userAccountId = userAccountEmployeeRepository.findUserAccountIdByEmployeeId(employeeId)
-                .orElseThrow(() -> new UserAccountNotFoundRuntimeException("There is no Employee with provided id:" + employeeId));
-
-        userAccountService.updatePassword(userAccountId, password);
     }
 
     @Transactional(readOnly = true)

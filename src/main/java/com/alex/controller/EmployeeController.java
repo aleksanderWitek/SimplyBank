@@ -3,7 +3,6 @@ package com.alex.controller;
 import com.alex.dto.AdminProfile;
 import com.alex.dto.Employee;
 import com.alex.dto.EmployeeProfile;
-import com.alex.dto.Password;
 import com.alex.dto.UserAccount;
 import com.alex.exception.EmployeeNotFoundRuntimeException;
 import com.alex.exception.UserAccountNotFoundRuntimeException;
@@ -55,13 +54,6 @@ public class EmployeeController {
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<Void> deleteEmployeeById(@PathVariable("id") Long id) {
         employeeService.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PutMapping(path = "/{employee_id}/password", consumes = "application/json")
-    public ResponseEntity<Void> updateEmployeePassword(@PathVariable("employee_id") Long employeeId,
-                                                       @RequestBody Password password) {
-        employeeService.updatePassword(employeeId, password);
         return ResponseEntity.noContent().build();
     }
 

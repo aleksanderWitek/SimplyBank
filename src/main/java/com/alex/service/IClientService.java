@@ -2,7 +2,6 @@ package com.alex.service;
 
 import com.alex.dto.Client;
 import com.alex.dto.ClientProfile;
-import com.alex.dto.Password;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +12,5 @@ public interface IClientService {
     Optional<Client> findById(Long id);
     List<Client> findAll();
     void deleteById(Long id);
-    void updatePassword(Long clientId, Password password);
     Optional<ClientProfile> findProfileByUserAccountId(Long userAccountId);
 }
