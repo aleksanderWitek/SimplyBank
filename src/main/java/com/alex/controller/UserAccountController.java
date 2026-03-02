@@ -1,5 +1,6 @@
 package com.alex.controller;
 
+import com.alex.dto.Password;
 import com.alex.dto.UserAccount;
 import com.alex.exception.UserAccountNotFoundRuntimeException;
 import com.alex.service.IUserAccountService;
@@ -29,5 +30,12 @@ public class UserAccountController {
     public ResponseEntity<List<UserAccount>> findAllUserAccounts() {
         List<UserAccount> userAccounts = userAccountService.findAll();
         return ResponseEntity.ok(userAccounts);
+    }
+
+    @PutMapping(path = "/{id}/password", consumes = "application/json")
+    public ResponseEntity<Void> updatePassword(@PathVariable("id") Long id,
+                                               @RequestBody Password password) {
+        userAccountService.updatePassword(id, password);
+        return ResponseEntity.noContent().build();
     }
 }

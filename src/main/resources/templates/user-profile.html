@@ -103,8 +103,58 @@
                     </div>
                 </section>
 
+                <!-- Security Section -->
+                <section class="profile-section" id="securitySection">
+                    <h2 class="section-title">Security</h2>
+                    <div class="security-row">
+                        <div class="security-info">
+                            <span class="security-label">Password</span>
+                            <span class="security-hint">Update your password to keep your account secure</span>
+                        </div>
+                        <button class="btn-change-password" id="btnChangePassword" type="button">Change Password</button>
+                    </div>
+                </section>
+
             </div>
         </div>
     </main>
+
+    <!-- Change Password Modal -->
+    <div class="pwd-modal-overlay" id="pwdModalOverlay">
+        <div class="pwd-modal">
+            <div class="pwd-modal-header">
+                <h3 class="pwd-modal-title">Change Password</h3>
+                <button class="pwd-modal-close" id="pwdModalClose" type="button">&times;</button>
+            </div>
+            <form id="pwdForm" autocomplete="off">
+                <div class="pwd-field-group">
+                    <label class="pwd-label" for="currentPassword">Current Password <span class="req">*</span></label>
+                    <input class="pwd-input" type="password" id="currentPassword" name="currentPassword" required>
+                    <div class="pwd-field-error" id="currentPasswordError"></div>
+                </div>
+                <div class="pwd-field-group">
+                    <label class="pwd-label" for="newPassword">New Password <span class="req">*</span></label>
+                    <input class="pwd-input" type="password" id="newPassword" name="newPassword" required>
+                    <div class="pwd-field-error" id="newPasswordError"></div>
+                    <ul class="pwd-requirements" id="pwdRequirements">
+                        <li id="reqLength">At least 12 characters</li>
+                        <li id="reqUpper">One uppercase letter</li>
+                        <li id="reqLower">One lowercase letter</li>
+                        <li id="reqDigit">One digit (0-9)</li>
+                        <li id="reqSpecial">One special character (!@#$%^&*)</li>
+                    </ul>
+                </div>
+                <div class="pwd-field-group">
+                    <label class="pwd-label" for="confirmPassword">Confirm New Password <span class="req">*</span></label>
+                    <input class="pwd-input" type="password" id="confirmPassword" name="confirmPassword" required>
+                    <div class="pwd-field-error" id="confirmPasswordError"></div>
+                </div>
+                <div class="pwd-modal-actions">
+                    <button class="btn-pwd-cancel" id="btnPwdCancel" type="button">Cancel</button>
+                    <button class="btn-pwd-submit" id="btnPwdSubmit" type="submit">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
