@@ -239,6 +239,47 @@ body {
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
+/* --- Account Filter Input --- */
+.filter-input-group {
+    display: flex;
+    gap: 0;
+}
+.filter-input {
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-700);
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    padding: 8px 12px;
+    width: 160px;
+    transition: border-color .15s;
+}
+.filter-input::placeholder {
+    color: var(--gray-300);
+}
+.filter-input:focus {
+    outline: none;
+    border-color: var(--blue-500);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+.filter-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--blue-600);
+    color: var(--white);
+    border: 1px solid var(--blue-600);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 0 12px;
+    cursor: pointer;
+    transition: background .15s;
+}
+.filter-btn:hover {
+    background: var(--blue-500);
+}
+
 /* ============================================================
    Summary Strip
    ============================================================ */
