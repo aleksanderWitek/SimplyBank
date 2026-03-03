@@ -35,4 +35,9 @@ public class ApplicationController {
     public String userProfile() {
         return "user-profile";
     }
+
+    @GetMapping(path = "/login")
+    public String login() {
+        return "login";
+    }
 }

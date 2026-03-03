@@ -1,0 +1,177 @@
+/* ============================================================
+   SimplyBank — Login Page
+   ============================================================ */
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1e40af;
+    --primary-light: #3b82f6;
+
+    --success: #059669;
+    --success-bg: #ecfdf5;
+    --success-border: #a7f3d0;
+
+    --danger: #dc2626;
+    --danger-bg: #fef2f2;
+    --danger-border: #fecaca;
+
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+
+    --text-primary: #0f172a;
+    --text-secondary: #64748b;
+
+    --border-color: #e2e8f0;
+
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+
+    --transition: all 0.2s ease;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+}
+
+/* Centered wrapper */
+.login-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1rem;
+}
+
+/* Card */
+.login-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 420px;
+}
+
+/* Logo */
+.login-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 2rem;
+}
+
+.login-logo-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Alert messages */
+.alert {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    border: 1px solid;
+}
+
+.alert-error {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border-color: var(--danger-border);
+}
+
+.alert-success {
+    background: var(--success-bg);
+    color: var(--success);
+    border-color: var(--success-border);
+}
+
+/* Form */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.375rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9375rem;
+    font-family: inherit;
+    color: var(--text-primary);
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    outline: none;
+    transition: var(--transition);
+}
+
+.form-group input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.form-group input::placeholder {
+    color: var(--text-secondary);
+}
+
+/* Submit button */
+.btn-login {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    font-family: inherit;
+    color: #ffffff;
+    background: var(--primary);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-login:hover {
+    background: var(--primary-dark);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-login:active {
+    transform: translateY(1px);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .login-card {
+        padding: 2rem 1.5rem;
+    }
+}
