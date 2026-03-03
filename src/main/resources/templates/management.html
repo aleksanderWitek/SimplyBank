@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management - SimplyBank</title>
+    <link rel="stylesheet" href="/css/management.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <script src="/js/libs/jquery-3.6.0.min.js" defer></script>
+    <script src="/js/common.js" defer></script>
+    <script src="/js/management.js" defer></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <rect width="32" height="32" rx="8" fill="#2563eb"/>
+                    <path d="M16 8L22 14H18V20H14V14H10L16 8Z" fill="white"/>
+                    <rect x="10" y="22" width="12" height="2" fill="white"/>
+                </svg>
+                <span class="logo-text">SimplyBank</span>
+            </div>
+            <nav class="nav">
+                <a href="/" class="nav-link">Dashboard</a>
+                <a href="/accounts" class="nav-link">Accounts</a>
+                <a href="/transactions" class="nav-link">Transactions</a>
+                <a href="/new-transaction" class="nav-link">Transfer</a>
+                <a href="/management" class="nav-link active" id="navManagement">Management</a>
+            </nav>
+            <div class="header-actions">
+                <button class="icon-button" title="Profile">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                        <path d="M15 17v-3a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v3" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="9" cy="4" r="3" stroke-width="2"/>
+                    </svg>
+                </button>
+                <button class="icon-button" title="Activity">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                        <path d="M10 17.5C14.1421 17.5 17.5 14.1421 17.5 10C17.5 5.85786 14.1421 2.5 10 2.5C5.85786 2.5 2.5 5.85786 2.5 10C2.5 14.1421 5.85786 17.5 10 17.5Z" stroke-width="2"/>
+                        <path d="M10 6V10L13 13" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <div class="user-menu">
+                    <span class="user-name" id="headerUserName">Alex M.</span>
+                    <button class="user-avatar" id="headerUserAvatar">AM</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+
+            <!-- Page Header -->
+            <section class="page-header">
+                <div class="page-header-left">
+                    <h1 class="page-title">Management</h1>
+                    <p class="page-subtitle">Add new clients and employees to the system</p>
+                </div>
+            </section>
+
+            <!-- Action Cards -->
+            <div class="mgmt-cards">
+
+                <!-- Add Client Card -->
+                <section class="mgmt-card" id="addClientCard">
+                    <div class="mgmt-card-header">
+                        <div class="mgmt-card-icon blue">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="8.5" cy="7" r="4"/>
+                                <line x1="20" y1="8" x2="20" y2="14"/>
+                                <line x1="23" y1="11" x2="17" y2="11"/>
+                            </svg>
+                        </div>
+                        <h2 class="mgmt-card-title">Add New Client</h2>
+                        <p class="mgmt-card-desc">Register a new client with their personal and address details</p>
+                    </div>
+                    <form id="clientForm" autocomplete="off">
+                        <div class="form-grid">
+                            <div class="field-group">
+                                <label class="field-label" for="clientFirstName">First Name <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="clientFirstName" name="firstName" required>
+                                <div class="field-error" id="clientFirstNameError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="clientLastName">Last Name <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="clientLastName" name="lastName" required>
+                                <div class="field-error" id="clientLastNameError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="clientCity">City <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="clientCity" name="city" required>
+                                <div class="field-error" id="clientCityError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="clientStreet">Street <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="clientStreet" name="street" required>
+                                <div class="field-error" id="clientStreetError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="clientHouseNumber">House Number <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="clientHouseNumber" name="houseNumber" required>
+                                <div class="field-error" id="clientHouseNumberError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="clientIdNumber">Identification Number <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="clientIdNumber" name="identificationNumber" required>
+                                <div class="field-error" id="clientIdNumberError"></div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" id="btnAddClient" type="submit">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Add Client
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Add Employee Card -->
+                <section class="mgmt-card" id="addEmployeeCard">
+                    <div class="mgmt-card-header">
+                        <div class="mgmt-card-icon green">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </div>
+                        <h2 class="mgmt-card-title">Add New Employee</h2>
+                        <p class="mgmt-card-desc">Register a new employee in the system</p>
+                    </div>
+                    <form id="employeeForm" autocomplete="off">
+                        <div class="form-grid">
+                            <div class="field-group">
+                                <label class="field-label" for="empFirstName">First Name <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="empFirstName" name="firstName" required>
+                                <div class="field-error" id="empFirstNameError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="empLastName">Last Name <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="empLastName" name="lastName" required>
+                                <div class="field-error" id="empLastNameError"></div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary btn-green" id="btnAddEmployee" type="submit">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Add Employee
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+            </div>
+        </div>
+    </main>
+</body>
+</html>
