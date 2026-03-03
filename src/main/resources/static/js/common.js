@@ -218,6 +218,24 @@ function scrollToTable(selector) {
 }
 
 // ============================================================
+// MANAGEMENT NAV (role-gated)
+// ============================================================
+
+function initManagementNav() {
+    ajax("/api/auth/me", "GET")
+        .done(function (user) {
+            var role = (user.role || "").toUpperCase();
+            if (role === "EMPLOYEE" || role === "ADMIN") {
+                $("#navManagement").show();
+            }
+        });
+}
+
+$(document).ready(function () {
+    initManagementNav();
+});
+
+// ============================================================
 // PROFILE NAVIGATION
 // ============================================================
 
