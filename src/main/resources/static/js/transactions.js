@@ -30,7 +30,8 @@ var State = {
     currentPage: 1,
     totalPages: 1,
     currentUserId: null,
-    currentUserBankAccountIds: []
+    currentUserBankAccountIds: [],
+    filterAccountNumber: ""
 };
 
 // ============================================================
@@ -141,6 +142,72 @@ function loadAllTransactionsFallback() {
             State.allTransactions = [];
             applyFiltersAndRender();
             notify("Could not load transactions", "error");
+        });
+}
+
+// ============================================================
+// FILTER BY BANK ACCOUNT NUMBER
+// ============================================================
+
+function filterByAccountNumber() {
+    var accountNumber = $.trim($("#filterAccount").val());
+    State.filterAccountNumber = accountNumber;
+
+    if (!accountNumber) {
+        // Reset to normal view — reload user's transactions
+        loadTransactions();
+        return;
+    }
+
+    showLoading(true);
+
+    // First, find the bank account by number
+    ajax(TxListAPI.BANK_ACCOUNT, "GET")
+        .done(function (accounts) {
+            var match = null;
+            (accounts || []).forEach(function (acc) {
+                if (acc.number === accountNumber) {
+                    match = acc;
+                }
+            });
+
+            if (!match) {
+                State.allTransactions = [];
+                applyFiltersAndRender();
+                notify("No bank account found with number: " + accountNumber, "warning");
+                return;
+            }
+
+            // Load transactions from and to this account
+            var fromPromise = ajax(TxListAPI.TRANSACTION_FROM + "/" + match.id, "GET");
+            var toPromise   = ajax(TxListAPI.TRANSACTION_TO + "/" + match.id, "GET");
+
+            $.when(fromPromise, toPromise)
+                .done(function (fromResult, toResult) {
+                    var fromTx = Array.isArray(fromResult[0]) ? fromResult[0] : [];
+                    var toTx   = Array.isArray(toResult[0]) ? toResult[0] : [];
+                    var allTx  = [];
+                    var seenIds = {};
+
+                    fromTx.concat(toTx).forEach(function (tx) {
+                        if (!seenIds[tx.id]) {
+                            seenIds[tx.id] = true;
+                            allTx.push(tx);
+                        }
+                    });
+
+                    State.allTransactions = allTx;
+                    applyFiltersAndRender();
+                })
+                .fail(function () {
+                    State.allTransactions = [];
+                    applyFiltersAndRender();
+                    notify("Failed to load transactions for this account", "error");
+                });
+        })
+        .fail(function () {
+            showLoading(false);
+            notify("Failed to search bank accounts", "error");
         });
 }
 
@@ -341,6 +408,14 @@ $(document).ready(function () {
 
     $("#filterType, #filterStatus").on("change", function () {
         applyFiltersAndRender();
+    });
+
+    $("#btnFilterAccount").on("click", filterByAccountNumber);
+    $("#filterAccount").on("keydown", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            filterByAccountNumber();
+        }
     });
 
     $("#btnPrevPage").on("click", function () {

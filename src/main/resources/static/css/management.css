@@ -20,6 +20,11 @@
 
     --red-600:  #dc2626;
     --red-500:  #ef4444;
+    --red-100:  #fee2e2;
+
+    --purple-600: #7c3aed;
+    --purple-500: #8b5cf6;
+    --purple-100: #ede9fe;
 
     --gray-50:  #f8fafc;
     --gray-100: #f1f5f9;
@@ -182,15 +187,51 @@ body {
 }
 
 /* ============================================================
-   Management Cards
+   Tab Navigation
    ============================================================ */
-.mgmt-cards {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    align-items: start;
+.mgmt-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--gray-200);
+    padding-bottom: 0;
+}
+.mgmt-tab {
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-400);
+    background: none;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color .15s, border-color .15s;
+}
+.mgmt-tab:hover {
+    color: var(--gray-700);
+}
+.mgmt-tab.active {
+    color: var(--blue-600);
+    border-bottom-color: var(--blue-600);
 }
 
+/* ============================================================
+   Tab Content
+   ============================================================ */
+.mgmt-tab-content {
+    display: none;
+}
+.mgmt-tab-content.active {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* ============================================================
+   Management Cards
+   ============================================================ */
 .mgmt-card {
     background: var(--white);
     border: 1px solid var(--gray-200);
@@ -224,6 +265,14 @@ body {
 .mgmt-card-icon.green {
     background: var(--green-100);
     color: var(--green-600);
+}
+.mgmt-card-icon.red {
+    background: var(--red-100);
+    color: var(--red-600);
+}
+.mgmt-card-icon.purple {
+    background: var(--purple-100);
+    color: var(--purple-600);
 }
 
 .mgmt-card-title {
@@ -282,11 +331,33 @@ body {
     border-color: var(--red-500);
     box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.08);
 }
+.field-input:disabled {
+    background: var(--gray-50);
+    color: var(--gray-400);
+    cursor: not-allowed;
+}
+select.field-input {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
 .field-error {
     font-size: 12px;
     font-weight: 500;
     color: var(--red-600);
     min-height: 16px;
+}
+
+/* --- Field Input Group (input + button inline) --- */
+.field-input-group {
+    display: flex;
+    gap: 8px;
+}
+.field-input-group .field-input {
+    flex: 1;
 }
 
 /* ============================================================
@@ -300,6 +371,9 @@ body {
     justify-content: flex-end;
 }
 
+/* ============================================================
+   Buttons
+   ============================================================ */
 .btn {
     font-family: var(--font);
     font-size: 14px;
@@ -335,6 +409,191 @@ body {
 .btn-green:hover {
     background: var(--green-500);
 }
+.btn-purple {
+    background: var(--purple-600);
+    color: var(--white);
+}
+.btn-purple:hover {
+    background: var(--purple-500);
+}
+.btn-danger {
+    background: var(--red-600);
+    color: var(--white);
+}
+.btn-danger:hover {
+    background: var(--red-500);
+}
+.btn-danger:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+}
+.btn-secondary {
+    background: var(--gray-100);
+    color: var(--gray-700);
+    border: 1px solid var(--gray-200);
+}
+.btn-secondary:hover {
+    background: var(--gray-200);
+}
+.btn-sm {
+    padding: 9px 16px;
+    font-size: 13px;
+}
+
+/* ============================================================
+   Result Card (for Find by ID results)
+   ============================================================ */
+.result-card {
+    margin-top: 24px;
+    padding: 24px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+}
+.result-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 16px;
+}
+.result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+.result-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.result-field-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray-400);
+}
+.result-field-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--gray-800);
+}
+
+/* ============================================================
+   Data Table (for Find All results)
+   ============================================================ */
+.mgmt-table-wrapper {
+    margin-top: 24px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+}
+.mgmt-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.mgmt-table thead th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--gray-400);
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-50);
+    white-space: nowrap;
+}
+.mgmt-table tbody td {
+    padding: 14px 20px;
+    font-size: 14px;
+    color: var(--gray-700);
+    border-bottom: 1px solid var(--gray-100);
+    white-space: nowrap;
+}
+.mgmt-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.mgmt-table tbody tr:hover {
+    background: var(--blue-50);
+}
+
+/* ============================================================
+   Confirm Modal
+   ============================================================ */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(6px);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+}
+.modal-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+.modal {
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    width: 90%;
+    max-width: 480px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(20px) scale(0.97);
+    transition: transform .25s ease;
+}
+.modal-overlay.open .modal {
+    transform: translateY(0) scale(1);
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 28px 0;
+}
+.modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gray-900);
+    letter-spacing: -0.3px;
+}
+.modal-close {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: var(--gray-100);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-500);
+    transition: background .15s, color .15s;
+}
+.modal-close:hover {
+    background: var(--red-100);
+    color: var(--red-600);
+}
+.modal-body {
+    padding: 24px 28px;
+    font-size: 14px;
+    color: var(--gray-600);
+    line-height: 1.6;
+}
+.modal-footer {
+    padding: 0 28px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
 
 /* ============================================================
    Notification Toast
@@ -362,7 +621,7 @@ body {
    Responsive
    ============================================================ */
 @media (max-width: 900px) {
-    .mgmt-cards {
+    .result-grid {
         grid-template-columns: 1fr;
     }
 }
@@ -373,4 +632,8 @@ body {
     .container { padding: 0 16px; }
     .mgmt-card { padding: 24px 20px; border-radius: var(--radius-lg); }
     .form-grid { grid-template-columns: 1fr; }
+    .mgmt-tabs { overflow-x: auto; }
+    .modal { width: 96%; border-radius: var(--radius-lg); }
+    .modal-body { padding: 20px; }
+    .result-grid { grid-template-columns: 1fr; }
 }
