@@ -80,6 +80,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler(AccessDeniedRuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedRuntimeException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
     @ExceptionHandler(IllegalStateRuntimeException.class)
     public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateRuntimeException ex) {
         ErrorResponse error = new ErrorResponse(
