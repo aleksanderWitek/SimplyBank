@@ -10,6 +10,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.security.SecureRandom;
 
@@ -17,12 +18,26 @@ import java.security.SecureRandom;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private final CustomAuthenticationFailureHandler failureHandler;
+    private final CustomAuthenticationSuccessHandler successHandler;
+    private final LoginRateLimitFilter loginRateLimitFilter;
+
+    public SecurityConfig(CustomAuthenticationFailureHandler failureHandler,
+                          CustomAuthenticationSuccessHandler successHandler,
+                          LoginRateLimitFilter loginRateLimitFilter) {
+        this.failureHandler = failureHandler;
+        this.successHandler = successHandler;
+        this.loginRateLimitFilter = loginRateLimitFilter;
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(sm ->
-                        sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .sessionManagement(sm -> sm
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .invalidSessionUrl("/login?expired")
+                        .maximumSessions(1))
                 .authorizeHttpRequests(auth -> auth
                         // Public resources
                         .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
@@ -61,10 +76,11 @@ public class SecurityConfig {
                         // All other pages — authenticated
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/", true)
-                        .failureUrl("/login?error")
+                        .successHandler(successHandler)
+                        .failureHandler(failureHandler)
                         .permitAll()
                 )
                 .logout(logout -> logout
