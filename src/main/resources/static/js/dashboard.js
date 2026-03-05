@@ -159,14 +159,57 @@ var DashboardRenderer = {
 // DATA LOADERS
 // ============================================================
 
-function loadTransactions() {
-    ajax(DashboardAPI.TRANSACTION, "GET")
-        .done(function (data) {
-            var list = Array.isArray(data) ? data : [];
-            DashboardRenderer.renderTransactions(list.slice(0, 10));
+function loadTransactions(userRole, bankAccounts) {
+    var role = (userRole || "").toUpperCase();
+
+    if (role === "EMPLOYEE" || role === "ADMIN") {
+        ajax(DashboardAPI.TRANSACTION, "GET")
+            .done(function (data) {
+                var list = Array.isArray(data) ? data : [];
+                DashboardRenderer.renderTransactions(list.slice(0, 10));
+            })
+            .fail(function () {
+                DashboardRenderer.renderTransactions([]);
+            });
+        return;
+    }
+
+    // CLIENT: load transactions per owned bank account
+    var accounts = Array.isArray(bankAccounts) ? bankAccounts : [];
+    if (accounts.length === 0) {
+        DashboardRenderer.renderTransactions([]);
+        return;
+    }
+
+    var promises = [];
+    accounts.forEach(function (acc) {
+        promises.push(ajax("/api/transaction/bank_account_from/" + acc.id, "GET"));
+        promises.push(ajax("/api/transaction/bank_account_to/" + acc.id, "GET"));
+    });
+
+    $.when.apply($, promises)
+        .done(function () {
+            var allTx = [];
+            var seenIds = {};
+            var results = promises.length === 1 ? [arguments] : arguments;
+            for (var i = 0; i < results.length; i++) {
+                var data = Array.isArray(results[i]) ? results[i][0] : results[i];
+                if (Array.isArray(data)) {
+                    data.forEach(function (tx) {
+                        if (!seenIds[tx.id]) {
+                            seenIds[tx.id] = true;
+                            allTx.push(tx);
+                        }
+                    });
+                }
+            }
+            allTx.sort(function (a, b) {
+                return (b.createDate || "").localeCompare(a.createDate || "");
+            });
+            DashboardRenderer.renderTransactions(allTx.slice(0, 10));
         })
         .fail(function () {
-            // Endpoint not available yet — keep template defaults
+            DashboardRenderer.renderTransactions([]);
         });
 }
 
@@ -219,7 +262,26 @@ function initQuickActions() {
 $(document).ready(function () {
     loadCurrentUser();
     loadAccountBalances();
-    loadTransactions();
+
+    // Load transactions after we know the user role and bank accounts
+    ajax("/api/auth/me", "GET")
+        .done(function (user) {
+            var role = (user.role || "").toUpperCase();
+            if (role === "EMPLOYEE" || role === "ADMIN") {
+                loadTransactions(role, []);
+            } else {
+                BankAccountService.findAll()
+                    .done(function (accounts) {
+                        loadTransactions(role, Array.isArray(accounts) ? accounts : []);
+                    })
+                    .fail(function () {
+                        loadTransactions(role, []);
+                    });
+            }
+        })
+        .fail(function () {
+            loadTransactions("", []);
+        });
 
     initQuickActions();
 

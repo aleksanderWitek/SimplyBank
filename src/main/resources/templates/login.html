@@ -24,8 +24,14 @@
             <div id="errorMessage" class="alert alert-error" style="display:none;">
                 Invalid login or password.
             </div>
+            <div id="lockedMessage" class="alert alert-error" style="display:none;">
+                Account temporarily locked due to too many failed attempts. Try again in <span id="lockMinutes"></span> minute(s).
+            </div>
             <div id="logoutMessage" class="alert alert-success" style="display:none;">
                 You have been successfully logged out.
+            </div>
+            <div id="sessionExpiredMessage" class="alert alert-error" style="display:none;">
+                Your session has expired. Please sign in again.
             </div>
 
             <form action="/login" method="post">

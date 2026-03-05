@@ -80,6 +80,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    @ExceptionHandler(AccessDeniedRuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedRuntimeException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(),
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
     @ExceptionHandler(IllegalStateRuntimeException.class)
     public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateRuntimeException ex) {
         ErrorResponse error = new ErrorResponse(
@@ -88,6 +98,36 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+
+    @ExceptionHandler(SecurityRuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleSecurity(SecurityRuntimeException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.UNAUTHORIZED.value(),
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
+
+    @ExceptionHandler(SQLRuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleSQL(SQLRuntimeException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Database error occurred",
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    @ExceptionHandler(NullPointerRuntimeException.class)
+    public ResponseEntity<ErrorResponse> handleNullPointerRuntime(NullPointerRuntimeException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "An unexpected error occurred: null value encountered",
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
     @ExceptionHandler(NullPointerException.class)
