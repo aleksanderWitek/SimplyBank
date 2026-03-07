@@ -1,6 +1,7 @@
 package com.alex.repository;
 
 import com.alex.dto.Employee;
+import com.alex.dto.EmployeeProfile;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,4 +13,5 @@ public interface IEmployeeRepository {
     List<Employee> findAll();
     void updateById(Long id, Employee employee);
     void deleteById(Long id);
+    Optional<EmployeeProfile> findProfileByUserAccountId(Long userAccountId);
 }

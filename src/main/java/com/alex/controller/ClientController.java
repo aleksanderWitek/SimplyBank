@@ -2,7 +2,6 @@ package com.alex.controller;
 
 import com.alex.dto.Client;
 import com.alex.dto.ClientProfile;
-import com.alex.dto.Password;
 import com.alex.exception.ClientNotFoundRuntimeException;
 import com.alex.service.IClientService;
 import org.springframework.http.HttpStatus;
@@ -60,10 +59,4 @@ public class ClientController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping(path = "/{client_id}/password", consumes = "application/json")
-    public ResponseEntity<Void> updateClientPassword(@PathVariable("client_id") Long clientId,
-                                                     @RequestBody Password password) {
-        clientService.updatePassword(clientId, password);
-        return ResponseEntity.noContent().build();
-    }
 }

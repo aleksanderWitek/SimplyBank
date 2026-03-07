@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management - SimplyBank</title>
+    <link rel="stylesheet" href="/css/management.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+    <script src="/js/libs/jquery-3.6.0.min.js" defer></script>
+    <script src="/js/common.js" defer></script>
+    <script src="/js/management.js" defer></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-container">
+            <div class="logo">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <rect width="32" height="32" rx="8" fill="#2563eb"/>
+                    <path d="M16 8L22 14H18V20H14V14H10L16 8Z" fill="white"/>
+                    <rect x="10" y="22" width="12" height="2" fill="white"/>
+                </svg>
+                <span class="logo-text">SimplyBank</span>
+            </div>
+            <nav class="nav">
+                <a href="/" class="nav-link">Dashboard</a>
+                <a href="/accounts" class="nav-link">Accounts</a>
+                <a href="/transactions" class="nav-link">Transactions</a>
+                <a href="/new-transaction" class="nav-link">Transfer</a>
+                <a href="/management" class="nav-link active" id="navManagement">Management</a>
+            </nav>
+            <div class="header-actions">
+                <button class="icon-button" title="Profile">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                        <path d="M15 17v-3a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v3" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="9" cy="4" r="3" stroke-width="2"/>
+                    </svg>
+                </button>
+                <button class="icon-button" title="Activity">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                        <path d="M10 17.5C14.1421 17.5 17.5 14.1421 17.5 10C17.5 5.85786 14.1421 2.5 10 2.5C5.85786 2.5 2.5 5.85786 2.5 10C2.5 14.1421 5.85786 17.5 10 17.5Z" stroke-width="2"/>
+                        <path d="M10 6V10L13 13" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <div class="user-menu">
+                    <span class="user-name" id="headerUserName">Alex M.</span>
+                    <button class="user-avatar" id="headerUserAvatar">AM</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+
+            <!-- Page Header -->
+            <section class="page-header">
+                <div class="page-header-left">
+                    <h1 class="page-title">Management</h1>
+                    <p class="page-subtitle">Manage clients, employees, and bank accounts</p>
+                </div>
+            </section>
+
+            <!-- Tab Navigation -->
+            <div class="mgmt-tabs">
+                <button class="mgmt-tab active" data-tab="clients">Clients</button>
+                <button class="mgmt-tab" data-tab="employees">Employees</button>
+                <button class="mgmt-tab" data-tab="accounts">Bank Accounts</button>
+            </div>
+
+            <!-- ============================================================
+                 CLIENTS TAB
+                 ============================================================ -->
+            <div class="mgmt-tab-content active" id="tab-clients">
+
+                <!-- Add Client Card -->
+                <section class="mgmt-card" id="addClientCard">
+                    <div class="mgmt-card-header">
+                        <div class="mgmt-card-icon blue">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="8.5" cy="7" r="4"/>
+                                <line x1="20" y1="8" x2="20" y2="14"/>
+                                <line x1="23" y1="11" x2="17" y2="11"/>
+                            </svg>
+                        </div>
+                        <h2 class="mgmt-card-title">Add New Client</h2>
+                        <p class="mgmt-card-desc">Register a new client with their personal and address details</p>
+                    </div>
+                    <form id="clientForm" autocomplete="off">
+                        <div class="form-grid">
+                            <div class="field-group">
+                                <label class="field-label" for="clientFirstName">First Name <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="clientFirstName" name="firstName" required>
+                                <div class="field-error" id="clientFirstNameError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="clientLastName">Last Name <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="clientLastName" name="lastName" required>
+                                <div class="field-error" id="clientLastNameError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="clientCity">City <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="clientCity" name="city" required>
+                                <div class="field-error" id="clientCityError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="clientStreet">Street <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="clientStreet" name="street" required>
+                                <div class="field-error" id="clientStreetError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="clientHouseNumber">House Number <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="clientHouseNumber" name="houseNumber" required>
+                                <div class="field-error" id="clientHouseNumberError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="clientIdNumber">Identification Number <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="clientIdNumber" name="identificationNumber" required>
+                                <div class="field-error" id="clientIdNumberError"></div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" id="btnAddClient" type="submit">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Add Client
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Find Client by UserAccount ID -->
+                <section class="mgmt-card">
+                    <div class="mgmt-card-header">
+                        <div class="mgmt-card-icon blue">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            </svg>
+                        </div>
+                        <h2 class="mgmt-card-title">Find Client</h2>
+                        <p class="mgmt-card-desc">Look up a client by their User Account ID</p>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field-group">
+                            <label class="field-label" for="findClientAccountId">User Account ID <span class="req">*</span></label>
+                            <input class="field-input" type="number" id="findClientAccountId" placeholder="Enter user account ID">
+                            <div class="field-error" id="findClientAccountIdError"></div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" id="btnFindClient" type="button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            </svg>
+                            Find Client
+                        </button>
+                    </div>
+                    <div class="result-card" id="findClientResult" style="display:none;"></div>
+                </section>
+
+                <!-- Find All Clients -->
+                <section class="mgmt-card mgmt-card-full">
+                    <div class="mgmt-card-header">
+                        <div class="mgmt-card-icon blue">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </div>
+                        <h2 class="mgmt-card-title">All Clients</h2>
+                        <p class="mgmt-card-desc">View a list of all registered clients</p>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" id="btnFindAllClients" type="button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                            </svg>
+                            Load All Clients
+                        </button>
+                    </div>
+                    <div class="mgmt-table-wrapper" id="allClientsTableWrapper" style="display:none;">
+                        <table class="mgmt-table" id="allClientsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Identification Number</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allClientsBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Edit Client -->
+                <section class="mgmt-card">
+                    <div class="mgmt-card-header">
+                        <div class="mgmt-card-icon blue">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </div>
+                        <h2 class="mgmt-card-title">Edit Client</h2>
+                        <p class="mgmt-card-desc">Update an existing client's information</p>
+                    </div>
+                    <form id="editClientForm" autocomplete="off">
+                        <div class="form-grid">
+                            <div class="field-group">
+                                <label class="field-label" for="editClientId">Client ID <span class="req">*</span></label>
+                                <div class="field-input-group">
+                                    <input class="field-input" type="number" id="editClientId" placeholder="Enter client ID">
+                                    <button class="btn btn-secondary btn-sm" id="btnLoadClient" type="button">Load</button>
+                                </div>
+                                <div class="field-error" id="editClientIdError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="editClientFirstName">First Name <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="editClientFirstName" name="firstName" disabled>
+                                <div class="field-error" id="editClientFirstNameError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="editClientLastName">Last Name <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="editClientLastName" name="lastName" disabled>
+                                <div class="field-error" id="editClientLastNameError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="editClientCity">City <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="editClientCity" name="city" disabled>
+                                <div class="field-error" id="editClientCityError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="editClientStreet">Street <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="editClientStreet" name="street" disabled>
+                                <div class="field-error" id="editClientStreetError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="editClientHouseNumber">House Number <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="editClientHouseNumber" name="houseNumber" disabled>
+                                <div class="field-error" id="editClientHouseNumberError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="editClientIdNumber">Identification Number <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="editClientIdNumber" name="identificationNumber" disabled>
+                                <div class="field-error" id="editClientIdNumberError"></div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" id="btnEditClient" type="submit" disabled>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                    <polyline points="17 21 17 13 7 13 7 21"/>
+                                    <polyline points="7 3 7 8 15 8"/>
+                                </svg>
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Delete Client -->
+                <section class="mgmt-card">
+                    <div class="mgmt-card-header">
+                        <div class="mgmt-card-icon red">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                <line x1="10" y1="11" x2="10" y2="17"/>
+                                <line x1="14" y1="11" x2="14" y2="17"/>
+                            </svg>
+                        </div>
+                        <h2 class="mgmt-card-title">Delete Client</h2>
+                        <p class="mgmt-card-desc">Permanently remove a client from the system</p>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field-group">
+                            <label class="field-label" for="deleteClientId">Client ID <span class="req">*</span></label>
+                            <input class="field-input" type="number" id="deleteClientId" placeholder="Enter client ID">
+                            <div class="field-error" id="deleteClientIdError"></div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-danger" id="btnDeleteClient" type="button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                            Delete Client
+                        </button>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- ============================================================
+                 EMPLOYEES TAB
+                 ============================================================ -->
+            <div class="mgmt-tab-content" id="tab-employees">
+
+                <!-- Add Employee Card -->
+                <section class="mgmt-card" id="addEmployeeCard">
+                    <div class="mgmt-card-header">
+                        <div class="mgmt-card-icon green">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </div>
+                        <h2 class="mgmt-card-title">Add New Employee</h2>
+                        <p class="mgmt-card-desc">Register a new employee in the system</p>
+                    </div>
+                    <form id="employeeForm" autocomplete="off">
+                        <div class="form-grid">
+                            <div class="field-group">
+                                <label class="field-label" for="empFirstName">First Name <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="empFirstName" name="firstName" required>
+                                <div class="field-error" id="empFirstNameError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="empLastName">Last Name <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="empLastName" name="lastName" required>
+                                <div class="field-error" id="empLastNameError"></div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary btn-green" id="btnAddEmployee" type="submit">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Add Employee
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Find Employee by UserAccount ID -->
+                <section class="mgmt-card">
+                    <div class="mgmt-card-header">
+                        <div class="mgmt-card-icon green">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            </svg>
+                        </div>
+                        <h2 class="mgmt-card-title">Find Employee</h2>
+                        <p class="mgmt-card-desc">Look up an employee by their User Account ID</p>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field-group">
+                            <label class="field-label" for="findEmpAccountId">User Account ID <span class="req">*</span></label>
+                            <input class="field-input" type="number" id="findEmpAccountId" placeholder="Enter user account ID">
+                            <div class="field-error" id="findEmpAccountIdError"></div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary btn-green" id="btnFindEmployee" type="button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"/>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                            </svg>
+                            Find Employee
+                        </button>
+                    </div>
+                    <div class="result-card" id="findEmployeeResult" style="display:none;"></div>
+                </section>
+
+                <!-- Find All Employees -->
+                <section class="mgmt-card mgmt-card-full">
+                    <div class="mgmt-card-header">
+                        <div class="mgmt-card-icon green">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </div>
+                        <h2 class="mgmt-card-title">All Employees</h2>
+                        <p class="mgmt-card-desc">View a list of all registered employees</p>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary btn-green" id="btnFindAllEmployees" type="button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="9" cy="7" r="4"/>
+                            </svg>
+                            Load All Employees
+                        </button>
+                    </div>
+                    <div class="mgmt-table-wrapper" id="allEmployeesTableWrapper" style="display:none;">
+                        <table class="mgmt-table" id="allEmployeesTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allEmployeesBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Edit Employee -->
+                <section class="mgmt-card">
+                    <div class="mgmt-card-header">
+                        <div class="mgmt-card-icon green">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </div>
+                        <h2 class="mgmt-card-title">Edit Employee</h2>
+                        <p class="mgmt-card-desc">Update an existing employee's information</p>
+                    </div>
+                    <form id="editEmployeeForm" autocomplete="off">
+                        <div class="form-grid">
+                            <div class="field-group">
+                                <label class="field-label" for="editEmpId">Employee ID <span class="req">*</span></label>
+                                <div class="field-input-group">
+                                    <input class="field-input" type="number" id="editEmpId" placeholder="Enter employee ID">
+                                    <button class="btn btn-secondary btn-sm" id="btnLoadEmployee" type="button">Load</button>
+                                </div>
+                                <div class="field-error" id="editEmpIdError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="editEmpFirstName">First Name <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="editEmpFirstName" name="firstName" disabled>
+                                <div class="field-error" id="editEmpFirstNameError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="editEmpLastName">Last Name <span class="req">*</span></label>
+                                <input class="field-input" type="text" id="editEmpLastName" name="lastName" disabled>
+                                <div class="field-error" id="editEmpLastNameError"></div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary btn-green" id="btnEditEmployee" type="submit" disabled>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                    <polyline points="17 21 17 13 7 13 7 21"/>
+                                    <polyline points="7 3 7 8 15 8"/>
+                                </svg>
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Delete Employee -->
+                <section class="mgmt-card">
+                    <div class="mgmt-card-header">
+                        <div class="mgmt-card-icon red">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                <line x1="10" y1="11" x2="10" y2="17"/>
+                                <line x1="14" y1="11" x2="14" y2="17"/>
+                            </svg>
+                        </div>
+                        <h2 class="mgmt-card-title">Delete Employee</h2>
+                        <p class="mgmt-card-desc">Permanently remove an employee from the system</p>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field-group">
+                            <label class="field-label" for="deleteEmpId">Employee ID <span class="req">*</span></label>
+                            <input class="field-input" type="number" id="deleteEmpId" placeholder="Enter employee ID">
+                            <div class="field-error" id="deleteEmpIdError"></div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-danger" id="btnDeleteEmployee" type="button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                            Delete Employee
+                        </button>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- ============================================================
+                 BANK ACCOUNTS TAB
+                 ============================================================ -->
+            <div class="mgmt-tab-content" id="tab-accounts">
+
+                <!-- Create Bank Account -->
+                <section class="mgmt-card">
+                    <div class="mgmt-card-header">
+                        <div class="mgmt-card-icon purple">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                                <line x1="1" y1="10" x2="23" y2="10"/>
+                            </svg>
+                        </div>
+                        <h2 class="mgmt-card-title">Create Bank Account</h2>
+                        <p class="mgmt-card-desc">Open a new bank account for an existing client</p>
+                    </div>
+                    <form id="createBankAccountForm" autocomplete="off">
+                        <div class="form-grid">
+                            <div class="field-group">
+                                <label class="field-label" for="baClientId">Client ID <span class="req">*</span></label>
+                                <input class="field-input" type="number" id="baClientId" placeholder="Enter client ID" required>
+                                <div class="field-error" id="baClientIdError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="baType">Account Type <span class="req">*</span></label>
+                                <select class="field-input" id="baType" required>
+                                    <option value="">Select type</option>
+                                    <option value="CHECKING">Checking</option>
+                                    <option value="SAVING">Saving</option>
+                                    <option value="BUSINESS">Business</option>
+                                    <option value="FOREIGN_CURRENCY">Foreign Currency</option>
+                                </select>
+                                <div class="field-error" id="baTypeError"></div>
+                            </div>
+                            <div class="field-group">
+                                <label class="field-label" for="baCurrency">Currency <span class="req">*</span></label>
+                                <select class="field-input" id="baCurrency" required>
+                                    <option value="">Select currency</option>
+                                    <option value="PLN">PLN</option>
+                                    <option value="EUR">EUR</option>
+                                    <option value="GBP">GBP</option>
+                                    <option value="USD">USD</option>
+                                </select>
+                                <div class="field-error" id="baCurrencyError"></div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary btn-purple" id="btnCreateBankAccount" type="submit">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19"/>
+                                    <line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Create Account
+                            </button>
+                        </div>
+                    </form>
+                </section>
+
+                <!-- Delete Bank Account -->
+                <section class="mgmt-card">
+                    <div class="mgmt-card-header">
+                        <div class="mgmt-card-icon red">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                <line x1="10" y1="11" x2="10" y2="17"/>
+                                <line x1="14" y1="11" x2="14" y2="17"/>
+                            </svg>
+                        </div>
+                        <h2 class="mgmt-card-title">Delete Bank Account</h2>
+                        <p class="mgmt-card-desc">Permanently close and remove a bank account</p>
+                    </div>
+                    <div class="form-grid">
+                        <div class="field-group">
+                            <label class="field-label" for="deleteBaId">Bank Account ID <span class="req">*</span></label>
+                            <input class="field-input" type="number" id="deleteBaId" placeholder="Enter bank account ID">
+                            <div class="field-error" id="deleteBaIdError"></div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-danger" id="btnDeleteBankAccount" type="button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                            Delete Account
+                        </button>
+                    </div>
+                </section>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Confirm Delete Modal -->
+    <div class="modal-overlay" id="confirmModalOverlay">
+        <div class="modal confirm-modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="confirmModalTitle">Confirm Delete</h2>
+                <button class="modal-close" id="confirmModalClose" type="button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage">Are you sure you want to delete this item?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="confirmModalCancel" type="button">Cancel</button>
+                <button class="btn btn-danger" id="confirmModalOk" type="button">Delete</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -3,7 +3,6 @@ package com.alex.service;
 import com.alex.UserAccountRole;
 import com.alex.dto.Client;
 import com.alex.dto.ClientProfile;
-import com.alex.dto.Password;
 import com.alex.dto.UserAccount;
 import com.alex.exception.UserAccountNotFoundRuntimeException;
 import com.alex.repository.IBankAccountClientRepository;
@@ -99,13 +98,4 @@ public class ClientService implements IClientService {
         return clientRepository.findProfileByUserAccountId(userAccountId);
     }
 
-    @Transactional
-    @Override
-    public void updatePassword(Long clientId, Password password) {
-        IdValidation.ensureIdPresent(clientId);
-        Long userAccountId = userAccountClientRepository.findUserAccountIdByClientId(clientId)
-                .orElseThrow(() -> new UserAccountNotFoundRuntimeException("There is no Client with provided id:" + clientId));
-
-        userAccountService.updatePassword(userAccountId, password);
-    }
 }

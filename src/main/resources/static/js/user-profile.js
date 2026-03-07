@@ -2,22 +2,12 @@
  * SimplyBank — User Profile Page Controller
  *
  * Loads user profile data and renders role-appropriate fields.
- * - If URL has ?id=X, calls GET /api/user_account/{id}/profile
+ * - If URL has ?id=X, fetches the user account to determine role,
+ *   then calls the appropriate profile endpoint:
+ *     CLIENT   → GET /api/client/profile?userAccountId=X
+ *     EMPLOYEE → GET /api/employee/profile?userAccountId=X
+ *     ADMIN    → GET /api/employee/admin-profile?userAccountId=X
  * - Otherwise, calls GET /api/auth/me
- *
- * Expected API response shape:
- * {
- *   "userAccountId": 1,
- *   "login": "jdoe",
- *   "role": "CLIENT",
- *   "createDate": "2024-01-15T10:30:00",
- *   "firstName": "John",
- *   "lastName": "Doe",
- *   "city": "Dublin",           // CLIENT only
- *   "street": "O'Connell",      // CLIENT only
- *   "houseNumber": "42",        // CLIENT only
- *   "identificationNumber": "IE123456789"  // CLIENT only
- * }
  *
  * Shared utilities (ajax, formatDate, escapeHtml, etc.) are in common.js.
  */
@@ -27,9 +17,15 @@
 // ============================================================
 
 var ProfileAPI = {
-    PROFILE: "/api/user_account/{id}/profile",
-    AUTH_ME: "/api/auth/me"
+    USER_ACCOUNT:     "/api/user_account/{id}",
+    CLIENT_PROFILE:   "/api/client/profile?userAccountId={id}",
+    EMPLOYEE_PROFILE: "/api/employee/profile?userAccountId={id}",
+    ADMIN_PROFILE:    "/api/employee/admin-profile?userAccountId={id}",
+    UPDATE_PASSWORD:  "/api/user_account/{id}/password",
+    AUTH_ME:          "/api/auth/me"
 };
+
+var currentUserAccountId = null;
 
 // ============================================================
 // INITIALIZATION
@@ -43,7 +39,7 @@ function getQueryParam(name) {
 function init() {
     var userId = getQueryParam("id");
     if (userId) {
-        loadProfile(ProfileAPI.PROFILE.replace("{id}", userId));
+        loadProfileByUserAccountId(userId);
     } else {
         loadProfile(ProfileAPI.AUTH_ME);
     }
@@ -53,14 +49,49 @@ function init() {
 // DATA LOADING
 // ============================================================
 
+function loadProfileByUserAccountId(userAccountId) {
+    showLoading(true);
+
+    var userAccountUrl = ProfileAPI.USER_ACCOUNT.replace("{id}", userAccountId);
+    ajax(userAccountUrl, "GET")
+        .done(function (userAccount) {
+            var role = (userAccount.role || "").toUpperCase();
+            var profileUrl;
+
+            if (role === "CLIENT") {
+                profileUrl = ProfileAPI.CLIENT_PROFILE.replace("{id}", userAccountId);
+            } else if (role === "EMPLOYEE") {
+                profileUrl = ProfileAPI.EMPLOYEE_PROFILE.replace("{id}", userAccountId);
+            } else if (role === "ADMIN") {
+                profileUrl = ProfileAPI.ADMIN_PROFILE.replace("{id}", userAccountId);
+            } else {
+                showLoading(false);
+                showError("Unknown role: " + role);
+                return;
+            }
+
+            loadProfile(profileUrl);
+        })
+        .fail(function (jqxhr) {
+            showLoading(false);
+            initProfileLinks();
+            var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
+                ? jqxhr.responseJSON.message
+                : "Failed to load user account";
+            showError(msg);
+            notify(msg, "error");
+        });
+}
+
 function loadProfile(url) {
     showLoading(true);
 
     ajax(url, "GET")
         .done(function (profile) {
+            currentUserAccountId = profile.userAccountId || profile.id || null;
             renderProfile(profile);
             renderUserHeader(profile);
-            initProfileLinks(profile.userAccountId || profile.id);
+            initProfileLinks(currentUserAccountId);
             showLoading(false);
             $("#profileContent").show();
         })
@@ -115,14 +146,19 @@ function renderPersonalInfo(profile) {
     var $fields = $("#personalInfoFields");
     $fields.empty();
 
-    appendField($fields, "First Name", escapeHtml(profile.firstName || "N/A"));
-    appendField($fields, "Last Name",  escapeHtml(profile.lastName || "N/A"));
-
     if (profile.role === "CLIENT") {
-        appendField($fields, "City",                  escapeHtml(profile.city || "N/A"));
-        appendField($fields, "Street",                escapeHtml(profile.street || "N/A"));
-        appendField($fields, "House Number",          escapeHtml(profile.houseNumber || "N/A"));
-        appendField($fields, "Identification Number", escapeHtml(profile.identificationNumber || "N/A"));
+        appendField($fields, "First Name",             escapeHtml(profile.firstName || "N/A"));
+        appendField($fields, "Last Name",              escapeHtml(profile.lastName || "N/A"));
+        appendField($fields, "City",                   escapeHtml(profile.city || "N/A"));
+        appendField($fields, "Street",                 escapeHtml(profile.street || "N/A"));
+        appendField($fields, "House Number",           escapeHtml(profile.houseNumber || "N/A"));
+        appendField($fields, "Identification Number",  escapeHtml(profile.identificationNumber || "N/A"));
+    } else if (profile.role === "EMPLOYEE") {
+        appendField($fields, "First Name", escapeHtml(profile.firstName || "N/A"));
+        appendField($fields, "Last Name",  escapeHtml(profile.lastName || "N/A"));
+    } else if (profile.role === "ADMIN") {
+        appendField($fields, "First Name", escapeHtml(profile.firstName || "N/A"));
+        appendField($fields, "Last Name",  escapeHtml(profile.lastName || "N/A"));
     }
 }
 
@@ -167,9 +203,133 @@ function showError(msg) {
 }
 
 // ============================================================
+// PASSWORD CHANGE
+// ============================================================
+
+function openPasswordModal() {
+    $("#pwdForm")[0].reset();
+    $(".pwd-field-error").text("");
+    $(".pwd-input").removeClass("invalid valid");
+    $("#pwdRequirements li").removeClass("met");
+    $("#pwdModalOverlay").addClass("open");
+}
+
+function closePasswordModal() {
+    $("#pwdModalOverlay").removeClass("open");
+}
+
+function validatePasswordRequirements(password) {
+    var results = {
+        length:  password.length >= 12,
+        upper:   /[A-Z]/.test(password),
+        lower:   /[a-z]/.test(password),
+        digit:   /[0-9]/.test(password),
+        special: /[!@#$%^&*]/.test(password)
+    };
+
+    $("#reqLength").toggleClass("met", results.length);
+    $("#reqUpper").toggleClass("met", results.upper);
+    $("#reqLower").toggleClass("met", results.lower);
+    $("#reqDigit").toggleClass("met", results.digit);
+    $("#reqSpecial").toggleClass("met", results.special);
+
+    return results.length && results.upper && results.lower && results.digit && results.special;
+}
+
+function validatePasswordForm() {
+    var currentPwd = $("#currentPassword").val();
+    var newPwd     = $("#newPassword").val();
+    var confirmPwd = $("#confirmPassword").val();
+    var valid = true;
+
+    $(".pwd-field-error").text("");
+    $(".pwd-input").removeClass("invalid");
+
+    if (!currentPwd) {
+        $("#currentPasswordError").text("Current password is required");
+        $("#currentPassword").addClass("invalid");
+        valid = false;
+    }
+
+    if (!newPwd) {
+        $("#newPasswordError").text("New password is required");
+        $("#newPassword").addClass("invalid");
+        valid = false;
+    } else if (!validatePasswordRequirements(newPwd)) {
+        $("#newPasswordError").text("Password does not meet all requirements");
+        $("#newPassword").addClass("invalid");
+        valid = false;
+    }
+
+    if (!confirmPwd) {
+        $("#confirmPasswordError").text("Please confirm your new password");
+        $("#confirmPassword").addClass("invalid");
+        valid = false;
+    } else if (newPwd && confirmPwd !== newPwd) {
+        $("#confirmPasswordError").text("Passwords do not match");
+        $("#confirmPassword").addClass("invalid");
+        valid = false;
+    }
+
+    return valid;
+}
+
+function submitPasswordChange() {
+    if (!validatePasswordForm()) return;
+    if (!currentUserAccountId) {
+        notify("Unable to determine user account", "error");
+        return;
+    }
+
+    var url = ProfileAPI.UPDATE_PASSWORD.replace("{id}", currentUserAccountId);
+    var data = {
+        currentPassword: $("#currentPassword").val(),
+        newPassword:     $("#newPassword").val()
+    };
+
+    $("#btnPwdSubmit").prop("disabled", true).text("Updating\u2026");
+
+    ajax(url, "PUT", data)
+        .done(function () {
+            notify("Password updated successfully", "success");
+            closePasswordModal();
+        })
+        .fail(function (jqxhr) {
+            var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
+                ? jqxhr.responseJSON.message
+                : "Failed to update password";
+            notify(msg, "error");
+        })
+        .always(function () {
+            $("#btnPwdSubmit").prop("disabled", false).text("Update Password");
+        });
+}
+
+function initPasswordModal() {
+    $("#btnChangePassword").on("click", openPasswordModal);
+    $("#pwdModalClose, #btnPwdCancel").on("click", closePasswordModal);
+    $("#pwdModalOverlay").on("click", function (e) {
+        if (e.target === this) closePasswordModal();
+    });
+    $(document).on("keydown", function (e) {
+        if (e.key === "Escape" && $("#pwdModalOverlay").hasClass("open")) {
+            closePasswordModal();
+        }
+    });
+    $("#pwdForm").on("submit", function (e) {
+        e.preventDefault();
+        submitPasswordChange();
+    });
+    $("#newPassword").on("input", function () {
+        validatePasswordRequirements($(this).val());
+    });
+}
+
+// ============================================================
 // ENTRY POINT
 // ============================================================
 
 $(document).ready(function () {
     init();
+    initPasswordModal();
 });

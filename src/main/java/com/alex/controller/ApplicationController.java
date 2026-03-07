@@ -35,4 +35,14 @@ public class ApplicationController {
     public String userProfile() {
         return "user-profile";
     }
+
+    @GetMapping(path = "/management")
+    public String management() {
+        return "management";
+    }
+
+    @GetMapping(path = "/login")
+    public String login() {
+        return "login";
+    }
 }

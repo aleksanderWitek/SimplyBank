@@ -27,6 +27,7 @@
                 <a href="/accounts" class="nav-link">Accounts</a>
                 <a href="/transactions" class="nav-link active">Transactions</a>
                 <a href="/new-transaction" class="nav-link">Transfer</a>
+                <a href="/management" class="nav-link" id="navManagement" style="display:none;">Management</a>
             </nav>
             <div class="header-actions">
                 <button class="icon-button" title="Profile">
@@ -60,6 +61,17 @@
                     <p class="page-subtitle">Review your complete transaction history</p>
                 </div>
                 <div class="page-header-right">
+                    <div class="filter-group">
+                        <label for="filterAccount" class="filter-label">Account</label>
+                        <div class="filter-input-group">
+                            <input type="text" id="filterAccount" class="filter-input" placeholder="Account number">
+                            <button class="filter-btn" id="btnFilterAccount" type="button" title="Search">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                     <div class="filter-group">
                         <label for="filterType" class="filter-label">Type</label>
                         <select id="filterType" class="filter-select">

@@ -1,9 +1,13 @@
 package com.alex.controller;
 
+import com.alex.dto.AdminProfile;
 import com.alex.dto.Employee;
-import com.alex.dto.Password;
+import com.alex.dto.EmployeeProfile;
+import com.alex.dto.UserAccount;
 import com.alex.exception.EmployeeNotFoundRuntimeException;
+import com.alex.exception.UserAccountNotFoundRuntimeException;
 import com.alex.service.IEmployeeService;
+import com.alex.service.IUserAccountService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +19,11 @@ import java.util.List;
 public class EmployeeController {
 
     private final IEmployeeService employeeService;
+    private final IUserAccountService userAccountService;
 
-    public EmployeeController(IEmployeeService employeeService) {
+    public EmployeeController(IEmployeeService employeeService, IUserAccountService userAccountService) {
         this.employeeService = employeeService;
+        this.userAccountService = userAccountService;
     }
 
     @PostMapping(consumes = "application/json")
@@ -51,10 +57,24 @@ public class EmployeeController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping(path = "/{employee_id}/password", consumes = "application/json")
-    public ResponseEntity<Void> updateEmployeePassword(@PathVariable("employee_id") Long employeeId,
-                                                       @RequestBody Password password) {
-        employeeService.updatePassword(employeeId, password);
-        return ResponseEntity.noContent().build();
+    @GetMapping(path = "/profile")
+    public ResponseEntity<EmployeeProfile> findEmployeeProfile(@RequestParam("userAccountId") Long userAccountId) {
+        EmployeeProfile profile = employeeService.findProfileByUserAccountId(userAccountId)
+                .orElseThrow(() -> new EmployeeNotFoundRuntimeException(
+                        "There is no Employee profile for userAccountId: " + userAccountId));
+        return ResponseEntity.ok(profile);
+    }
+
+    @GetMapping(path = "/admin-profile")
+    public ResponseEntity<AdminProfile> findAdminProfile(@RequestParam("userAccountId") Long userAccountId) {
+        UserAccount userAccount = userAccountService.findById(userAccountId)
+                .orElseThrow(() -> new UserAccountNotFoundRuntimeException(
+                        "There is no User Account with provided id: " + userAccountId));
+        AdminProfile profile = new AdminProfile(
+                userAccount.getId(),
+                userAccount.getLogin(),
+                userAccount.getRole().name(),
+                userAccount.getCreateDate());
+        return ResponseEntity.ok(profile);
     }
 }

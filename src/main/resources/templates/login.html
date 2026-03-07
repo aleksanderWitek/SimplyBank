@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SimplyBank</title>
+    <link rel="stylesheet" href="/css/login.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="/js/libs/jquery-3.6.0.min.js" defer></script>
+    <script src="/js/login.js" defer></script>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="login-logo">
+                <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+                    <rect width="32" height="32" rx="8" fill="#2563eb"/>
+                    <path d="M16 8L22 14H18V20H14V14H10L16 8Z" fill="white"/>
+                    <rect x="10" y="22" width="12" height="2" fill="white"/>
+                </svg>
+                <span class="login-logo-text">SimplyBank</span>
+            </div>
+
+            <div id="errorMessage" class="alert alert-error" style="display:none;">
+                Invalid login or password.
+            </div>
+            <div id="lockedMessage" class="alert alert-error" style="display:none;">
+                Account temporarily locked due to too many failed attempts. Try again in <span id="lockMinutes"></span> minute(s).
+            </div>
+            <div id="logoutMessage" class="alert alert-success" style="display:none;">
+                You have been successfully logged out.
+            </div>
+            <div id="sessionExpiredMessage" class="alert alert-error" style="display:none;">
+                Your session has expired. Please sign in again.
+            </div>
+
+            <form action="/login" method="post">
+                <div class="form-group">
+                    <label for="username">Login</label>
+                    <input type="text" id="username" name="username" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn-login">Sign In</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
