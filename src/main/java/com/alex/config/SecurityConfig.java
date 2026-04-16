@@ -22,13 +22,16 @@ public class SecurityConfig {
     private final CustomAuthenticationFailureHandler failureHandler;
     private final CustomAuthenticationSuccessHandler successHandler;
     private final LoginRateLimitFilter loginRateLimitFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     public SecurityConfig(CustomAuthenticationFailureHandler failureHandler,
                           CustomAuthenticationSuccessHandler successHandler,
-                          LoginRateLimitFilter loginRateLimitFilter) {
+                          LoginRateLimitFilter loginRateLimitFilter,
+                          JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.failureHandler = failureHandler;
         this.successHandler = successHandler;
         this.loginRateLimitFilter = loginRateLimitFilter;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
@@ -79,6 +82,7 @@ public class SecurityConfig {
                             .anyRequest().authenticated()
                     )
                     .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                    .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                     .formLogin(form -> form
                             .loginPage("/login")
                             .successHandler(successHandler)

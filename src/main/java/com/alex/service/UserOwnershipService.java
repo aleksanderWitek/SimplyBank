@@ -49,7 +49,7 @@ public class UserOwnershipService {
 
         return clientService.findProfileByUserAccountId(userAccount.getId())
                 .map(ClientProfile::getClientId)
-                .map(clientId -> new HashSet<>(
+                .map(clientId -> (Set<Long>) new HashSet<>(
                         bankAccountClientRepository.findBankAccountsIdLinkedToClientByClientId(clientId)))
                 .orElse(Collections.emptySet());
     }
