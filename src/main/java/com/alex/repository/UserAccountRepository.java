@@ -31,7 +31,7 @@ public class UserAccountRepository implements IUserAccountRepository{
                 VALUES(?, ?, ?, ?)
                 """;
         try {
-            jdbcTemplate.update(query, userAccount.getLogin(), userAccount.getPassword(), userAccount.getRole(), userAccount.getCreateDate());
+            jdbcTemplate.update(query, userAccount.getLogin(), userAccount.getPassword(), userAccount.getRole().name(), userAccount.getCreateDate());
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
         }
