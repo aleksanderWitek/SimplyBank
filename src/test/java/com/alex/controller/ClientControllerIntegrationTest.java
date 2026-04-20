@@ -65,8 +65,10 @@ class ClientControllerIntegrationTest extends BaseIntegrationTest {
                         .contentType("application/json")
                         .content(clientJson("New", "Client")))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.firstName").value("New"))
-                .andExpect(jsonPath("$.lastName").value("Client"));
+                .andExpect(jsonPath("$.client.firstName").value("New"))
+                .andExpect(jsonPath("$.client.lastName").value("Client"))
+                .andExpect(jsonPath("$.login").isNotEmpty())
+                .andExpect(jsonPath("$.generatedPassword").isNotEmpty());
     }
 
     @Test
@@ -233,7 +235,9 @@ class ClientControllerIntegrationTest extends BaseIntegrationTest {
                         .content(saveBody))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        Long id = ((Number) objectMapper.readValue(response, Map.class).get("id")).longValue();
+        Map<?, ?> responseMap = objectMapper.readValue(response, Map.class);
+        Map<?, ?> clientNode = (Map<?, ?>) responseMap.get("client");
+        Long id = ((Number) clientNode.get("id")).longValue();
 
         mockMvc.perform(delete("/api/client/" + id).header("Authorization", bearer(token)))
                 .andExpect(status().isNoContent());

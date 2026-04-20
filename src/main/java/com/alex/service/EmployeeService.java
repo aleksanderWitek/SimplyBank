@@ -2,6 +2,7 @@ package com.alex.service;
 
 import com.alex.UserAccountRole;
 import com.alex.dto.Employee;
+import com.alex.dto.EmployeeCreationResponse;
 import com.alex.dto.EmployeeProfile;
 import com.alex.dto.UserAccount;
 import com.alex.exception.UserAccountNotFoundRuntimeException;
@@ -32,7 +33,7 @@ public class EmployeeService implements IEmployeeService{
 
     @Transactional
     @Override
-    public Employee save(Employee employee) {
+    public EmployeeCreationResponse save(Employee employee) {
         EmployeeValidation.ensureEmployeePresent(employee);
         UserAccountValidation.ensureFirstNamePresent(employee.getFirstName());
         UserAccountValidation.ensureLastNamePresent(employee.getLastName());
@@ -45,7 +46,7 @@ public class EmployeeService implements IEmployeeService{
         UserAccount userAccount = userAccountService.save(employee.getFirstName(), employee.getLastName(),
                 UserAccountRole.EMPLOYEE);
         userAccountEmployeeRepository.linkUserAccountToEmployee(userAccount.getId(), id);
-        return savedEmployee;
+        return new EmployeeCreationResponse(savedEmployee, userAccount.getLogin(), userAccount.getPassword());
     }
 
     @Transactional

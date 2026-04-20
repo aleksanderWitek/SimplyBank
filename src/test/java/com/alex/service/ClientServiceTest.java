@@ -2,6 +2,7 @@ package com.alex.service;
 
 import com.alex.UserAccountRole;
 import com.alex.dto.Client;
+import com.alex.dto.ClientCreationResponse;
 import com.alex.dto.ClientProfile;
 import com.alex.dto.UserAccount;
 import com.alex.exception.IllegalArgumentRuntimeException;
@@ -70,15 +71,17 @@ class ClientServiceTest {
     }
 
     @Test
-    void save_valid_persistsClientCreatesUserAndLinks() {
+    void save_valid_persistsClientCreatesUserAndReturnsCredentials() {
         when(clientRepository.save(any(Client.class))).thenReturn(42L);
         when(userAccountService.save("Alice", "Smith", UserAccountRole.CLIENT)).thenReturn(newUser(99L));
 
-        Client result = service.save(newClient("Alice", "Smith"));
+        ClientCreationResponse result = service.save(newClient("Alice", "Smith"));
 
-        assertThat(result.getId()).isEqualTo(42L);
-        assertThat(result.getFirstName()).isEqualTo("Alice");
-        assertThat(result.getLastName()).isEqualTo("Smith");
+        assertThat(result.getClient().getId()).isEqualTo(42L);
+        assertThat(result.getClient().getFirstName()).isEqualTo("Alice");
+        assertThat(result.getClient().getLastName()).isEqualTo("Smith");
+        assertThat(result.getLogin()).isEqualTo("alismi");
+        assertThat(result.getGeneratedPassword()).isEqualTo("pwd");
 
         ArgumentCaptor<Client> captor = ArgumentCaptor.forClass(Client.class);
         verify(clientRepository).save(captor.capture());

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
@@ -189,5 +190,61 @@ class UserAccountControllerIntegrationTest extends BaseIntegrationTest {
                         .contentType("application/json")
                         .content(body))
                 .andExpect(status().isBadRequest()); // reached the service, password mismatch
+    }
+
+    // POST /api/user_account/{id}/password/reset (admin-only) -------------------------------
+
+    @Test
+    void resetPassword_asAdmin_returnsNewPassword() throws Exception {
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        insertUserAccount(3L, "carol", "Password1!", "ADMIN");
+        String token = generateToken("carol", "ADMIN");
+
+        mockMvc.perform(post("/api/user_account/1/password/reset")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userAccountId").value(1))
+                .andExpect(jsonPath("$.login").value("alice"))
+                .andExpect(jsonPath("$.newPassword").isNotEmpty());
+    }
+
+    @Test
+    void resetPassword_asEmployee_isForbidden() throws Exception {
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
+        String token = generateToken("bob", "EMPLOYEE");
+
+        mockMvc.perform(post("/api/user_account/1/password/reset")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void resetPassword_asClient_isForbidden() throws Exception {
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        insertUserAccount(2L, "bob", "Password1!", "CLIENT");
+        String token = generateToken("bob", "CLIENT");
+
+        mockMvc.perform(post("/api/user_account/1/password/reset")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void resetPassword_noToken_redirectsToLogin() throws Exception {
+        mockMvc.perform(post("/api/user_account/1/password/reset"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    void resetPassword_missingUser_returnsNotFound() throws Exception {
+        insertUserAccount(3L, "carol", "Password1!", "ADMIN");
+        String token = generateToken("carol", "ADMIN");
+
+        mockMvc.perform(post("/api/user_account/999/password/reset")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("There is no User Account with provided id:999"));
     }
 }

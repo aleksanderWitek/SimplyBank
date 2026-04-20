@@ -70,8 +70,9 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.GET, "/api/transaction").hasAnyRole("EMPLOYEE", "ADMIN")
                             .requestMatchers(HttpMethod.POST, "/api/transaction/**").authenticated()
 
-                            // User Account API — list all is admin-only, rest authenticated
+                            // User Account API — list all and admin password reset are admin-only, rest authenticated
                             .requestMatchers(HttpMethod.GET, "/api/user_account").hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.POST, "/api/user_account/*/password/reset").hasRole("ADMIN")
                             .requestMatchers("/api/user_account/**").authenticated()
 
                             // All other pages — authenticated

@@ -2,6 +2,7 @@ package com.alex.service;
 
 import com.alex.UserAccountRole;
 import com.alex.dto.Password;
+import com.alex.dto.PasswordResetResponse;
 import com.alex.dto.UserAccount;
 import com.alex.exception.IllegalArgumentRuntimeException;
 import com.alex.exception.NullPointerRuntimeException;
@@ -137,6 +138,42 @@ class UserAccountServiceTest {
 
         service.updatePassword(1L, password);
 
+        verify(userAccountRepository).updatePassword(1L, "new-encoded");
+    }
+
+    // resetPassword -------------------------------------------------------------------------------
+
+    @Test
+    void resetPassword_nullId_throwsNullPointerRuntimeException() {
+        assertThatThrownBy(() -> service.resetPassword(null))
+                .isInstanceOf(NullPointerRuntimeException.class);
+        verify(userAccountRepository, never()).updatePassword(any(), any());
+    }
+
+    @Test
+    void resetPassword_userNotFound_throwsUserAccountNotFoundRuntimeException() {
+        when(userAccountRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.resetPassword(1L))
+                .isInstanceOf(UserAccountNotFoundRuntimeException.class)
+                .hasMessageContaining("There is no User Account with provided id:1");
+
+        verify(userAccountRepository, never()).updatePassword(any(), any());
+    }
+
+    @Test
+    void resetPassword_happyPath_generatesEncodesPersistsAndReturnsPlaintext() {
+        UserAccount existing = new UserAccount(1L, "alismi", "old-encoded", UserAccountRole.CLIENT,
+                LocalDateTime.now());
+        when(userAccountRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(processingService.generatePassword()).thenReturn("GenPwd-1!");
+        when(passwordEncoder.encode("GenPwd-1!")).thenReturn("new-encoded");
+
+        PasswordResetResponse response = service.resetPassword(1L);
+
+        assertThat(response.getUserAccountId()).isEqualTo(1L);
+        assertThat(response.getLogin()).isEqualTo("alismi");
+        assertThat(response.getNewPassword()).isEqualTo("GenPwd-1!");
         verify(userAccountRepository).updatePassword(1L, "new-encoded");
     }
 
