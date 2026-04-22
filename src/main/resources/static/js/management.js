@@ -42,12 +42,18 @@ function copyCredentials() {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text)
             .then(function () { notify("Credentials copied", "success"); })
-            .catch(function () { notify("Copy failed", "error"); });
+            .catch(function (err) {
+                console.error("[copyCredentials] navigator.clipboard.writeText failed:", err);
+                notify("Copy failed", "error");
+            });
     } else {
         var $ta = $("<textarea>").val(text).css({ position: "fixed", opacity: 0 }).appendTo("body");
         $ta[0].select();
         try { document.execCommand("copy"); notify("Credentials copied", "success"); }
-        catch (e) { notify("Copy failed", "error"); }
+        catch (e) {
+            console.error("[copyCredentials] document.execCommand('copy') fallback failed:", e);
+            notify("Copy failed", "error");
+        }
         $ta.remove();
     }
 }
