@@ -29,7 +29,8 @@ function init() {
             renderUserHeader(user);
             initProfileLinks(user.id);
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[init] GET " + AccountsAPI.AUTH_ME + " failed:", jqxhr);
             initProfileLinks();
         })
         .always(function () {
@@ -52,7 +53,8 @@ function loadAccounts() {
             renderAccountRows(accounts);
             loadAllStats(accounts);
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[loadAccounts] GET " + AccountsAPI.BANK_ACCOUNT + " failed:", jqxhr);
             showLoading(false);
             notify("Could not load accounts", "error");
         });
@@ -87,8 +89,11 @@ function loadAllStats(accounts) {
                 $("#count-"    + id).text(total);
                 $("#incoming-" + id).text(formatCurrency(incoming, currency));
                 $("#outgoing-" + id).text(formatCurrency(outgoing, currency));
+            })
+            .fail(function (jqxhr) {
+                console.error("[loadAllStats] failed to load tx stats for account " + id + " (FROM/TO):", jqxhr);
+                // Stats remain as "—" in the UI
             });
-        // On fail stats remain as "—"
     });
 }
 

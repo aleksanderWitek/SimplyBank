@@ -55,7 +55,8 @@ function init() {
             renderUserHeader(user);
             initProfileLinks(user.id);
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[init] GET " + AccountAPI.AUTH_ME + " failed:", jqxhr);
             initProfileLinks();
         })
         .always(function () {
@@ -74,7 +75,8 @@ function loadAccount() {
             renderAccountHero(account);
             loadTransactions(account.id);
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[loadAccount] GET " + AccountAPI.BANK_ACCOUNT + "/" + State.accountId + " failed:", jqxhr);
             $("#heroLoading").html('<p style="color:#dc2626;">Could not load account details.</p>');
             notify("Could not load account", "error");
         });
@@ -117,7 +119,8 @@ function loadTransactions(id) {
             State.allTransactions = allTx;
             applyFiltersAndRender();
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[loadTransactions] FROM/TO transaction requests failed for account id=" + id + ":", jqxhr);
             State.allTransactions = [];
             applyFiltersAndRender();
             notify("Could not load transactions", "error");
@@ -285,12 +288,17 @@ function openDetail(transactionId) {
             if (local) tx._direction = local._direction;
             renderModal(tx);
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[openDetail] GET " + AccountAPI.TRANSACTION + "/" + transactionId + " failed, attempting local fallback:", jqxhr);
             var local = State.allTransactions.find(function (t) {
                 return String(t.id) === String(transactionId);
             });
-            if (local) renderModal(local);
-            else notify("Transaction details not found", "error");
+            if (local) {
+                renderModal(local);
+            } else {
+                console.error("[openDetail] no local transaction found for id=" + transactionId);
+                notify("Transaction details not found", "error");
+            }
         });
 }
 

@@ -73,6 +73,7 @@ function loadProfileByUserAccountId(userAccountId) {
             loadProfile(profileUrl);
         })
         .fail(function (jqxhr) {
+            console.error("[loadProfileByUserAccountId] GET " + userAccountUrl + " failed:", jqxhr);
             showLoading(false);
             initProfileLinks();
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
@@ -96,6 +97,7 @@ function loadProfile(url) {
             $("#profileContent").show();
         })
         .fail(function (jqxhr) {
+            console.error("[loadProfile] GET " + url + " failed:", jqxhr);
             showLoading(false);
             initProfileLinks();
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
@@ -295,6 +297,7 @@ function submitPasswordChange() {
             closePasswordModal();
         })
         .fail(function (jqxhr) {
+            console.error("[submitPasswordChange] PUT " + url + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to update password";

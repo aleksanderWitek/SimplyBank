@@ -22,6 +22,7 @@ var BankAccountService = {
     findAll: function () {
         return ajax(DashboardAPI.BANK_ACCOUNT, "GET")
             .fail(function (jqxhr) {
+                console.error("[BankAccountService.findAll] GET " + DashboardAPI.BANK_ACCOUNT + " failed:", jqxhr);
                 var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                     ? jqxhr.responseJSON.message
                     : "Failed to load bank accounts";
@@ -168,7 +169,8 @@ function loadTransactions(userRole, bankAccounts) {
                 var list = Array.isArray(data) ? data : [];
                 DashboardRenderer.renderTransactions(list.slice(0, 10));
             })
-            .fail(function () {
+            .fail(function (jqxhr) {
+                console.error("[loadTransactions] GET " + DashboardAPI.TRANSACTION + " failed for role=" + role + ":", jqxhr);
                 DashboardRenderer.renderTransactions([]);
             });
         return;
@@ -208,7 +210,8 @@ function loadTransactions(userRole, bankAccounts) {
             });
             DashboardRenderer.renderTransactions(allTx.slice(0, 10));
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[loadTransactions] one or more per-account transaction requests failed for CLIENT role:", jqxhr);
             DashboardRenderer.renderTransactions([]);
         });
 }
@@ -226,7 +229,8 @@ function loadCurrentUser() {
             DashboardRenderer.renderWelcome(user);
             initProfileLinks(user.id);
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[loadCurrentUser] GET /api/auth/me failed:", jqxhr);
             initProfileLinks();
         });
 }
@@ -274,12 +278,14 @@ $(document).ready(function () {
                     .done(function (accounts) {
                         loadTransactions(role, Array.isArray(accounts) ? accounts : []);
                     })
-                    .fail(function () {
+                    .fail(function (jqxhr) {
+                        console.error("[ready] BankAccountService.findAll failed for role=" + role + ", loading transactions with empty account list:", jqxhr);
                         loadTransactions(role, []);
                     });
             }
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[ready] GET /api/auth/me failed, loading transactions without role context:", jqxhr);
             loadTransactions("", []);
         });
 

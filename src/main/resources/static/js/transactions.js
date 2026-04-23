@@ -71,7 +71,8 @@ function init() {
                     loadTransactions();
                 });
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[init] GET " + TxListAPI.AUTH_ME + " failed:", jqxhr);
             initProfileLinks();
             loadTransactions();
         });
@@ -88,7 +89,8 @@ function loadUserBankAccounts(userId) {
                 return a.id;
             });
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[loadUserBankAccounts] GET " + url + " failed:", jqxhr);
             State.currentUserBankAccountIds = [];
         });
 }
@@ -124,7 +126,8 @@ function loadTransactions() {
                 State.allTransactions = allTx;
                 applyFiltersAndRender();
             })
-            .fail(function () {
+            .fail(function (jqxhr) {
+                console.error("[loadTransactions] one or more per-account transaction requests failed, falling back to TRANSACTION list:", jqxhr);
                 loadAllTransactionsFallback();
             });
     } else {
@@ -138,7 +141,8 @@ function loadAllTransactionsFallback() {
             State.allTransactions = Array.isArray(data) ? data : [];
             applyFiltersAndRender();
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[loadAllTransactionsFallback] GET " + TxListAPI.TRANSACTION + " failed:", jqxhr);
             State.allTransactions = [];
             applyFiltersAndRender();
             notify("Could not load transactions", "error");
@@ -199,13 +203,15 @@ function filterByAccountNumber() {
                     State.allTransactions = allTx;
                     applyFiltersAndRender();
                 })
-                .fail(function () {
+                .fail(function (jqxhr) {
+                    console.error("[filterByAccountNumber] FROM/TO transaction requests failed for account id=" + match.id + ":", jqxhr);
                     State.allTransactions = [];
                     applyFiltersAndRender();
                     notify("Failed to load transactions for this account", "error");
                 });
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[filterByAccountNumber] GET " + TxListAPI.BANK_ACCOUNT + " failed while searching for account '" + accountNumber + "':", jqxhr);
             showLoading(false);
             notify("Failed to search bank accounts", "error");
         });
@@ -357,13 +363,15 @@ function openDetail(transactionId) {
         .done(function (tx) {
             renderModal(tx);
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[openDetail] GET " + TxListAPI.TRANSACTION + "/" + transactionId + " failed, attempting local fallback:", jqxhr);
             var local = State.allTransactions.find(function (t) {
                 return t.id === transactionId || String(t.id) === String(transactionId);
             });
             if (local) {
                 renderModal(local);
             } else {
+                console.error("[openDetail] no local transaction found for id=" + transactionId);
                 notify("Transaction details not found", "error");
             }
         });
