@@ -189,6 +189,7 @@ function findClientByAccountId() {
             var html =
                 '<h3 class="result-card-title">Client Profile</h3>' +
                 '<div class="result-grid">' +
+                    resultField("Client ID", profile.clientId) +
                     resultField("Login", profile.login) +
                     resultField("First Name", profile.firstName) +
                     resultField("Last Name", profile.lastName) +
@@ -504,6 +505,7 @@ function findEmployeeByAccountId() {
             var html =
                 '<h3 class="result-card-title">Employee Profile</h3>' +
                 '<div class="result-grid">' +
+                    resultField("Employee ID", profile.employeeId) +
                     resultField("Login", profile.login) +
                     resultField("First Name", profile.firstName) +
                     resultField("Last Name", profile.lastName) +
