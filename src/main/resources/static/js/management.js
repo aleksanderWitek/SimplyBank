@@ -151,6 +151,7 @@ function submitClient() {
             }
         })
         .fail(function (jqxhr) {
+            console.error("[submitClient] POST " + ManagementAPI.CLIENT + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to add client";
@@ -200,6 +201,7 @@ function findClientByAccountId() {
             $("#findClientResult").html(html).show();
         })
         .fail(function (jqxhr) {
+            console.error("[findClientByAccountId] GET " + ManagementAPI.CLIENT_PROFILE + "?userAccountId=" + accountId + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Client not found";
@@ -245,6 +247,7 @@ function findAllClients() {
             $("#allClientsTableWrapper").show();
         })
         .fail(function (jqxhr) {
+            console.error("[findAllClients] GET " + ManagementAPI.CLIENT + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to load clients";
@@ -288,6 +291,7 @@ function loadClientForEdit() {
             notify("Client data loaded", "info");
         })
         .fail(function (jqxhr) {
+            console.error("[loadClientForEdit] GET " + ManagementAPI.CLIENT + "/" + clientId + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Client not found";
@@ -352,6 +356,7 @@ function submitEditClient() {
             notify("Client updated successfully", "success");
         })
         .fail(function (jqxhr) {
+            console.error("[submitEditClient] PUT " + ManagementAPI.CLIENT + "/" + clientId + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to update client";
@@ -391,6 +396,7 @@ function deleteClient() {
                 $("#deleteClientId").val("");
             })
             .fail(function (jqxhr) {
+                console.error("[deleteClient] DELETE " + ManagementAPI.CLIENT + "/" + clientId + " failed:", jqxhr);
                 var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                     ? jqxhr.responseJSON.message
                     : "Failed to delete client";
@@ -460,6 +466,7 @@ function submitEmployee() {
             }
         })
         .fail(function (jqxhr) {
+            console.error("[submitEmployee] POST " + ManagementAPI.EMPLOYEE + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to add employee";
@@ -506,6 +513,7 @@ function findEmployeeByAccountId() {
             $("#findEmployeeResult").html(html).show();
         })
         .fail(function (jqxhr) {
+            console.error("[findEmployeeByAccountId] GET " + ManagementAPI.EMPLOYEE_PROFILE + "?userAccountId=" + accountId + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Employee not found";
@@ -550,6 +558,7 @@ function findAllEmployees() {
             $("#allEmployeesTableWrapper").show();
         })
         .fail(function (jqxhr) {
+            console.error("[findAllEmployees] GET " + ManagementAPI.EMPLOYEE + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to load employees";
@@ -589,6 +598,7 @@ function loadEmployeeForEdit() {
             notify("Employee data loaded", "info");
         })
         .fail(function (jqxhr) {
+            console.error("[loadEmployeeForEdit] GET " + ManagementAPI.EMPLOYEE + "/" + empId + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Employee not found";
@@ -645,6 +655,7 @@ function submitEditEmployee() {
             notify("Employee updated successfully", "success");
         })
         .fail(function (jqxhr) {
+            console.error("[submitEditEmployee] PUT " + ManagementAPI.EMPLOYEE + "/" + empId + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to update employee";
@@ -684,6 +695,7 @@ function deleteEmployee() {
                 $("#deleteEmpId").val("");
             })
             .fail(function (jqxhr) {
+                console.error("[deleteEmployee] DELETE " + ManagementAPI.EMPLOYEE + "/" + empId + " failed:", jqxhr);
                 var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                     ? jqxhr.responseJSON.message
                     : "Failed to delete employee";
@@ -733,6 +745,7 @@ function resetPasswordFor(inputId, errorId, buttonId, defaultButtonHtml, entityL
                     );
                 })
                 .fail(function (jqxhr) {
+                    console.error("[resetPasswordFor] POST " + ManagementAPI.USER_ACCOUNT + "/" + accountId + "/password/reset failed (entity=" + entityLabel + "):", jqxhr);
                     var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                         ? jqxhr.responseJSON.message
                         : "Failed to reset password";
@@ -809,6 +822,7 @@ function submitCreateBankAccount() {
             $(".field-error", "#createBankAccountForm").text("");
         })
         .fail(function (jqxhr) {
+            console.error("[submitCreateBankAccount] POST " + ManagementAPI.BANK_ACCOUNT + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to create bank account";
@@ -848,6 +862,7 @@ function deleteBankAccount() {
                 $("#deleteBaId").val("");
             })
             .fail(function (jqxhr) {
+                console.error("[deleteBankAccount] DELETE " + ManagementAPI.BANK_ACCOUNT + "/" + baId + " failed:", jqxhr);
                 var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                     ? jqxhr.responseJSON.message
                     : "Failed to delete bank account";
@@ -885,7 +900,8 @@ function loadCurrentUser() {
             renderUserHeader(user);
             initProfileLinks(user.id);
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[loadCurrentUser] GET " + ManagementAPI.AUTH_ME + " failed:", jqxhr);
             initProfileLinks();
         });
 }

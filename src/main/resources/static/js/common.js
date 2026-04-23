@@ -228,6 +228,9 @@ function initManagementNav() {
             if (role === "EMPLOYEE" || role === "ADMIN") {
                 $("#navManagement").show();
             }
+        })
+        .fail(function (jqxhr) {
+            console.error("[initManagementNav] GET /api/auth/me failed; management nav will stay hidden:", jqxhr);
         });
 }
 
