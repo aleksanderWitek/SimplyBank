@@ -2,6 +2,7 @@ package com.alex.service;
 
 import com.alex.UserAccountRole;
 import com.alex.dto.Employee;
+import com.alex.dto.EmployeeCreationResponse;
 import com.alex.dto.EmployeeProfile;
 import com.alex.dto.UserAccount;
 import com.alex.exception.IllegalArgumentRuntimeException;
@@ -61,15 +62,17 @@ class EmployeeServiceTest {
     }
 
     @Test
-    void save_valid_persistsEmployeeCreatesUserAndLinks() {
+    void save_valid_persistsEmployeeCreatesUserAndReturnsCredentials() {
         when(employeeRepository.save(any(Employee.class))).thenReturn(42L);
         when(userAccountService.save("Bob", "Jones", UserAccountRole.EMPLOYEE)).thenReturn(newUser(99L));
 
-        Employee result = service.save(new Employee("Bob", "Jones", null));
+        EmployeeCreationResponse result = service.save(new Employee("Bob", "Jones", null));
 
-        assertThat(result.getId()).isEqualTo(42L);
-        assertThat(result.getFirstName()).isEqualTo("Bob");
-        assertThat(result.getLastName()).isEqualTo("Jones");
+        assertThat(result.getEmployee().getId()).isEqualTo(42L);
+        assertThat(result.getEmployee().getFirstName()).isEqualTo("Bob");
+        assertThat(result.getEmployee().getLastName()).isEqualTo("Jones");
+        assertThat(result.getLogin()).isEqualTo("bobjon");
+        assertThat(result.getGeneratedPassword()).isEqualTo("pwd");
         verify(userAccountEmployeeRepository).linkUserAccountToEmployee(99L, 42L);
     }
 

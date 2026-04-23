@@ -596,6 +596,49 @@ select.field-input {
 }
 
 /* ============================================================
+   Credential Modal
+   ============================================================ */
+.credential-warning {
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    color: #92400e;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    margin-bottom: 18px;
+}
+.credential-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    margin-bottom: 10px;
+}
+.credential-row:last-child {
+    margin-bottom: 0;
+}
+.credential-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray-400);
+    width: 80px;
+    flex-shrink: 0;
+}
+.credential-value {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-900);
+    word-break: break-all;
+    user-select: all;
+}
+
+/* ============================================================
    Notification Toast
    ============================================================ */
 .notification {

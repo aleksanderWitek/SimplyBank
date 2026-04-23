@@ -2,6 +2,7 @@ package com.alex.service;
 
 import com.alex.UserAccountRole;
 import com.alex.dto.Password;
+import com.alex.dto.PasswordResetResponse;
 import com.alex.dto.UserAccount;
 import com.alex.exception.UserAccountNotFoundRuntimeException;
 import com.alex.repository.IUserAccountRepository;
@@ -69,6 +70,21 @@ public class UserAccountService implements IUserAccountService{
 
         String encodedNewPassword = passwordEncoder.encode(password.getNewPassword());
         userAccountRepository.updatePassword(userAccountId, encodedNewPassword);
+    }
+
+    @Transactional
+    @Override
+    public PasswordResetResponse resetPassword(Long userAccountId) {
+        IdValidation.ensureIdPresent(userAccountId);
+
+        UserAccount userAccount = userAccountRepository.findById(userAccountId)
+                .orElseThrow(() -> new UserAccountNotFoundRuntimeException(
+                        "There is no User Account with provided id:" + userAccountId));
+
+        String newPassword = userAccountProcessingService.generatePassword();
+        userAccountRepository.updatePassword(userAccountId, passwordEncoder.encode(newPassword));
+
+        return new PasswordResetResponse(userAccountId, userAccount.getLogin(), newPassword);
     }
 
     @Transactional(readOnly = true)

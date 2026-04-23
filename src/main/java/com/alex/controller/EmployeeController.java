@@ -2,6 +2,7 @@ package com.alex.controller;
 
 import com.alex.dto.AdminProfile;
 import com.alex.dto.Employee;
+import com.alex.dto.EmployeeCreationResponse;
 import com.alex.dto.EmployeeProfile;
 import com.alex.dto.UserAccount;
 import com.alex.exception.EmployeeNotFoundRuntimeException;
@@ -27,9 +28,9 @@ public class EmployeeController {
     }
 
     @PostMapping(consumes = "application/json")
-    public ResponseEntity<Employee> saveEmployee(@RequestBody Employee employee) {
-        Employee employeeResult = employeeService.save(employee);
-        return ResponseEntity.status(HttpStatus.CREATED).body(employeeResult);
+    public ResponseEntity<EmployeeCreationResponse> saveEmployee(@RequestBody Employee employee) {
+        EmployeeCreationResponse response = employeeService.save(employee);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping(path = "/{id}", consumes = "application/json")

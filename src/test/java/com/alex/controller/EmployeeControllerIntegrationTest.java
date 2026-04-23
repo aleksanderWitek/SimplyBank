@@ -67,8 +67,10 @@ class EmployeeControllerIntegrationTest extends BaseIntegrationTest {
                         .contentType("application/json")
                         .content(employeeJson("Eve", "Manager")))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.firstName").value("Eve"))
-                .andExpect(jsonPath("$.lastName").value("Manager"));
+                .andExpect(jsonPath("$.employee.firstName").value("Eve"))
+                .andExpect(jsonPath("$.employee.lastName").value("Manager"))
+                .andExpect(jsonPath("$.login").isNotEmpty())
+                .andExpect(jsonPath("$.generatedPassword").isNotEmpty());
     }
 
     // PUT /api/employee/{id} ------------------------------------------------------------------
@@ -169,7 +171,9 @@ class EmployeeControllerIntegrationTest extends BaseIntegrationTest {
                         .content(employeeJson("Del", "Target")))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        Long id = ((Number) objectMapper.readValue(body, Map.class).get("id")).longValue();
+        Map<?, ?> responseMap = objectMapper.readValue(body, Map.class);
+        Map<?, ?> employeeNode = (Map<?, ?>) responseMap.get("employee");
+        Long id = ((Number) employeeNode.get("id")).longValue();
 
         mockMvc.perform(delete("/api/employee/" + id).header("Authorization", bearer(token)))
                 .andExpect(status().isNoContent());

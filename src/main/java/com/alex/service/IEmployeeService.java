@@ -1,13 +1,14 @@
 package com.alex.service;
 
 import com.alex.dto.Employee;
+import com.alex.dto.EmployeeCreationResponse;
 import com.alex.dto.EmployeeProfile;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface IEmployeeService {
-    Employee save(Employee employee);
+    EmployeeCreationResponse save(Employee employee);
     void updateById(Long id, Employee employee);
     Optional<Employee> findById(Long id);
     List<Employee> findAll();

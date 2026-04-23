@@ -15,8 +15,48 @@ var ManagementAPI = {
     EMPLOYEE:         "/api/employee",
     EMPLOYEE_PROFILE: "/api/employee/profile",
     BANK_ACCOUNT:     "/api/bank_account",
+    USER_ACCOUNT:     "/api/user_account",
     AUTH_ME:          "/api/auth/me"
 };
+
+// ============================================================
+// CREDENTIAL MODAL (new user credentials, password resets)
+// ============================================================
+
+function showCredentialsModal(title, description, login, password) {
+    $("#credentialModalTitle").text(title);
+    $("#credentialModalDescription").text(description);
+    $("#credentialModalLogin").text(login || "");
+    $("#credentialModalPassword").text(password || "");
+    $("#credentialModalOverlay").addClass("open");
+}
+
+function closeCredentialsModal() {
+    $("#credentialModalOverlay").removeClass("open");
+}
+
+function copyCredentials() {
+    var login = $("#credentialModalLogin").text();
+    var password = $("#credentialModalPassword").text();
+    var text = "Login: " + login + "\nPassword: " + password;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(function () { notify("Credentials copied", "success"); })
+            .catch(function (err) {
+                console.error("[copyCredentials] navigator.clipboard.writeText failed:", err);
+                notify("Copy failed", "error");
+            });
+    } else {
+        var $ta = $("<textarea>").val(text).css({ position: "fixed", opacity: 0 }).appendTo("body");
+        $ta[0].select();
+        try { document.execCommand("copy"); notify("Credentials copied", "success"); }
+        catch (e) {
+            console.error("[copyCredentials] document.execCommand('copy') fallback failed:", e);
+            notify("Copy failed", "error");
+        }
+        $ta.remove();
+    }
+}
 
 // ============================================================
 // CONFIRM MODAL
@@ -96,11 +136,19 @@ function submitClient() {
     $("#btnAddClient").prop("disabled", true).html("Adding\u2026");
 
     ajax(ManagementAPI.CLIENT, "POST", data)
-        .done(function () {
+        .done(function (response) {
             notify("Client added successfully", "success");
             $("#clientForm")[0].reset();
             $(".field-input", "#clientForm").removeClass("invalid");
             $(".field-error", "#clientForm").text("");
+            if (response && response.login) {
+                showCredentialsModal(
+                    "Client Created",
+                    "Copy these credentials now \u2014 they will not be shown again.",
+                    response.login,
+                    response.generatedPassword
+                );
+            }
         })
         .fail(function (jqxhr) {
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
@@ -397,11 +445,19 @@ function submitEmployee() {
     $("#btnAddEmployee").prop("disabled", true).html("Adding\u2026");
 
     ajax(ManagementAPI.EMPLOYEE, "POST", data)
-        .done(function () {
+        .done(function (response) {
             notify("Employee added successfully", "success");
             $("#employeeForm")[0].reset();
             $(".field-input", "#employeeForm").removeClass("invalid");
             $(".field-error", "#employeeForm").text("");
+            if (response && response.login) {
+                showCredentialsModal(
+                    "Employee Created",
+                    "Copy these credentials now \u2014 they will not be shown again.",
+                    response.login,
+                    response.generatedPassword
+                );
+            }
         })
         .fail(function (jqxhr) {
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
@@ -645,6 +701,67 @@ function deleteEmployee() {
 }
 
 // ============================================================
+// PASSWORD RESET (admin-only)
+// ============================================================
+
+function resetPasswordFor(inputId, errorId, buttonId, defaultButtonHtml, entityLabel) {
+    var accountId = $.trim($("#" + inputId).val());
+    $("#" + errorId).text("");
+    $("#" + inputId).removeClass("invalid");
+
+    if (!accountId) {
+        $("#" + errorId).text("User Account ID is required");
+        $("#" + inputId).addClass("invalid");
+        return;
+    }
+
+    confirmAction(
+        "Reset " + entityLabel + " Password",
+        "Generate a new password for user account #" + accountId + "? The current password will stop working immediately.",
+        function () {
+            $("#" + buttonId).prop("disabled", true).html("Resetting\u2026");
+
+            ajax(ManagementAPI.USER_ACCOUNT + "/" + encodeURIComponent(accountId) + "/password/reset", "POST")
+                .done(function (response) {
+                    notify("Password reset successfully", "success");
+                    $("#" + inputId).val("");
+                    showCredentialsModal(
+                        entityLabel + " Password Reset",
+                        "Share the new password with the " + entityLabel.toLowerCase() + " \u2014 it will not be shown again.",
+                        response.login,
+                        response.newPassword
+                    );
+                })
+                .fail(function (jqxhr) {
+                    var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
+                        ? jqxhr.responseJSON.message
+                        : "Failed to reset password";
+                    notify(msg, "error");
+                })
+                .always(function () {
+                    $("#" + buttonId).prop("disabled", false).html(defaultButtonHtml);
+                });
+        }
+    );
+}
+
+var RESET_BUTTON_HTML =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+        '<polyline points="23 4 23 10 17 10"/>' +
+        '<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>' +
+    '</svg> Reset Password';
+
+function resetClientPassword() {
+    resetPasswordFor("resetClientAccountId", "resetClientAccountIdError",
+        "btnResetClientPassword", RESET_BUTTON_HTML, "Client");
+}
+
+function resetEmployeePassword() {
+    resetPasswordFor("resetEmpAccountId", "resetEmpAccountIdError",
+        "btnResetEmpPassword", RESET_BUTTON_HTML, "Employee");
+}
+
+// ============================================================
 // BANK ACCOUNT: Create
 // ============================================================
 
@@ -805,6 +922,10 @@ $(document).ready(function () {
     });
     $("#btnDeleteEmployee").on("click", deleteEmployee);
 
+    // --- Password Reset ---
+    $("#btnResetClientPassword").on("click", resetClientPassword);
+    $("#btnResetEmpPassword").on("click", resetEmployeePassword);
+
     // --- Bank Account ---
     $("#createBankAccountForm").on("submit", function (e) {
         e.preventDefault();
@@ -825,9 +946,18 @@ $(document).ready(function () {
     $("#confirmModalOverlay").on("click", function (e) {
         if (e.target === this) closeConfirmModal();
     });
+
+    // --- Credential Modal ---
+    $("#credentialModalOk, #credentialModalClose").on("click", closeCredentialsModal);
+    $("#credentialModalCopy").on("click", copyCredentials);
+    $("#credentialModalOverlay").on("click", function (e) {
+        if (e.target === this) closeCredentialsModal();
+    });
+
     $(document).on("keydown", function (e) {
-        if (e.key === "Escape" && $("#confirmModalOverlay").hasClass("open")) {
-            closeConfirmModal();
+        if (e.key === "Escape") {
+            if ($("#confirmModalOverlay").hasClass("open")) closeConfirmModal();
+            if ($("#credentialModalOverlay").hasClass("open")) closeCredentialsModal();
         }
     });
 });
