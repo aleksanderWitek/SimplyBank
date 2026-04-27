@@ -210,4 +210,21 @@ class ClientServiceTest {
 
         assertThat(service.findProfileByUserAccountId(2L)).contains(profile);
     }
+
+    // findProfileById -----------------------------------------------------------------------------
+
+    @Test
+    void findProfileById_nullId_throwsNullPointerRuntimeException() {
+        assertThatThrownBy(() -> service.findProfileById(null))
+                .isInstanceOf(NullPointerRuntimeException.class);
+    }
+
+    @Test
+    void findProfileById_delegatesToRepository() {
+        ClientProfile profile = new ClientProfile(42L, "A", "B", "C", "S", "1", "ID",
+                LocalDateTime.now(), null, 2L, "a", "CLIENT", LocalDateTime.now());
+        when(clientRepository.findProfileById(42L)).thenReturn(Optional.of(profile));
+
+        assertThat(service.findProfileById(42L)).contains(profile);
+    }
 }

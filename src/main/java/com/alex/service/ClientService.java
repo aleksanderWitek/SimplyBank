@@ -99,4 +99,11 @@ public class ClientService implements IClientService {
         return clientRepository.findProfileByUserAccountId(userAccountId);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public Optional<ClientProfile> findProfileById(Long clientId) {
+        IdValidation.ensureIdPresent(clientId);
+        return clientRepository.findProfileById(clientId);
+    }
+
 }

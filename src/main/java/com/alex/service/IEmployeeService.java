@@ -14,4 +14,5 @@ public interface IEmployeeService {
     List<Employee> findAll();
     void deleteById(Long id);
     Optional<EmployeeProfile> findProfileByUserAccountId(Long userAccountId);
+    Optional<EmployeeProfile> findProfileById(Long employeeId);
 }

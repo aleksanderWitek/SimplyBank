@@ -244,6 +244,50 @@ class EmployeeControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.message").value("There is no Employee profile for userAccountId: 999"));
     }
 
+    // GET /api/employee/{id}/profile ----------------------------------------------------------
+
+    @Test
+    void findEmployeeProfileById_asAdmin_returnsProfile() throws Exception {
+        insertUserAccount(3L, "carol", "Password1!", "ADMIN");
+        insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
+        insertEmployee(20L, "Eve", "Manager");
+        linkUserAccountToEmployee(2L, 20L);
+        String token = generateToken("carol", "ADMIN");
+
+        mockMvc.perform(get("/api/employee/20/profile")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.employeeId").value(20))
+                .andExpect(jsonPath("$.userAccountId").value(2))
+                .andExpect(jsonPath("$.firstName").value("Eve"))
+                .andExpect(jsonPath("$.lastName").value("Manager"))
+                .andExpect(jsonPath("$.login").value("bob"))
+                .andExpect(jsonPath("$.role").value("EMPLOYEE"));
+    }
+
+    @Test
+    void findEmployeeProfileById_asEmployee_isForbidden() throws Exception {
+        insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
+        insertEmployee(20L, "Eve", "Manager");
+        linkUserAccountToEmployee(2L, 20L);
+        String token = generateToken("bob", "EMPLOYEE");
+
+        mockMvc.perform(get("/api/employee/20/profile")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void findEmployeeProfileById_missing_returnsNotFound() throws Exception {
+        insertUserAccount(3L, "carol", "Password1!", "ADMIN");
+        String token = generateToken("carol", "ADMIN");
+
+        mockMvc.perform(get("/api/employee/999/profile")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("There is no Employee profile for id: 999"));
+    }
+
     // GET /api/employee/admin-profile ---------------------------------------------------------
 
     @Test

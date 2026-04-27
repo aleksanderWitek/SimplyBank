@@ -176,4 +176,20 @@ class EmployeeServiceTest {
         when(employeeRepository.findProfileByUserAccountId(2L)).thenReturn(Optional.of(profile));
         assertThat(service.findProfileByUserAccountId(2L)).contains(profile);
     }
+
+    // findProfileById -----------------------------------------------------------------------------
+
+    @Test
+    void findProfileById_nullId_throwsNullPointerRuntimeException() {
+        assertThatThrownBy(() -> service.findProfileById(null))
+                .isInstanceOf(NullPointerRuntimeException.class);
+    }
+
+    @Test
+    void findProfileById_delegatesToRepository() {
+        EmployeeProfile profile = new EmployeeProfile(42L, "A", "B", LocalDateTime.now(), null,
+                2L, "a", "EMPLOYEE", LocalDateTime.now());
+        when(employeeRepository.findProfileById(42L)).thenReturn(Optional.of(profile));
+        assertThat(service.findProfileById(42L)).contains(profile);
+    }
 }

@@ -66,6 +66,14 @@ public class EmployeeController {
         return ResponseEntity.ok(profile);
     }
 
+    @GetMapping(path = "/{id}/profile")
+    public ResponseEntity<EmployeeProfile> findEmployeeProfileById(@PathVariable("id") Long id) {
+        EmployeeProfile profile = employeeService.findProfileById(id)
+                .orElseThrow(() -> new EmployeeNotFoundRuntimeException(
+                        "There is no Employee profile for id: " + id));
+        return ResponseEntity.ok(profile);
+    }
+
     @GetMapping(path = "/admin-profile")
     public ResponseEntity<AdminProfile> findAdminProfile(@RequestParam("userAccountId") Long userAccountId) {
         UserAccount userAccount = userAccountService.findById(userAccountId)

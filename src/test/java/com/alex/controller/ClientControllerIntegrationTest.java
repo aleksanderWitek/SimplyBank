@@ -153,6 +153,50 @@ class ClientControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.message").value("There is no Client profile for userAccountId: 1"));
     }
 
+    // GET /api/client/{id}/profile ------------------------------------------------------------
+
+    @Test
+    void findClientProfileById_asEmployee_returnsProfile() throws Exception {
+        insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        insertClient(10L, "Alice", "Anderson", "Warsaw", "Main", "1A", "ID001");
+        linkUserAccountToClient(1L, 10L);
+        String token = generateToken("bob", "EMPLOYEE");
+
+        mockMvc.perform(get("/api/client/10/profile")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.clientId").value(10))
+                .andExpect(jsonPath("$.userAccountId").value(1))
+                .andExpect(jsonPath("$.firstName").value("Alice"))
+                .andExpect(jsonPath("$.lastName").value("Anderson"))
+                .andExpect(jsonPath("$.login").value("alice"))
+                .andExpect(jsonPath("$.identificationNumber").value("ID001"));
+    }
+
+    @Test
+    void findClientProfileById_asClient_isForbidden() throws Exception {
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        insertClient(10L, "Alice", "Anderson", "Warsaw", "Main", "1A", "ID001");
+        linkUserAccountToClient(1L, 10L);
+        String token = generateToken("alice", "CLIENT");
+
+        mockMvc.perform(get("/api/client/10/profile")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void findClientProfileById_missing_returnsNotFound() throws Exception {
+        insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
+        String token = generateToken("bob", "EMPLOYEE");
+
+        mockMvc.perform(get("/api/client/999/profile")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("There is no Client profile for id: 999"));
+    }
+
     // GET /api/client/{id} --------------------------------------------------------------------
 
     @Test
