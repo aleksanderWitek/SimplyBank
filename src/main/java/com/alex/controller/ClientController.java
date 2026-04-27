@@ -41,6 +41,14 @@ public class ClientController {
         return ResponseEntity.ok(profile);
     }
 
+    @GetMapping(path = "/{id}/profile")
+    public ResponseEntity<ClientProfile> findClientProfileById(@PathVariable("id") Long id) {
+        ClientProfile profile = clientService.findProfileById(id)
+                .orElseThrow(() -> new ClientNotFoundRuntimeException(
+                        "There is no Client profile for id: " + id));
+        return ResponseEntity.ok(profile);
+    }
+
     @GetMapping(path = "/{id}")
     public ResponseEntity<Client> findClientById(@PathVariable("id") Long id) {
         Client client = clientService.findById(id).orElseThrow(

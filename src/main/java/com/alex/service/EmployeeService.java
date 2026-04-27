@@ -91,4 +91,11 @@ public class EmployeeService implements IEmployeeService{
         IdValidation.ensureIdPresent(userAccountId);
         return employeeRepository.findProfileByUserAccountId(userAccountId);
     }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Optional<EmployeeProfile> findProfileById(Long employeeId) {
+        IdValidation.ensureIdPresent(employeeId);
+        return employeeRepository.findProfileById(employeeId);
+    }
 }

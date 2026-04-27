@@ -14,4 +14,5 @@ public interface IEmployeeRepository {
     void updateById(Long id, Employee employee);
     void deleteById(Long id);
     Optional<EmployeeProfile> findProfileByUserAccountId(Long userAccountId);
+    Optional<EmployeeProfile> findProfileById(Long employeeId);
 }

@@ -10,13 +10,11 @@
 // ============================================================
 
 var ManagementAPI = {
-    CLIENT:           "/api/client",
-    CLIENT_PROFILE:   "/api/client/profile",
-    EMPLOYEE:         "/api/employee",
-    EMPLOYEE_PROFILE: "/api/employee/profile",
-    BANK_ACCOUNT:     "/api/bank_account",
-    USER_ACCOUNT:     "/api/user_account",
-    AUTH_ME:          "/api/auth/me"
+    CLIENT:       "/api/client",
+    EMPLOYEE:     "/api/employee",
+    BANK_ACCOUNT: "/api/bank_account",
+    USER_ACCOUNT: "/api/user_account",
+    AUTH_ME:      "/api/auth/me"
 };
 
 // ============================================================
@@ -168,23 +166,24 @@ function submitClient() {
 }
 
 // ============================================================
-// CLIENT: Find by UserAccount ID
+// CLIENT: Find by Client ID
 // ============================================================
 
-function findClientByAccountId() {
-    var accountId = $.trim($("#findClientAccountId").val());
-    $("#findClientAccountIdError").text("");
-    $("#findClientAccountId").removeClass("invalid");
+function findClientById() {
+    var clientId = $.trim($("#findClientId").val());
+    $("#findClientIdError").text("");
+    $("#findClientId").removeClass("invalid");
 
-    if (!accountId) {
-        $("#findClientAccountIdError").text("User Account ID is required");
-        $("#findClientAccountId").addClass("invalid");
+    if (!clientId) {
+        $("#findClientIdError").text("Client ID is required");
+        $("#findClientId").addClass("invalid");
         return;
     }
 
     $("#btnFindClient").prop("disabled", true).html("Searching\u2026");
 
-    ajax(ManagementAPI.CLIENT_PROFILE + "?userAccountId=" + encodeURIComponent(accountId), "GET")
+    var url = ManagementAPI.CLIENT + "/" + encodeURIComponent(clientId) + "/profile";
+    ajax(url, "GET")
         .done(function (profile) {
             var html =
                 '<h3 class="result-card-title">Client Profile</h3>' +
@@ -202,7 +201,7 @@ function findClientByAccountId() {
             $("#findClientResult").html(html).show();
         })
         .fail(function (jqxhr) {
-            console.error("[findClientByAccountId] GET " + ManagementAPI.CLIENT_PROFILE + "?userAccountId=" + accountId + " failed:", jqxhr);
+            console.error("[findClientById] GET " + url + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Client not found";
@@ -484,23 +483,24 @@ function submitEmployee() {
 }
 
 // ============================================================
-// EMPLOYEE: Find by UserAccount ID
+// EMPLOYEE: Find by Employee ID
 // ============================================================
 
-function findEmployeeByAccountId() {
-    var accountId = $.trim($("#findEmpAccountId").val());
-    $("#findEmpAccountIdError").text("");
-    $("#findEmpAccountId").removeClass("invalid");
+function findEmployeeById() {
+    var employeeId = $.trim($("#findEmpId").val());
+    $("#findEmpIdError").text("");
+    $("#findEmpId").removeClass("invalid");
 
-    if (!accountId) {
-        $("#findEmpAccountIdError").text("User Account ID is required");
-        $("#findEmpAccountId").addClass("invalid");
+    if (!employeeId) {
+        $("#findEmpIdError").text("Employee ID is required");
+        $("#findEmpId").addClass("invalid");
         return;
     }
 
     $("#btnFindEmployee").prop("disabled", true).html("Searching\u2026");
 
-    ajax(ManagementAPI.EMPLOYEE_PROFILE + "?userAccountId=" + encodeURIComponent(accountId), "GET")
+    var url = ManagementAPI.EMPLOYEE + "/" + encodeURIComponent(employeeId) + "/profile";
+    ajax(url, "GET")
         .done(function (profile) {
             var html =
                 '<h3 class="result-card-title">Employee Profile</h3>' +
@@ -515,7 +515,7 @@ function findEmployeeByAccountId() {
             $("#findEmployeeResult").html(html).show();
         })
         .fail(function (jqxhr) {
-            console.error("[findEmployeeByAccountId] GET " + ManagementAPI.EMPLOYEE_PROFILE + "?userAccountId=" + accountId + " failed:", jqxhr);
+            console.error("[findEmployeeById] GET " + url + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Employee not found";
@@ -917,7 +917,7 @@ $(document).ready(function () {
         e.preventDefault();
         submitClient();
     });
-    $("#btnFindClient").on("click", findClientByAccountId);
+    $("#btnFindClient").on("click", findClientById);
     $("#btnFindAllClients").on("click", findAllClients);
     $("#btnLoadClient").on("click", loadClientForEdit);
     $("#editClientForm").on("submit", function (e) {
@@ -931,7 +931,7 @@ $(document).ready(function () {
         e.preventDefault();
         submitEmployee();
     });
-    $("#btnFindEmployee").on("click", findEmployeeByAccountId);
+    $("#btnFindEmployee").on("click", findEmployeeById);
     $("#btnFindAllEmployees").on("click", findAllEmployees);
     $("#btnLoadEmployee").on("click", loadEmployeeForEdit);
     $("#editEmployeeForm").on("submit", function (e) {

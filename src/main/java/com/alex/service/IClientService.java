@@ -14,4 +14,5 @@ public interface IClientService {
     List<Client> findAll();
     void deleteById(Long id);
     Optional<ClientProfile> findProfileByUserAccountId(Long userAccountId);
+    Optional<ClientProfile> findProfileById(Long clientId);
 }

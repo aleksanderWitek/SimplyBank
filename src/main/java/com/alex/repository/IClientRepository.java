@@ -14,4 +14,5 @@ public interface IClientRepository {
     void updateById(Long id, Client client);
     void deleteById(Long id);
     Optional<ClientProfile> findProfileByUserAccountId(Long userAccountId);
+    Optional<ClientProfile> findProfileById(Long clientId);
 }
