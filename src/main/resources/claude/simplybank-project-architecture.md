@@ -128,6 +128,27 @@ All static methods. Throw `NullPointerRuntimeException` / `IllegalArgumentRuntim
 | `PasswordValidation` | length ≥ 8, has upper, lower, digit, special; `authenticate` via `PasswordEncoder`; reject reusing current password. |
 | `TransactionValidation` | description ≤ 255, amount > 0, accounts differ on transfer, balance sufficient, currencies match. |
 
+## Static frontend (`src/main/resources/static` + `templates`)
+
+Server-rendered Thymeleaf shells with vanilla jQuery on top — no build step, no SPA framework.
+
+| Template | Page JS | Purpose |
+| --- | --- | --- |
+| `login.html` | `login.js` | Form login (Spring Security). |
+| `dashboard.html` | `dashboard.js` | Landing page after login. |
+| `accounts.html` / `account.html` | `accounts.js` / `account.js` | List of bank accounts; single-account drilldown. |
+| `transactions.html` | `transactions.js` | Transaction history view. |
+| `new-transaction.html` | `new-transaction.js` | Transfer / deposit / withdraw form. |
+| `user-profile.html` | `user-profile.js` | Profile + change password. |
+| `management.html` | `management.js` | ADMIN-only CRUD console (Clients / Employees / Bank Accounts tabs + password reset). |
+
+Shared helpers live in `static/js/common.js`: `ajax(url, method, data)` (jQuery `$.ajax` wrapper, JSON in/out), `escapeHtml`, `notify(msg, level)`, `formatDate`, `formatCurrency`, `maskAccount`, `renderUserHeader`, `initProfileLinks`. jQuery is bundled at `static/js/libs/jquery-3.6.0.min.js`.
+
+Per-page CSS lives in `static/css/<page>.css`. The management page additionally defines two reusable modal patterns:
+
+- **Credentials modal** (`#credentialModalOverlay`) — shown after a successful create-client / create-employee / password-reset. Closes only via the "Done" button (no overlay-click, no ESC, no X) because credentials are shown exactly once.
+- **Confirm modal** (`#confirmModalOverlay`) — generic confirm-before-destructive-action prompt. Wired through `confirmAction(title, message, callback)` + a single `pendingConfirmCallback` slot. Closes via OK (runs callback then reloads), Cancel, X, ESC, or overlay click (latter four cancel the action).
+
 ## Schema (`db/simply_bank_db_script.sql`)
 
 Tables and FK order: `user_account`, `client`, `employee`, `user_account_client`, `user_account_employee`, `bank_account`, `bank_account_client`, `transaction`. Every table carries `create_date` / `modify_date` / `delete_date` for soft delete (except `transaction`, which is immutable).

@@ -6,6 +6,40 @@ Branch: `claude/organize-resources-add-tests-GBdM2`
 
 ---
 
+## Session 3 — management page modal & delete fixes (2026-04-28)
+
+**Branch:** `claude/fix-modal-outside-click-byOlg`
+
+**Goal:** Fix four UX/logic bugs on the `/management` page reported by the user.
+
+**Issues addressed:**
+
+1. Credentials modal (shown after creating a client/employee or resetting a password) was closing on outside click / ESC. It must only close via the explicit "Done" confirm button so admins don't accidentally lose unrecoverable credentials.
+2. After editing, deleting, or resetting a password, the page kept stale form values. The page now reloads after a successful mutation (immediately for edit/delete, after the credentials modal is dismissed for create / password-reset).
+3. Delete Client / Delete Employee did nothing after pressing the confirm button. Root cause: in the `#confirmModalOk` click handler, `closeConfirmModal()` was called first, and `closeConfirmModal()` itself was nulling out `pendingConfirmCallback` — so the subsequent `if (typeof pendingConfirmCallback === "function")` check was always false and the actual delete callback never ran.
+4. The Delete confirmation modal only showed the entity ID. It now also shows the first + last name fetched via the existing GET endpoint, so the admin can sanity-check before destruction.
+
+**Changed:**
+
+- `src/main/resources/static/js/management.js`
+  - `showCredentialsModal` / `closeCredentialsModal` — added a `reloadOnClose` flag; when true, `closeCredentialsModal` calls `window.location.reload()` after hiding the overlay.
+  - `closeConfirmModal` — no longer mutates `pendingConfirmCallback`. The OK / Cancel / overlay / ESC handlers now manage that state themselves.
+  - `$("#confirmModalOk")` click handler — captures the callback into a local before calling `closeConfirmModal()`, so the callback actually runs (this is the fix for "delete does nothing").
+  - `deleteClient` / `deleteEmployee` — now first GET the entity, build a confirm message including `firstName + lastName`, then run the DELETE inside the confirm callback. On success, reloads the page after a short delay so the toast remains visible.
+  - `submitEditClient` / `submitEditEmployee` / `deleteBankAccount` — reload after a successful mutation so all forms come back empty.
+  - `submitClient` / `submitEmployee` / `resetPasswordFor` — pass `reloadOnClose=true` to `showCredentialsModal` so the page reloads only after the credentials are explicitly acknowledged.
+  - Removed the credential-modal outside-click handler, ESC handler, and X close handler — leaving only the "Done" button as the dismiss path.
+- `src/main/resources/templates/management.html`
+  - Removed the X close button from the credentials modal header (the only dismiss path is now the "Done" button in the footer).
+- `src/main/resources/claude/simplybank-project-architecture.md`
+  - Added a "Static frontend (`src/main/resources/static`)" section so the JS / template structure is documented alongside the Java layout.
+- `src/main/resources/claude/simplybank-changelog.md`
+  - This entry.
+
+**Not changed:** No backend code touched. The delete endpoints (`ClientController` / `EmployeeController` / their services) were already correct; the only delete bug was in the frontend confirm-modal callback wiring.
+
+---
+
 ## Session 2 — resume test authoring (2026-04-15)
 
 **Goal:** resume the approved plan `/root/.claude/plans/staged-spinning-cascade.md` after a compaction break.
