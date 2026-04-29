@@ -32,8 +32,8 @@ public class BankAccountRepository implements IBankAccountRepository {
                 VALUES(?, ?, ?, ?, ?)
                 """;
         try {
-            jdbcTemplate.update(query, bankAccount.getNumber(), bankAccount.getAccountType(), bankAccount.getCurrency(),
-                    bankAccount.getBalance(), bankAccount.getCreateDate());
+            jdbcTemplate.update(query, bankAccount.getNumber(), bankAccount.getAccountType().name(),
+                    bankAccount.getCurrency().name(), bankAccount.getBalance(), bankAccount.getCreateDate());
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
         }

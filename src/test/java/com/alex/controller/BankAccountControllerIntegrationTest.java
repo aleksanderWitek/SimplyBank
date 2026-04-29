@@ -72,9 +72,9 @@ class BankAccountControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(post("/api/bank_account")
                         .header("Authorization", bearer(token))
                         .contentType("application/json")
-                        .content(saveRequestJson(10L, "SAVINGS", "USD")))
+                        .content(saveRequestJson(10L, "SAVING", "USD")))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.accountType").value("SAVINGS"))
+                .andExpect(jsonPath("$.accountType").value("SAVING"))
                 .andExpect(jsonPath("$.currency").value("USD"));
     }
 

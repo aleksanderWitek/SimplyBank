@@ -299,7 +299,7 @@ class EmployeeControllerIntegrationTest extends BaseIntegrationTest {
                         .param("userAccountId", "3")
                         .header("Authorization", bearer(token)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(3))
+                .andExpect(jsonPath("$.userAccountId").value(3))
                 .andExpect(jsonPath("$.login").value("carol"))
                 .andExpect(jsonPath("$.role").value("ADMIN"));
     }
