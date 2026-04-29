@@ -27,7 +27,7 @@ class CustomAuthenticationSuccessHandlerTest {
     @Test
     void onAuthenticationSuccess_clearsAttemptsAndRedirects() throws Exception {
         when(authentication.getName()).thenReturn("alice");
-        // After commit / clean response, Spring will sendRedirect to "/"
+        when(request.getContextPath()).thenReturn("");
         when(response.encodeRedirectURL("/")).thenReturn("/");
 
         CustomAuthenticationSuccessHandler handler = new CustomAuthenticationSuccessHandler(loginAttemptService);
@@ -40,6 +40,7 @@ class CustomAuthenticationSuccessHandlerTest {
     @Test
     void onAuthenticationSuccess_ioError_wrapsInSecurityRuntimeException() throws Exception {
         when(authentication.getName()).thenReturn("alice");
+        when(request.getContextPath()).thenReturn("");
         when(response.encodeRedirectURL("/")).thenReturn("/");
         org.mockito.Mockito.doThrow(new IOException("fail")).when(response).sendRedirect("/");
 

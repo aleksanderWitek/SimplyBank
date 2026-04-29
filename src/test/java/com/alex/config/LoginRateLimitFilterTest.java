@@ -30,7 +30,6 @@ class LoginRateLimitFilterTest {
     @Test
     void doFilter_nonLoginPath_continuesChain() throws Exception {
         when(request.getMethod()).thenReturn("GET");
-        when(request.getServletPath()).thenReturn("/accounts");
 
         new LoginRateLimitFilter(loginAttemptService).doFilter(request, response, chain);
 
@@ -41,7 +40,6 @@ class LoginRateLimitFilterTest {
     @Test
     void doFilter_getLoginPath_continuesChain() throws Exception {
         when(request.getMethod()).thenReturn("GET");
-        when(request.getServletPath()).thenReturn("/login");
 
         new LoginRateLimitFilter(loginAttemptService).doFilter(request, response, chain);
 

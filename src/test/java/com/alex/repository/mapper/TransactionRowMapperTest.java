@@ -82,7 +82,6 @@ class TransactionRowMapperTest {
         when(rs.getString("transaction_type")).thenReturn("DEPOSIT");
         when(rs.getString("currency")).thenReturn("PLN");
         when(rs.getLong("baf_id")).thenReturn(0L);
-        when(rs.wasNull()).thenReturn(true);
         when(rs.getLong("bat_id")).thenReturn(2L);
         when(rs.getString("bat_account_type")).thenReturn("CHECKING");
         when(rs.getString("bat_currency")).thenReturn("PLN");
@@ -203,7 +202,6 @@ class TransactionRowMapperTest {
         when(rs.getString("transaction_type")).thenReturn("TRANSFER");
         when(rs.getString("currency")).thenReturn("EUR");
         when(rs.getLong("baf_id")).thenReturn(0L);
-        when(rs.wasNull()).thenReturn(true);
         when(rs.getLong("bat_id")).thenThrow(new SQLException("inner-to"));
 
         assertThatThrownBy(() -> mapper.mapRow(rs, 1))
