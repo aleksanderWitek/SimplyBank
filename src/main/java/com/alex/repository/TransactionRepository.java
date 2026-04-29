@@ -59,7 +59,7 @@ public class TransactionRepository implements ITransactionRepository{
                 VALUES(?, ?, ?, ?, ?, ?, ?)
                 """;
         try {
-            jdbcTemplate.update(query, transaction.getTransactionType(), transaction.getCurrency(),
+            jdbcTemplate.update(query, transaction.getTransactionType().name(), transaction.getCurrency().name(),
                     transaction.getAmount(),
                     transaction.getBankAccountFrom() != null ? transaction.getBankAccountFrom().getId() : null,
                     transaction.getBankAccountTo() != null ? transaction.getBankAccountTo().getId() : null,
