@@ -28,17 +28,7 @@ class LoginRateLimitFilterTest {
     @Mock private FilterChain chain;
 
     @Test
-    void doFilter_nonLoginPath_continuesChain() throws Exception {
-        when(request.getMethod()).thenReturn("GET");
-
-        new LoginRateLimitFilter(loginAttemptService).doFilter(request, response, chain);
-
-        verify(chain).doFilter(request, response);
-        verifyNoInteractions(loginAttemptService);
-    }
-
-    @Test
-    void doFilter_getLoginPath_continuesChain() throws Exception {
+    void doFilter_getMethod_skipsRateLimit() throws Exception {
         when(request.getMethod()).thenReturn("GET");
 
         new LoginRateLimitFilter(loginAttemptService).doFilter(request, response, chain);
