@@ -8,12 +8,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import java.security.SecureRandom;
 
 @Configuration
 @EnableWebSecurity
@@ -22,13 +18,16 @@ public class SecurityConfig {
     private final CustomAuthenticationFailureHandler failureHandler;
     private final CustomAuthenticationSuccessHandler successHandler;
     private final LoginRateLimitFilter loginRateLimitFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     public SecurityConfig(CustomAuthenticationFailureHandler failureHandler,
                           CustomAuthenticationSuccessHandler successHandler,
-                          LoginRateLimitFilter loginRateLimitFilter) {
+                          LoginRateLimitFilter loginRateLimitFilter,
+                          JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.failureHandler = failureHandler;
         this.successHandler = successHandler;
         this.loginRateLimitFilter = loginRateLimitFilter;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
@@ -71,14 +70,16 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.GET, "/api/transaction").hasAnyRole("EMPLOYEE", "ADMIN")
                             .requestMatchers(HttpMethod.POST, "/api/transaction/**").authenticated()
 
-                            // User Account API — list all is admin-only, rest authenticated
+                            // User Account API — list all and admin password reset are admin-only, rest authenticated
                             .requestMatchers(HttpMethod.GET, "/api/user_account").hasRole("ADMIN")
+                            .requestMatchers(HttpMethod.POST, "/api/user_account/*/password/reset").hasRole("ADMIN")
                             .requestMatchers("/api/user_account/**").authenticated()
 
                             // All other pages — authenticated
                             .anyRequest().authenticated()
                     )
                     .addFilterBefore(loginRateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                    .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                     .formLogin(form -> form
                             .loginPage("/login")
                             .successHandler(successHandler)
@@ -94,15 +95,5 @@ public class SecurityConfig {
         } catch (Exception e) {
             throw new SecurityRuntimeException("Failed to build security filter chain", e);
         }
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public SecureRandom secureRandom() {
-        return new SecureRandom();
     }
 }

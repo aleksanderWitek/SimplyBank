@@ -228,6 +228,9 @@ function initManagementNav() {
             if (role === "EMPLOYEE" || role === "ADMIN") {
                 $("#navManagement").show();
             }
+        })
+        .fail(function (jqxhr) {
+            console.error("[initManagementNav] GET /api/auth/me failed; management nav will stay hidden:", jqxhr);
         });
 }
 
@@ -241,10 +244,7 @@ $(document).ready(function () {
 
 function initProfileLinks(userId) {
     var profileUrl = userId ? "/user-profile?id=" + userId : "/user-profile";
-    $(".icon-button[title='Profile']").on("click", function () {
-        window.location.href = profileUrl;
-    });
-    $(".user-avatar, .user-name").css("cursor", "pointer").on("click", function () {
+    $(".icon-button[title='Profile']").off("click.profile").on("click.profile", function () {
         window.location.href = profileUrl;
     });
 }

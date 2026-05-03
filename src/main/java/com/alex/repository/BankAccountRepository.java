@@ -32,8 +32,8 @@ public class BankAccountRepository implements IBankAccountRepository {
                 VALUES(?, ?, ?, ?, ?)
                 """;
         try {
-            jdbcTemplate.update(query, bankAccount.getNumber(), bankAccount.getAccountType(), bankAccount.getCurrency(),
-                    bankAccount.getBalance(), bankAccount.getCreateDate());
+            jdbcTemplate.update(query, bankAccount.getNumber(), bankAccount.getAccountType().name(),
+                    bankAccount.getCurrency().name(), bankAccount.getBalance(), bankAccount.getCreateDate());
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
         }
@@ -48,7 +48,9 @@ public class BankAccountRepository implements IBankAccountRepository {
                 ba.account_type,
                 ba.currency,
                 ba.balance,
-                ba.create_date
+                ba.create_date,
+                ba.modify_date,
+                ba.delete_date
                 FROM bank_account AS ba
                 WHERE ba.id = ? AND ba.delete_date IS NULL
                 """;
@@ -68,7 +70,9 @@ public class BankAccountRepository implements IBankAccountRepository {
                 ba.account_type,
                 ba.currency,
                 ba.balance,
-                ba.create_date
+                ba.create_date,
+                ba.modify_date,
+                ba.delete_date
                 FROM bank_account AS ba
                 WHERE ba.id = ? AND ba.delete_date IS NULL
                 FOR UPDATE
@@ -89,7 +93,9 @@ public class BankAccountRepository implements IBankAccountRepository {
                 ba.account_type,
                 ba.currency,
                 ba.balance,
-                ba.create_date
+                ba.create_date,
+                ba.modify_date,
+                ba.delete_date
                 FROM bank_account AS ba
                 WHERE ba.delete_date IS NULL
                 """;

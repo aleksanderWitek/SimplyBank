@@ -2,6 +2,7 @@ package com.alex.service;
 
 import com.alex.UserAccountRole;
 import com.alex.dto.Client;
+import com.alex.dto.ClientCreationResponse;
 import com.alex.dto.ClientProfile;
 import com.alex.dto.UserAccount;
 import com.alex.exception.UserAccountNotFoundRuntimeException;
@@ -38,7 +39,7 @@ public class ClientService implements IClientService {
 
     @Transactional
     @Override
-    public Client save(Client client) {
+    public ClientCreationResponse save(Client client) {
         ClientValidation.ensureClientPresent(client);
         UserAccountValidation.ensureFirstNamePresent(client.getFirstName());
         UserAccountValidation.ensureLastNamePresent(client.getLastName());
@@ -52,7 +53,7 @@ public class ClientService implements IClientService {
         UserAccount userAccount = userAccountService.save(client.getFirstName(), client.getLastName(),
                 UserAccountRole.CLIENT);
         userAccountClientRepository.linkUserAccountToClient(userAccount.getId(), id);
-        return savedClient;
+        return new ClientCreationResponse(savedClient, userAccount.getLogin(), userAccount.getPassword());
     }
 
     @Transactional
@@ -96,6 +97,13 @@ public class ClientService implements IClientService {
     public Optional<ClientProfile> findProfileByUserAccountId(Long userAccountId) {
         IdValidation.ensureIdPresent(userAccountId);
         return clientRepository.findProfileByUserAccountId(userAccountId);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Optional<ClientProfile> findProfileById(Long clientId) {
+        IdValidation.ensureIdPresent(clientId);
+        return clientRepository.findProfileById(clientId);
     }
 
 }

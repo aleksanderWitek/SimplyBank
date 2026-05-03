@@ -1,6 +1,7 @@
 package com.alex.controller;
 
 import com.alex.dto.Password;
+import com.alex.dto.PasswordResetResponse;
 import com.alex.dto.UserAccount;
 import com.alex.exception.AccessDeniedRuntimeException;
 import com.alex.exception.UserAccountNotFoundRuntimeException;
@@ -55,5 +56,12 @@ public class UserAccountController {
 
         userAccountService.updatePassword(id, password);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(path = "/{id}/password/reset")
+    public ResponseEntity<PasswordResetResponse> resetPassword(@PathVariable("id") Long id) {
+        // Security: restricted to ADMIN via SecurityConfig
+        PasswordResetResponse response = userAccountService.resetPassword(id);
+        return ResponseEntity.ok(response);
     }
 }

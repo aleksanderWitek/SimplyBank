@@ -364,7 +364,8 @@ function loadAccounts() {
             initProfileLinks(user.id);
             fetchAccounts(user.id);
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[loadAccounts] GET " + TxAPI.AUTH_ME + " failed:", jqxhr);
             initProfileLinks();
             fetchAccounts(null);
         });
@@ -380,13 +381,15 @@ function fetchAccounts(userId) {
             FormState.accounts = Array.isArray(accounts) ? accounts : [];
             populateAccountDropdowns(FormState.accounts);
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[fetchAccounts] GET " + url + " failed, falling back to GET " + TxAPI.BANK_ACCOUNT + ":", jqxhr);
             ajax(TxAPI.BANK_ACCOUNT, "GET")
                 .done(function (accounts) {
                     FormState.accounts = Array.isArray(accounts) ? accounts : [];
                     populateAccountDropdowns(FormState.accounts);
                 })
-                .fail(function () {
+                .fail(function (fallbackJqxhr) {
+                    console.error("[fetchAccounts] fallback GET " + TxAPI.BANK_ACCOUNT + " also failed:", fallbackJqxhr);
                     notify("Could not load accounts", "error");
                 });
         });
@@ -601,6 +604,7 @@ function initSubmit() {
                 goToStep(4);
             })
             .fail(function (jqxhr) {
+                console.error("[initSubmit] POST " + url + " failed (type=" + FormState.transactionType + "):", jqxhr);
                 var msg = (jqxhr.responseJSON && jqxhr.responseJSON.message) || "Transaction failed. Please try again.";
                 notify(msg, "error");
                 $btn.prop("disabled", false).html(originalText);

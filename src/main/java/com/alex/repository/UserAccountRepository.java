@@ -31,7 +31,7 @@ public class UserAccountRepository implements IUserAccountRepository{
                 VALUES(?, ?, ?, ?)
                 """;
         try {
-            jdbcTemplate.update(query, userAccount.getLogin(), userAccount.getPassword(), userAccount.getRole(), userAccount.getCreateDate());
+            jdbcTemplate.update(query, userAccount.getLogin(), userAccount.getPassword(), userAccount.getRole().name(), userAccount.getCreateDate());
         } catch (DataAccessException e) {
             throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
         }
@@ -46,7 +46,8 @@ public class UserAccountRepository implements IUserAccountRepository{
                 ua.password,
                 ua.role,
                 ua.create_date,
-                ua.modify_date
+                ua.modify_date,
+                ua.delete_date
                 FROM user_account AS ua
                 WHERE ua.id = ? AND ua.delete_date IS NULL
                 """;
@@ -87,7 +88,8 @@ public class UserAccountRepository implements IUserAccountRepository{
                 ua.password,
                 ua.role,
                 ua.create_date,
-                ua.modify_date
+                ua.modify_date,
+                ua.delete_date
                 FROM user_account AS ua
                 WHERE ua.delete_date IS NULL
                 """;

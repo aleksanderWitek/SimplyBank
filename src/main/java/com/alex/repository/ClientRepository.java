@@ -153,6 +153,37 @@ public class ClientRepository implements IClientRepository {
     }
 
     @Override
+    public Optional<ClientProfile> findProfileById(Long clientId) {
+        String query = """
+                SELECT c.id            AS client_id,
+                       c.first_name,
+                       c.last_name,
+                       c.city,
+                       c.street,
+                       c.house_number,
+                       c.identification_number,
+                       c.create_date  AS client_create_date,
+                       c.modify_date  AS client_modify_date,
+                       ua.id          AS user_account_id,
+                       ua.login,
+                       ua.role,
+                       ua.create_date AS account_create_date
+                FROM client c
+                JOIN user_account_client uac ON uac.client_id = c.id
+                JOIN user_account ua ON ua.id = uac.user_account_id
+                WHERE c.id = ?
+                  AND c.delete_date IS NULL
+                  AND ua.delete_date IS NULL
+                """;
+        try {
+            List<ClientProfile> results = jdbcTemplate.query(query, new ClientProfileRowMapper(), clientId);
+            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
+        } catch (DataAccessException e) {
+            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        }
+    }
+
+    @Override
     public void deleteById(Long id) {
         String query = """
                 UPDATE client

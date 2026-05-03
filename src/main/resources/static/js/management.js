@@ -10,13 +10,58 @@
 // ============================================================
 
 var ManagementAPI = {
-    CLIENT:           "/api/client",
-    CLIENT_PROFILE:   "/api/client/profile",
-    EMPLOYEE:         "/api/employee",
-    EMPLOYEE_PROFILE: "/api/employee/profile",
-    BANK_ACCOUNT:     "/api/bank_account",
-    AUTH_ME:          "/api/auth/me"
+    CLIENT:       "/api/client",
+    EMPLOYEE:     "/api/employee",
+    BANK_ACCOUNT: "/api/bank_account",
+    USER_ACCOUNT: "/api/user_account",
+    AUTH_ME:      "/api/auth/me"
 };
+
+// ============================================================
+// CREDENTIAL MODAL (new user credentials, password resets)
+// ============================================================
+
+var reloadAfterCredentialClose = false;
+
+function showCredentialsModal(title, description, login, password, reloadOnClose) {
+    $("#credentialModalTitle").text(title);
+    $("#credentialModalDescription").text(description);
+    $("#credentialModalLogin").text(login || "");
+    $("#credentialModalPassword").text(password || "");
+    reloadAfterCredentialClose = !!reloadOnClose;
+    $("#credentialModalOverlay").addClass("open");
+}
+
+function closeCredentialsModal() {
+    $("#credentialModalOverlay").removeClass("open");
+    if (reloadAfterCredentialClose) {
+        reloadAfterCredentialClose = false;
+        window.location.reload();
+    }
+}
+
+function copyCredentials() {
+    var login = $("#credentialModalLogin").text();
+    var password = $("#credentialModalPassword").text();
+    var text = "Login: " + login + "\nPassword: " + password;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(function () { notify("Credentials copied", "success"); })
+            .catch(function (err) {
+                console.error("[copyCredentials] navigator.clipboard.writeText failed:", err);
+                notify("Copy failed", "error");
+            });
+    } else {
+        var $ta = $("<textarea>").val(text).css({ position: "fixed", opacity: 0 }).appendTo("body");
+        $ta[0].select();
+        try { document.execCommand("copy"); notify("Credentials copied", "success"); }
+        catch (e) {
+            console.error("[copyCredentials] document.execCommand('copy') fallback failed:", e);
+            notify("Copy failed", "error");
+        }
+        $ta.remove();
+    }
+}
 
 // ============================================================
 // CONFIRM MODAL
@@ -33,7 +78,6 @@ function confirmAction(title, message, callback) {
 
 function closeConfirmModal() {
     $("#confirmModalOverlay").removeClass("open");
-    pendingConfirmCallback = null;
 }
 
 // ============================================================
@@ -96,13 +140,23 @@ function submitClient() {
     $("#btnAddClient").prop("disabled", true).html("Adding\u2026");
 
     ajax(ManagementAPI.CLIENT, "POST", data)
-        .done(function () {
+        .done(function (response) {
             notify("Client added successfully", "success");
             $("#clientForm")[0].reset();
             $(".field-input", "#clientForm").removeClass("invalid");
             $(".field-error", "#clientForm").text("");
+            if (response && response.login) {
+                showCredentialsModal(
+                    "Client Created",
+                    "Copy these credentials now \u2014 they will not be shown again.",
+                    response.login,
+                    response.generatedPassword,
+                    true
+                );
+            }
         })
         .fail(function (jqxhr) {
+            console.error("[submitClient] POST " + ManagementAPI.CLIENT + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to add client";
@@ -119,27 +173,29 @@ function submitClient() {
 }
 
 // ============================================================
-// CLIENT: Find by UserAccount ID
+// CLIENT: Find by Client ID
 // ============================================================
 
-function findClientByAccountId() {
-    var accountId = $.trim($("#findClientAccountId").val());
-    $("#findClientAccountIdError").text("");
-    $("#findClientAccountId").removeClass("invalid");
+function findClientById() {
+    var clientId = $.trim($("#findClientId").val());
+    $("#findClientIdError").text("");
+    $("#findClientId").removeClass("invalid");
 
-    if (!accountId) {
-        $("#findClientAccountIdError").text("User Account ID is required");
-        $("#findClientAccountId").addClass("invalid");
+    if (!clientId) {
+        $("#findClientIdError").text("Client ID is required");
+        $("#findClientId").addClass("invalid");
         return;
     }
 
     $("#btnFindClient").prop("disabled", true).html("Searching\u2026");
 
-    ajax(ManagementAPI.CLIENT_PROFILE + "?userAccountId=" + encodeURIComponent(accountId), "GET")
+    var url = ManagementAPI.CLIENT + "/" + encodeURIComponent(clientId) + "/profile";
+    ajax(url, "GET")
         .done(function (profile) {
             var html =
                 '<h3 class="result-card-title">Client Profile</h3>' +
                 '<div class="result-grid">' +
+                    resultField("Client ID", profile.clientId) +
                     resultField("Login", profile.login) +
                     resultField("First Name", profile.firstName) +
                     resultField("Last Name", profile.lastName) +
@@ -152,6 +208,7 @@ function findClientByAccountId() {
             $("#findClientResult").html(html).show();
         })
         .fail(function (jqxhr) {
+            console.error("[findClientById] GET " + url + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Client not found";
@@ -197,6 +254,7 @@ function findAllClients() {
             $("#allClientsTableWrapper").show();
         })
         .fail(function (jqxhr) {
+            console.error("[findAllClients] GET " + ManagementAPI.CLIENT + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to load clients";
@@ -240,6 +298,7 @@ function loadClientForEdit() {
             notify("Client data loaded", "info");
         })
         .fail(function (jqxhr) {
+            console.error("[loadClientForEdit] GET " + ManagementAPI.CLIENT + "/" + clientId + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Client not found";
@@ -302,8 +361,10 @@ function submitEditClient() {
     ajax(ManagementAPI.CLIENT + "/" + encodeURIComponent(clientId), "PUT", data)
         .done(function () {
             notify("Client updated successfully", "success");
+            setTimeout(function () { window.location.reload(); }, 800);
         })
         .fail(function (jqxhr) {
+            console.error("[submitEditClient] PUT " + ManagementAPI.CLIENT + "/" + clientId + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to update client";
@@ -334,30 +395,51 @@ function deleteClient() {
         return;
     }
 
-    confirmAction("Delete Client", "Are you sure you want to delete client #" + clientId + "? This action cannot be undone.", function () {
-        $("#btnDeleteClient").prop("disabled", true).html("Deleting\u2026");
+    $("#btnDeleteClient").prop("disabled", true).html("Loading\u2026");
 
-        ajax(ManagementAPI.CLIENT + "/" + encodeURIComponent(clientId), "DELETE")
-            .done(function () {
-                notify("Client deleted successfully", "success");
-                $("#deleteClientId").val("");
-            })
-            .fail(function (jqxhr) {
-                var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
-                    ? jqxhr.responseJSON.message
-                    : "Failed to delete client";
-                notify(msg, "error");
-            })
-            .always(function () {
-                $("#btnDeleteClient").prop("disabled", false).html(
-                    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
-                        '<polyline points="3 6 5 6 21 6"/>' +
-                        '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' +
-                    '</svg> Delete Client'
-                );
+    ajax(ManagementAPI.CLIENT + "/" + encodeURIComponent(clientId), "GET")
+        .done(function (client) {
+            $("#btnDeleteClient").prop("disabled", false).html(DELETE_CLIENT_BUTTON_HTML);
+            var fullName = (client.firstName || "") + " " + (client.lastName || "");
+            var message = "Are you sure you want to delete client #" + clientId +
+                " (" + $.trim(fullName) + ")? This action cannot be undone.";
+
+            confirmAction("Delete Client", message, function () {
+                $("#btnDeleteClient").prop("disabled", true).html("Deleting\u2026");
+
+                ajax(ManagementAPI.CLIENT + "/" + encodeURIComponent(clientId), "DELETE")
+                    .done(function () {
+                        notify("Client deleted successfully", "success");
+                        $("#deleteClientId").val("");
+                        setTimeout(function () { window.location.reload(); }, 800);
+                    })
+                    .fail(function (jqxhr) {
+                        console.error("[deleteClient] DELETE " + ManagementAPI.CLIENT + "/" + clientId + " failed:", jqxhr);
+                        var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
+                            ? jqxhr.responseJSON.message
+                            : "Failed to delete client";
+                        notify(msg, "error");
+                    })
+                    .always(function () {
+                        $("#btnDeleteClient").prop("disabled", false).html(DELETE_CLIENT_BUTTON_HTML);
+                    });
             });
-    });
+        })
+        .fail(function (jqxhr) {
+            console.error("[deleteClient] GET " + ManagementAPI.CLIENT + "/" + clientId + " failed:", jqxhr);
+            var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
+                ? jqxhr.responseJSON.message
+                : "Client not found";
+            notify(msg, "error");
+            $("#btnDeleteClient").prop("disabled", false).html(DELETE_CLIENT_BUTTON_HTML);
+        });
 }
+
+var DELETE_CLIENT_BUTTON_HTML =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+        '<polyline points="3 6 5 6 21 6"/>' +
+        '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' +
+    '</svg> Delete Client';
 
 // ============================================================
 // EMPLOYEE: Add (existing)
@@ -397,13 +479,23 @@ function submitEmployee() {
     $("#btnAddEmployee").prop("disabled", true).html("Adding\u2026");
 
     ajax(ManagementAPI.EMPLOYEE, "POST", data)
-        .done(function () {
+        .done(function (response) {
             notify("Employee added successfully", "success");
             $("#employeeForm")[0].reset();
             $(".field-input", "#employeeForm").removeClass("invalid");
             $(".field-error", "#employeeForm").text("");
+            if (response && response.login) {
+                showCredentialsModal(
+                    "Employee Created",
+                    "Copy these credentials now \u2014 they will not be shown again.",
+                    response.login,
+                    response.generatedPassword,
+                    true
+                );
+            }
         })
         .fail(function (jqxhr) {
+            console.error("[submitEmployee] POST " + ManagementAPI.EMPLOYEE + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to add employee";
@@ -420,27 +512,29 @@ function submitEmployee() {
 }
 
 // ============================================================
-// EMPLOYEE: Find by UserAccount ID
+// EMPLOYEE: Find by Employee ID
 // ============================================================
 
-function findEmployeeByAccountId() {
-    var accountId = $.trim($("#findEmpAccountId").val());
-    $("#findEmpAccountIdError").text("");
-    $("#findEmpAccountId").removeClass("invalid");
+function findEmployeeById() {
+    var employeeId = $.trim($("#findEmpId").val());
+    $("#findEmpIdError").text("");
+    $("#findEmpId").removeClass("invalid");
 
-    if (!accountId) {
-        $("#findEmpAccountIdError").text("User Account ID is required");
-        $("#findEmpAccountId").addClass("invalid");
+    if (!employeeId) {
+        $("#findEmpIdError").text("Employee ID is required");
+        $("#findEmpId").addClass("invalid");
         return;
     }
 
     $("#btnFindEmployee").prop("disabled", true).html("Searching\u2026");
 
-    ajax(ManagementAPI.EMPLOYEE_PROFILE + "?userAccountId=" + encodeURIComponent(accountId), "GET")
+    var url = ManagementAPI.EMPLOYEE + "/" + encodeURIComponent(employeeId) + "/profile";
+    ajax(url, "GET")
         .done(function (profile) {
             var html =
                 '<h3 class="result-card-title">Employee Profile</h3>' +
                 '<div class="result-grid">' +
+                    resultField("Employee ID", profile.employeeId) +
                     resultField("Login", profile.login) +
                     resultField("First Name", profile.firstName) +
                     resultField("Last Name", profile.lastName) +
@@ -450,6 +544,7 @@ function findEmployeeByAccountId() {
             $("#findEmployeeResult").html(html).show();
         })
         .fail(function (jqxhr) {
+            console.error("[findEmployeeById] GET " + url + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Employee not found";
@@ -494,6 +589,7 @@ function findAllEmployees() {
             $("#allEmployeesTableWrapper").show();
         })
         .fail(function (jqxhr) {
+            console.error("[findAllEmployees] GET " + ManagementAPI.EMPLOYEE + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to load employees";
@@ -533,6 +629,7 @@ function loadEmployeeForEdit() {
             notify("Employee data loaded", "info");
         })
         .fail(function (jqxhr) {
+            console.error("[loadEmployeeForEdit] GET " + ManagementAPI.EMPLOYEE + "/" + empId + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Employee not found";
@@ -587,8 +684,10 @@ function submitEditEmployee() {
     ajax(ManagementAPI.EMPLOYEE + "/" + encodeURIComponent(empId), "PUT", data)
         .done(function () {
             notify("Employee updated successfully", "success");
+            setTimeout(function () { window.location.reload(); }, 800);
         })
         .fail(function (jqxhr) {
+            console.error("[submitEditEmployee] PUT " + ManagementAPI.EMPLOYEE + "/" + empId + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to update employee";
@@ -619,29 +718,113 @@ function deleteEmployee() {
         return;
     }
 
-    confirmAction("Delete Employee", "Are you sure you want to delete employee #" + empId + "? This action cannot be undone.", function () {
-        $("#btnDeleteEmployee").prop("disabled", true).html("Deleting\u2026");
+    $("#btnDeleteEmployee").prop("disabled", true).html("Loading\u2026");
 
-        ajax(ManagementAPI.EMPLOYEE + "/" + encodeURIComponent(empId), "DELETE")
-            .done(function () {
-                notify("Employee deleted successfully", "success");
-                $("#deleteEmpId").val("");
-            })
-            .fail(function (jqxhr) {
-                var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
-                    ? jqxhr.responseJSON.message
-                    : "Failed to delete employee";
-                notify(msg, "error");
-            })
-            .always(function () {
-                $("#btnDeleteEmployee").prop("disabled", false).html(
-                    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
-                        '<polyline points="3 6 5 6 21 6"/>' +
-                        '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' +
-                    '</svg> Delete Employee'
-                );
+    ajax(ManagementAPI.EMPLOYEE + "/" + encodeURIComponent(empId), "GET")
+        .done(function (employee) {
+            $("#btnDeleteEmployee").prop("disabled", false).html(DELETE_EMPLOYEE_BUTTON_HTML);
+            var fullName = (employee.firstName || "") + " " + (employee.lastName || "");
+            var message = "Are you sure you want to delete employee #" + empId +
+                " (" + $.trim(fullName) + ")? This action cannot be undone.";
+
+            confirmAction("Delete Employee", message, function () {
+                $("#btnDeleteEmployee").prop("disabled", true).html("Deleting\u2026");
+
+                ajax(ManagementAPI.EMPLOYEE + "/" + encodeURIComponent(empId), "DELETE")
+                    .done(function () {
+                        notify("Employee deleted successfully", "success");
+                        $("#deleteEmpId").val("");
+                        setTimeout(function () { window.location.reload(); }, 800);
+                    })
+                    .fail(function (jqxhr) {
+                        console.error("[deleteEmployee] DELETE " + ManagementAPI.EMPLOYEE + "/" + empId + " failed:", jqxhr);
+                        var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
+                            ? jqxhr.responseJSON.message
+                            : "Failed to delete employee";
+                        notify(msg, "error");
+                    })
+                    .always(function () {
+                        $("#btnDeleteEmployee").prop("disabled", false).html(DELETE_EMPLOYEE_BUTTON_HTML);
+                    });
             });
-    });
+        })
+        .fail(function (jqxhr) {
+            console.error("[deleteEmployee] GET " + ManagementAPI.EMPLOYEE + "/" + empId + " failed:", jqxhr);
+            var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
+                ? jqxhr.responseJSON.message
+                : "Employee not found";
+            notify(msg, "error");
+            $("#btnDeleteEmployee").prop("disabled", false).html(DELETE_EMPLOYEE_BUTTON_HTML);
+        });
+}
+
+var DELETE_EMPLOYEE_BUTTON_HTML =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+        '<polyline points="3 6 5 6 21 6"/>' +
+        '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' +
+    '</svg> Delete Employee';
+
+// ============================================================
+// PASSWORD RESET (admin-only)
+// ============================================================
+
+function resetPasswordFor(inputId, errorId, buttonId, defaultButtonHtml, entityLabel) {
+    var accountId = $.trim($("#" + inputId).val());
+    $("#" + errorId).text("");
+    $("#" + inputId).removeClass("invalid");
+
+    if (!accountId) {
+        $("#" + errorId).text("User Account ID is required");
+        $("#" + inputId).addClass("invalid");
+        return;
+    }
+
+    confirmAction(
+        "Reset " + entityLabel + " Password",
+        "Generate a new password for user account #" + accountId + "? The current password will stop working immediately.",
+        function () {
+            $("#" + buttonId).prop("disabled", true).html("Resetting\u2026");
+
+            ajax(ManagementAPI.USER_ACCOUNT + "/" + encodeURIComponent(accountId) + "/password/reset", "POST")
+                .done(function (response) {
+                    notify("Password reset successfully", "success");
+                    $("#" + inputId).val("");
+                    showCredentialsModal(
+                        entityLabel + " Password Reset",
+                        "Share the new password with the " + entityLabel.toLowerCase() + " \u2014 it will not be shown again.",
+                        response.login,
+                        response.newPassword,
+                        true
+                    );
+                })
+                .fail(function (jqxhr) {
+                    console.error("[resetPasswordFor] POST " + ManagementAPI.USER_ACCOUNT + "/" + accountId + "/password/reset failed (entity=" + entityLabel + "):", jqxhr);
+                    var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
+                        ? jqxhr.responseJSON.message
+                        : "Failed to reset password";
+                    notify(msg, "error");
+                })
+                .always(function () {
+                    $("#" + buttonId).prop("disabled", false).html(defaultButtonHtml);
+                });
+        }
+    );
+}
+
+var RESET_BUTTON_HTML =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
+        '<polyline points="23 4 23 10 17 10"/>' +
+        '<path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>' +
+    '</svg> Reset Password';
+
+function resetClientPassword() {
+    resetPasswordFor("resetClientAccountId", "resetClientAccountIdError",
+        "btnResetClientPassword", RESET_BUTTON_HTML, "Client");
+}
+
+function resetEmployeePassword() {
+    resetPasswordFor("resetEmpAccountId", "resetEmpAccountIdError",
+        "btnResetEmpPassword", RESET_BUTTON_HTML, "Employee");
 }
 
 // ============================================================
@@ -692,6 +875,7 @@ function submitCreateBankAccount() {
             $(".field-error", "#createBankAccountForm").text("");
         })
         .fail(function (jqxhr) {
+            console.error("[submitCreateBankAccount] POST " + ManagementAPI.BANK_ACCOUNT + " failed:", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
                 : "Failed to create bank account";
@@ -729,8 +913,10 @@ function deleteBankAccount() {
             .done(function () {
                 notify("Bank account deleted successfully", "success");
                 $("#deleteBaId").val("");
+                setTimeout(function () { window.location.reload(); }, 800);
             })
             .fail(function (jqxhr) {
+                console.error("[deleteBankAccount] DELETE " + ManagementAPI.BANK_ACCOUNT + "/" + baId + " failed:", jqxhr);
                 var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                     ? jqxhr.responseJSON.message
                     : "Failed to delete bank account";
@@ -768,7 +954,8 @@ function loadCurrentUser() {
             renderUserHeader(user);
             initProfileLinks(user.id);
         })
-        .fail(function () {
+        .fail(function (jqxhr) {
+            console.error("[loadCurrentUser] GET " + ManagementAPI.AUTH_ME + " failed:", jqxhr);
             initProfileLinks();
         });
 }
@@ -782,7 +969,7 @@ $(document).ready(function () {
         e.preventDefault();
         submitClient();
     });
-    $("#btnFindClient").on("click", findClientByAccountId);
+    $("#btnFindClient").on("click", findClientById);
     $("#btnFindAllClients").on("click", findAllClients);
     $("#btnLoadClient").on("click", loadClientForEdit);
     $("#editClientForm").on("submit", function (e) {
@@ -796,7 +983,7 @@ $(document).ready(function () {
         e.preventDefault();
         submitEmployee();
     });
-    $("#btnFindEmployee").on("click", findEmployeeByAccountId);
+    $("#btnFindEmployee").on("click", findEmployeeById);
     $("#btnFindAllEmployees").on("click", findAllEmployees);
     $("#btnLoadEmployee").on("click", loadEmployeeForEdit);
     $("#editEmployeeForm").on("submit", function (e) {
@@ -804,6 +991,10 @@ $(document).ready(function () {
         submitEditEmployee();
     });
     $("#btnDeleteEmployee").on("click", deleteEmployee);
+
+    // --- Password Reset ---
+    $("#btnResetClientPassword").on("click", resetClientPassword);
+    $("#btnResetEmpPassword").on("click", resetEmployeePassword);
 
     // --- Bank Account ---
     $("#createBankAccountForm").on("submit", function (e) {
@@ -814,20 +1005,36 @@ $(document).ready(function () {
 
     // --- Confirm Modal ---
     $("#confirmModalOk").on("click", function () {
+        var cb = pendingConfirmCallback;
+        pendingConfirmCallback = null;
         closeConfirmModal();
-        if (typeof pendingConfirmCallback === "function") {
-            var cb = pendingConfirmCallback;
-            pendingConfirmCallback = null;
+        if (typeof cb === "function") {
             cb();
         }
     });
-    $("#confirmModalCancel, #confirmModalClose").on("click", closeConfirmModal);
-    $("#confirmModalOverlay").on("click", function (e) {
-        if (e.target === this) closeConfirmModal();
+    $("#confirmModalCancel, #confirmModalClose").on("click", function () {
+        pendingConfirmCallback = null;
+        closeConfirmModal();
     });
-    $(document).on("keydown", function (e) {
-        if (e.key === "Escape" && $("#confirmModalOverlay").hasClass("open")) {
+    $("#confirmModalOverlay").on("click", function (e) {
+        if (e.target === this) {
+            pendingConfirmCallback = null;
             closeConfirmModal();
+        }
+    });
+
+    // --- Credential Modal ---
+    // Closes only via the Done button — no outside-click, no ESC, no X close.
+    // Credentials are shown once and must be acknowledged explicitly.
+    $("#credentialModalOk").on("click", closeCredentialsModal);
+    $("#credentialModalCopy").on("click", copyCredentials);
+
+    $(document).on("keydown", function (e) {
+        if (e.key === "Escape") {
+            if ($("#confirmModalOverlay").hasClass("open")) {
+                pendingConfirmCallback = null;
+                closeConfirmModal();
+            }
         }
     });
 });

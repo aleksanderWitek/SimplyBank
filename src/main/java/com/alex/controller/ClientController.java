@@ -1,6 +1,7 @@
 package com.alex.controller;
 
 import com.alex.dto.Client;
+import com.alex.dto.ClientCreationResponse;
 import com.alex.dto.ClientProfile;
 import com.alex.exception.ClientNotFoundRuntimeException;
 import com.alex.service.IClientService;
@@ -21,9 +22,9 @@ public class ClientController {
     }
 
     @PostMapping(consumes = "application/json")
-    public ResponseEntity<Client> saveClient(@RequestBody Client client) {
-        Client clientResult = clientService.save(client);
-        return ResponseEntity.status(HttpStatus.CREATED).body(clientResult);
+    public ResponseEntity<ClientCreationResponse> saveClient(@RequestBody Client client) {
+        ClientCreationResponse response = clientService.save(client);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping(path = "/{id}", consumes = "application/json")
@@ -37,6 +38,14 @@ public class ClientController {
         ClientProfile profile = clientService.findProfileByUserAccountId(userAccountId)
                 .orElseThrow(() -> new ClientNotFoundRuntimeException(
                         "There is no Client profile for userAccountId: " + userAccountId));
+        return ResponseEntity.ok(profile);
+    }
+
+    @GetMapping(path = "/{id}/profile")
+    public ResponseEntity<ClientProfile> findClientProfileById(@PathVariable("id") Long id) {
+        ClientProfile profile = clientService.findProfileById(id)
+                .orElseThrow(() -> new ClientNotFoundRuntimeException(
+                        "There is no Client profile for id: " + id));
         return ResponseEntity.ok(profile);
     }
 
