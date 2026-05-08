@@ -236,7 +236,141 @@ function initManagementNav() {
 
 $(document).ready(function () {
     initManagementNav();
+    initLogoutMenu();
 });
+
+// ============================================================
+// LOGOUT DROPDOWN + CONFIRMATION
+// ============================================================
+
+function initLogoutMenu() {
+    var $avatar = $("#headerUserAvatar");
+    if (!$avatar.length || $("#logoutMenu").length) return;
+
+    injectLogoutStyles();
+
+    var $userMenu = $avatar.closest(".user-menu");
+    $userMenu.css("position", "relative");
+    $userMenu.append(
+        '<div class="logout-menu" id="logoutMenu" role="menu" aria-hidden="true">' +
+            '<button type="button" class="logout-menu-item" id="logoutMenuItem" role="menuitem">' +
+                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+                    '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>' +
+                    '<polyline points="16 17 21 12 16 7"/>' +
+                    '<line x1="21" y1="12" x2="9" y2="12"/>' +
+                '</svg>' +
+                '<span>Logout</span>' +
+            '</button>' +
+        '</div>'
+    );
+
+    $("body").append(
+        '<div class="logout-confirm-overlay" id="logoutConfirmOverlay" role="dialog" aria-modal="true" aria-labelledby="logoutConfirmTitle">' +
+            '<div class="logout-confirm-modal">' +
+                '<h3 class="logout-confirm-title" id="logoutConfirmTitle">Log out?</h3>' +
+                '<p class="logout-confirm-text">Are you sure you want to log out of SimplyBank?</p>' +
+                '<div class="logout-confirm-actions">' +
+                    '<button type="button" class="logout-btn logout-btn-secondary" id="logoutCancelBtn">Cancel</button>' +
+                    '<button type="button" class="logout-btn logout-btn-danger" id="logoutConfirmBtn">Yes, log out</button>' +
+                '</div>' +
+            '</div>' +
+            '<form id="logoutForm" method="post" action="/logout" style="display:none;"></form>' +
+        '</div>'
+    );
+
+    $avatar.attr("aria-haspopup", "true").attr("aria-expanded", "false");
+
+    $avatar.on("click.logoutMenu", function (e) {
+        e.stopPropagation();
+        toggleLogoutMenu();
+    });
+
+    $("#logoutMenuItem").on("click", function (e) {
+        e.stopPropagation();
+        closeLogoutMenu();
+        openLogoutConfirm();
+    });
+
+    $(document).on("click.logoutMenu", function (e) {
+        if (!$(e.target).closest("#logoutMenu, #headerUserAvatar").length) {
+            closeLogoutMenu();
+        }
+    });
+
+    $(document).on("keydown.logoutMenu", function (e) {
+        if (e.key === "Escape") {
+            closeLogoutMenu();
+            closeLogoutConfirm();
+        }
+    });
+
+    $("#logoutCancelBtn").on("click", closeLogoutConfirm);
+    $("#logoutConfirmOverlay").on("click", function (e) {
+        if (e.target === this) closeLogoutConfirm();
+    });
+    $("#logoutConfirmBtn").on("click", function () {
+        $("#logoutForm").trigger("submit");
+    });
+}
+
+function toggleLogoutMenu() {
+    var $menu = $("#logoutMenu");
+    if ($menu.hasClass("open")) {
+        closeLogoutMenu();
+    } else {
+        $menu.addClass("open").attr("aria-hidden", "false");
+        $("#headerUserAvatar").attr("aria-expanded", "true");
+    }
+}
+
+function closeLogoutMenu() {
+    $("#logoutMenu").removeClass("open").attr("aria-hidden", "true");
+    $("#headerUserAvatar").attr("aria-expanded", "false");
+}
+
+function openLogoutConfirm() {
+    $("#logoutConfirmOverlay").addClass("open");
+}
+
+function closeLogoutConfirm() {
+    $("#logoutConfirmOverlay").removeClass("open");
+}
+
+function injectLogoutStyles() {
+    if (document.getElementById("logoutMenuStyles")) return;
+    var css =
+        ".logout-menu{position:absolute;top:calc(100% + 8px);right:0;min-width:160px;" +
+        "background:#fff;border:1px solid #e2e8f0;border-radius:8px;" +
+        "box-shadow:0 10px 15px -3px rgba(0,0,0,0.1);padding:6px;z-index:200;" +
+        "opacity:0;visibility:hidden;transform:translateY(-4px);transition:all 0.15s ease;}" +
+        ".logout-menu.open{opacity:1;visibility:visible;transform:translateY(0);}" +
+        ".logout-menu-item{display:flex;align-items:center;gap:10px;width:100%;" +
+        "padding:8px 12px;background:transparent;border:none;border-radius:6px;" +
+        "color:#0f172a;font-size:0.9375rem;font-weight:500;cursor:pointer;" +
+        "text-align:left;font-family:inherit;transition:background 0.15s ease;}" +
+        ".logout-menu-item:hover{background:#f8fafc;color:#ef4444;}" +
+        ".logout-confirm-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.5);" +
+        "display:flex;align-items:center;justify-content:center;z-index:1000;" +
+        "opacity:0;visibility:hidden;transition:opacity 0.2s ease;}" +
+        ".logout-confirm-overlay.open{opacity:1;visibility:visible;}" +
+        ".logout-confirm-modal{background:#fff;border-radius:12px;padding:24px;" +
+        "max-width:400px;width:90%;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);" +
+        "transform:scale(0.95);transition:transform 0.2s ease;}" +
+        ".logout-confirm-overlay.open .logout-confirm-modal{transform:scale(1);}" +
+        ".logout-confirm-title{font-size:1.25rem;font-weight:600;color:#0f172a;margin-bottom:8px;}" +
+        ".logout-confirm-text{font-size:0.9375rem;color:#64748b;margin-bottom:20px;}" +
+        ".logout-confirm-actions{display:flex;gap:10px;justify-content:flex-end;}" +
+        ".logout-btn{padding:9px 18px;border-radius:8px;font-size:0.9375rem;font-weight:500;" +
+        "cursor:pointer;border:1px solid transparent;font-family:inherit;transition:all 0.15s ease;}" +
+        ".logout-btn-secondary{background:#fff;color:#0f172a;border-color:#e2e8f0;}" +
+        ".logout-btn-secondary:hover{background:#f8fafc;}" +
+        ".logout-btn-danger{background:#ef4444;color:#fff;}" +
+        ".logout-btn-danger:hover{background:#dc2626;}";
+    var style = document.createElement("style");
+    style.id = "logoutMenuStyles";
+    style.textContent = css;
+    document.head.appendChild(style);
+}
 
 // ============================================================
 // PROFILE NAVIGATION
