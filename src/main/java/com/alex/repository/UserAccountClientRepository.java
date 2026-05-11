@@ -1,7 +1,5 @@
 package com.alex.repository;
 
-import com.alex.exception.DataAccessRuntimeException;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -25,11 +23,7 @@ public class UserAccountClientRepository implements IUserAccountClientRepository
                 user_account_client(user_account_id, client_id, create_date)
                 VALUES (?, ?, ?)
                 """;
-        try {
-            jdbcTemplate.update(query, userAccountId, clientId, LocalDateTime.now());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
-        }
+        jdbcTemplate.update(query, userAccountId, clientId, LocalDateTime.now());
     }
 
     @Override
@@ -41,11 +35,7 @@ public class UserAccountClientRepository implements IUserAccountClientRepository
                 client_id = ? AND
                 delete_date IS NULL
                 """;
-        try {
-            jdbcTemplate.update(query, LocalDateTime.now(), userAccountId, clientId);
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
-        }
+        jdbcTemplate.update(query, LocalDateTime.now(), userAccountId, clientId);
     }
 
     @Override
@@ -55,11 +45,7 @@ public class UserAccountClientRepository implements IUserAccountClientRepository
                 FROM user_account_client
                 WHERE client_id = ? AND delete_date IS NULL
                 """;
-        try {
-            List<Long> results = jdbcTemplate.queryForList(query, Long.class, clientId);
-            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
-        }
+        List<Long> results = jdbcTemplate.queryForList(query, Long.class, clientId);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 }

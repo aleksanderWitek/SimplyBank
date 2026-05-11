@@ -124,6 +124,18 @@ class ClientControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isNoContent());
     }
 
+    @Test
+    void updateClient_missingClient_returnsNotFound() throws Exception {
+        insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
+        String token = generateToken("bob", "EMPLOYEE");
+
+        mockMvc.perform(put("/api/client/9999")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content(clientJson("Ghost", "Client")))
+                .andExpect(status().isNotFound());
+    }
+
     // GET /api/client/profile -----------------------------------------------------------------
 
     @Test

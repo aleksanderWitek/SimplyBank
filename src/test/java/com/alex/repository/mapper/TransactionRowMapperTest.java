@@ -37,7 +37,6 @@ class TransactionRowMapperTest {
         when(rs.getString("transaction_type")).thenReturn("TRANSFER");
         when(rs.getString("currency")).thenReturn("EUR");
         when(rs.getLong("baf_id")).thenReturn(1L);
-        when(rs.wasNull()).thenReturn(false);
         when(rs.getString("baf_account_type")).thenReturn("CHECKING");
         when(rs.getString("baf_currency")).thenReturn("EUR");
         when(rs.getTimestamp("baf_create_date")).thenReturn(Timestamp.valueOf(bafCreate));
@@ -111,7 +110,6 @@ class TransactionRowMapperTest {
         when(rs.getString("transaction_type")).thenReturn("WITHDRAWAL");
         when(rs.getString("currency")).thenReturn("USD");
         when(rs.getLong("baf_id")).thenReturn(1L);
-        when(rs.wasNull()).thenReturn(false).thenReturn(true);
         when(rs.getString("baf_account_type")).thenReturn("CHECKING");
         when(rs.getString("baf_currency")).thenReturn("USD");
         when(rs.getTimestamp("baf_create_date")).thenReturn(Timestamp.valueOf(bafCreate));
@@ -146,7 +144,6 @@ class TransactionRowMapperTest {
         when(rs.getString("transaction_type")).thenReturn("TRANSFER");
         when(rs.getString("currency")).thenReturn("EUR");
         when(rs.getLong("baf_id")).thenReturn(1L);
-        when(rs.wasNull()).thenReturn(false);
         when(rs.getString("baf_account_type")).thenReturn("CHECKING");
         when(rs.getString("baf_currency")).thenReturn("EUR");
         when(rs.getTimestamp("baf_create_date")).thenReturn(Timestamp.valueOf(bafCreate));

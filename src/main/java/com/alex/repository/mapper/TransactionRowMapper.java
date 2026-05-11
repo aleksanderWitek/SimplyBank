@@ -45,8 +45,9 @@ public class TransactionRowMapper implements RowMapper<Transaction> {
 
     private BankAccount mapBankAccountFrom(ResultSet rs) {
         try {
+            // ResultSet.getLong returns 0 for SQL NULL; id==0 also covers the never-issued zero id.
             Long id = rs.getLong("baf_id");
-            if (id == 0 || rs.wasNull()) {
+            if (id == 0) {
                 return null;
             }
 
@@ -76,8 +77,9 @@ public class TransactionRowMapper implements RowMapper<Transaction> {
 
     private BankAccount mapBankAccountTo(ResultSet rs) {
         try {
+            // ResultSet.getLong returns 0 for SQL NULL; id==0 also covers the never-issued zero id.
             Long id = rs.getLong("bat_id");
-            if (id == 0 || rs.wasNull()) {
+            if (id == 0) {
                 return null;
             }
 

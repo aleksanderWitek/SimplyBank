@@ -93,6 +93,35 @@ class LoginAttemptServiceTest {
         assertThat(service.getRemainingLockSeconds("alice")).isEqualTo(0);
     }
 
+    @Test
+    void purgeExpired_emptyMap_returnsZero() {
+        assertThat(service.purgeExpired()).isZero();
+    }
+
+    @Test
+    void purgeExpired_onlyFreshEntries_returnsZeroAndKeepsThem() {
+        service.loginFailed("alice");
+        service.loginFailed("bob");
+
+        assertThat(service.purgeExpired()).isZero();
+        assertThat(service.getRemainingLockSeconds("alice")).isPositive();
+        assertThat(service.getRemainingLockSeconds("bob")).isPositive();
+    }
+
+    @Test
+    void purgeExpired_mixedEntries_removesOnlyExpired() throws Exception {
+        service.loginFailed("fresh");
+        overwriteAttempt(service, "stale-1", 3, LocalDateTime.now().minusMinutes(20));
+        overwriteAttempt(service, "stale-2", 5, LocalDateTime.now().minusMinutes(60));
+
+        int removed = service.purgeExpired();
+
+        assertThat(removed).isEqualTo(2);
+        assertThat(service.getRemainingLockSeconds("fresh")).isPositive();
+        assertThat(service.getRemainingLockSeconds("stale-1")).isZero();
+        assertThat(service.getRemainingLockSeconds("stale-2")).isZero();
+    }
+
     /**
      * Reflection helper that replaces or inserts an {@code AttemptInfo} with a
      * caller-chosen {@code firstAttempt} timestamp. Lets us cover the "expired"

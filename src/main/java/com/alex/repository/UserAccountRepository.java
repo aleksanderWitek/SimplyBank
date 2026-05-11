@@ -1,10 +1,7 @@
 package com.alex.repository;
 
 import com.alex.dto.UserAccount;
-import com.alex.exception.DataAccessRuntimeException;
-import com.alex.exception.UserAccountNotFoundRuntimeException;
 import com.alex.repository.mapper.UserAccountRowMapper;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -30,11 +27,7 @@ public class UserAccountRepository implements IUserAccountRepository{
                 user_account(login, password, role, create_date)
                 VALUES(?, ?, ?, ?)
                 """;
-        try {
-            jdbcTemplate.update(query, userAccount.getLogin(), userAccount.getPassword(), userAccount.getRole().name(), userAccount.getCreateDate());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
-        }
+        jdbcTemplate.update(query, userAccount.getLogin(), userAccount.getPassword(), userAccount.getRole().name(), userAccount.getCreateDate());
         return commonJdbcRepository.getLastInsertedId();
     }
 
@@ -51,12 +44,8 @@ public class UserAccountRepository implements IUserAccountRepository{
                 FROM user_account AS ua
                 WHERE ua.id = ? AND ua.delete_date IS NULL
                 """;
-        try {
-            List<UserAccount> results = jdbcTemplate.query(query, new UserAccountRowMapper(), id);
-            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
-        } catch (DataAccessException e){
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        List<UserAccount> results = jdbcTemplate.query(query, new UserAccountRowMapper(), id);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 
     @Override
@@ -72,12 +61,8 @@ public class UserAccountRepository implements IUserAccountRepository{
                 FROM user_account AS ua
                 WHERE ua.login = ? AND ua.delete_date IS NULL
                 """;
-        try {
-            List<UserAccount> results = jdbcTemplate.query(query, new UserAccountRowMapper(), login);
-            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        List<UserAccount> results = jdbcTemplate.query(query, new UserAccountRowMapper(), login);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 
     @Override
@@ -93,50 +78,29 @@ public class UserAccountRepository implements IUserAccountRepository{
                 FROM user_account AS ua
                 WHERE ua.delete_date IS NULL
                 """;
-        try {
-            return jdbcTemplate.query(query, new UserAccountRowMapper());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        return jdbcTemplate.query(query, new UserAccountRowMapper());
     }
 
     @Override
     public void updatePassword(Long id, String encodedNewPassword) {
+        // UserAccountService.updatePassword/resetPassword call findById().orElseThrow before this method.
         String query = """
                 UPDATE user_account
                 SET password = ?,
                 modify_date = ?
                 WHERE id = ? AND delete_date IS NULL
                """;
-        try {
-            int rowAffected = jdbcTemplate.update(query,
-                    encodedNewPassword,
-                    LocalDateTime.now(),
-                    id);
-            if(rowAffected == 0) {
-                throw new UserAccountNotFoundRuntimeException("There is no User Account with provided id = " + id);
-            }
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        jdbcTemplate.update(query, encodedNewPassword, LocalDateTime.now(), id);
     }
 
     @Override
     public void deleteById(Long id) {
+        // Invoked from Client/Employee deletion flows which already verified existence; no direct controller endpoint exposes this.
         String query = """
                 UPDATE user_account
                 SET delete_date = ?
                 WHERE id = ? AND delete_date IS NULL
                """;
-        try {
-            int rowAffected = jdbcTemplate.update(query,
-                    LocalDateTime.now(),
-                    id);
-            if(rowAffected == 0) {
-                throw new UserAccountNotFoundRuntimeException("There is no User Account with provided id = " + id);
-            }
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        jdbcTemplate.update(query, LocalDateTime.now(), id);
     }
 }

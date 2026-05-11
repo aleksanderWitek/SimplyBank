@@ -4,7 +4,6 @@ import com.alex.UserAccountRole;
 import com.alex.dto.ClientProfile;
 import com.alex.dto.EmployeeProfile;
 import com.alex.dto.UserAccount;
-import com.alex.exception.UserAccountNotFoundRuntimeException;
 import com.alex.repository.IUserAccountRepository;
 import com.alex.service.IClientService;
 import com.alex.service.IEmployeeService;
@@ -36,9 +35,10 @@ public class AuthController {
 
     @GetMapping(path = "/me")
     public ResponseEntity<Map<String, Object>> me(Principal principal) {
-        UserAccount userAccount = userAccountRepository.findByLogin(principal.getName())
-                .orElseThrow(() -> new UserAccountNotFoundRuntimeException(
-                        "User account not found for login: " + principal.getName()));
+        // Principal is non-null and the user row is guaranteed to exist:
+        // both the JWT filter and form-login pass through loadUserByUsername which already
+        // ran the same WHERE delete_date IS NULL check.
+        UserAccount userAccount = userAccountRepository.findByLogin(principal.getName()).orElseThrow();
 
         Map<String, Object> response = new HashMap<>();
         response.put("id", userAccount.getId());

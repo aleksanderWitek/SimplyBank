@@ -3,10 +3,8 @@ package com.alex.repository;
 import com.alex.dto.Client;
 import com.alex.dto.ClientProfile;
 import com.alex.exception.ClientNotFoundRuntimeException;
-import com.alex.exception.DataAccessRuntimeException;
 import com.alex.repository.mapper.ClientProfileRowMapper;
 import com.alex.repository.mapper.ClientRowMapper;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -32,12 +30,8 @@ public class ClientRepository implements IClientRepository {
                 client(first_name, last_name, city, street, house_number, identification_number, create_date)
                 VALUES(?, ?, ?, ?, ?, ?, ?)
                """;
-        try {
-            jdbcTemplate.update(query, client.getFirstName(), client.getLastName(), client.getCity(),
-                    client.getStreet(), client.getHouseNumber(), client.getIdentificationNumber(), client.getCreateDate());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
-        }
+        jdbcTemplate.update(query, client.getFirstName(), client.getLastName(), client.getCity(),
+                client.getStreet(), client.getHouseNumber(), client.getIdentificationNumber(), client.getCreateDate());
         return commonJdbcRepository.getLastInsertedId();
     }
 
@@ -57,12 +51,8 @@ public class ClientRepository implements IClientRepository {
                  FROM client
                  WHERE id = ? AND delete_date IS NULL
                """;
-        try {
-            List<Client> results = jdbcTemplate.query(query, new ClientRowMapper(), id);
-            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
-        } catch (DataAccessException e){
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        List<Client> results = jdbcTemplate.query(query, new ClientRowMapper(), id);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 
     @Override
@@ -82,11 +72,7 @@ public class ClientRepository implements IClientRepository {
                 WHERE delete_date IS NULL
                 ORDER BY id
                 """;
-        try {
-            return jdbcTemplate.query(query, new ClientRowMapper());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        return jdbcTemplate.query(query, new ClientRowMapper());
     }
 
     @Override
@@ -103,21 +89,17 @@ public class ClientRepository implements IClientRepository {
                 modify_date = ?
                 WHERE id = ? AND delete_date IS NULL
                """;
-        try {
-            int rowAffected = jdbcTemplate.update(query,
-                    client.getFirstName(),
-                    client.getLastName(),
-                    client.getCity(),
-                    client.getStreet(),
-                    client.getHouseNumber(),
-                    client.getIdentificationNumber(),
-                    client.getModifyDate(),
-                    id);
-            if(rowAffected == 0) {
-                throw new ClientNotFoundRuntimeException("There is no Client with provided id = " + id);
-            }
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        int rowAffected = jdbcTemplate.update(query,
+                client.getFirstName(),
+                client.getLastName(),
+                client.getCity(),
+                client.getStreet(),
+                client.getHouseNumber(),
+                client.getIdentificationNumber(),
+                client.getModifyDate(),
+                id);
+        if(rowAffected == 0) {
+            throw new ClientNotFoundRuntimeException("There is no Client with provided id = " + id);
         }
     }
 
@@ -144,12 +126,8 @@ public class ClientRepository implements IClientRepository {
                   AND c.delete_date IS NULL
                   AND ua.delete_date IS NULL
                 """;
-        try {
-            List<ClientProfile> results = jdbcTemplate.query(query, new ClientProfileRowMapper(), userAccountId);
-            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        List<ClientProfile> results = jdbcTemplate.query(query, new ClientProfileRowMapper(), userAccountId);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 
     @Override
@@ -175,30 +153,18 @@ public class ClientRepository implements IClientRepository {
                   AND c.delete_date IS NULL
                   AND ua.delete_date IS NULL
                 """;
-        try {
-            List<ClientProfile> results = jdbcTemplate.query(query, new ClientProfileRowMapper(), clientId);
-            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        List<ClientProfile> results = jdbcTemplate.query(query, new ClientProfileRowMapper(), clientId);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 
     @Override
     public void deleteById(Long id) {
+        // ClientService.deleteById verifies existence via userAccountClientRepository before this call.
         String query = """
                 UPDATE client
                 SET delete_date = ?
                 WHERE id = ? AND delete_date IS NULL
                """;
-        try {
-            int rowAffected = jdbcTemplate.update(query,
-                    LocalDateTime.now(),
-                    id);
-            if(rowAffected == 0) {
-                throw new ClientNotFoundRuntimeException("There is no Client with provided id = " + id);
-            }
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        jdbcTemplate.update(query, LocalDateTime.now(), id);
     }
 }
