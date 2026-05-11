@@ -175,6 +175,19 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.12</version>
+				<configuration>
+					<excludes>
+						<exclude>com/alex/SimplyBank.class</exclude>
+						<exclude>com/alex/dto/**</exclude>
+						<exclude>com/alex/exception/*RuntimeException.class</exclude>
+						<exclude>com/alex/BankAccountType.class</exclude>
+						<exclude>com/alex/Currency.class</exclude>
+						<exclude>com/alex/TransactionType.class</exclude>
+						<exclude>com/alex/UserAccountRole.class</exclude>
+						<exclude>com/alex/config/SecurityConfig.class</exclude>
+						<exclude>com/alex/config/CryptoConfig.class</exclude>
+					</excludes>
+				</configuration>
 				<executions>
 					<execution>
 						<goals>
@@ -187,6 +200,39 @@
 						<goals>
 							<goal>report</goal>
 						</goals>
+					</execution>
+					<execution>
+						<id>check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<!--
+								  Line coverage is enforced at 100%.
+								  Branch coverage is enforced at 95% — the remaining ~5% is short-circuit
+								  branches in TransactionController.isClient(...) && ... where the EMPLOYEE/ADMIN
+								  pathway differs from the CLIENT one. Closing this gap means adding 6 more
+								  staff-role RBAC integration tests; tracked separately rather than padded here.
+								-->
+								<rule>
+									<element>BUNDLE</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>1.00</minimum>
+										</limit>
+										<limit>
+											<counter>BRANCH</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.95</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

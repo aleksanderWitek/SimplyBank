@@ -48,6 +48,12 @@ public class LoginAttemptService {
         return (int) Math.max(0, seconds);
     }
 
+    int purgeExpired() {
+        int sizeBefore = attempts.size();
+        attempts.values().removeIf(AttemptInfo::isExpired);
+        return sizeBefore - attempts.size();
+    }
+
     private static class AttemptInfo {
         final int count;
         final LocalDateTime firstAttempt;

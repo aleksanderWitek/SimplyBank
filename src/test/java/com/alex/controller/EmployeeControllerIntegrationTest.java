@@ -89,6 +89,18 @@ class EmployeeControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    void updateEmployee_missingEmployee_returnsNotFound() throws Exception {
+        insertUserAccount(3L, "carol", "Password1!", "ADMIN");
+        String token = generateToken("carol", "ADMIN");
+
+        mockMvc.perform(put("/api/employee/9999")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content(employeeJson("Ghost", "Worker")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
     void updateEmployee_asEmployee_isForbidden() throws Exception {
         insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
         insertEmployee(20L, "Eve", "Manager");

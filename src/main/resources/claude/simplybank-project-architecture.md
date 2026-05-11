@@ -84,11 +84,11 @@ All extend `RuntimeException`. `GlobalExceptionHandler` maps each to the correct
 | `BankAccountNotFoundRuntimeException` | 404 |
 | `TransactionNotFoundRuntimeException` | 404 |
 | `IllegalStateRuntimeException` | 409 |
-| `SQLRuntimeException` / `DataAccessRuntimeException` | 500 |
+| `SQLRuntimeException` / Spring `DataAccessException` | 500 |
 
 ## Repositories (`com.alex.repository`)
 
-All extend `CommonJdbcRepository` which wraps `JdbcTemplate` calls and converts `DataAccessException` into `DataAccessRuntimeException`. Every domain has an `I<Name>Repository` + impl:
+All use `JdbcTemplate` directly; Spring's `DataAccessException` propagates up and is handled centrally by `GlobalExceptionHandler` (→ 500 "Database error occurred"). Every domain has an `I<Name>Repository` + impl:
 
 - `UserAccountRepository` — login lookup, save, soft delete, password update.
 - `ClientRepository` / `EmployeeRepository` — CRUD with soft delete.
@@ -112,7 +112,7 @@ Each maps one table (or join) to its DTO and re-throws `SQLException` as `SQLRun
 | `TransactionService` | `transfer()` — pessimistic lock in lower-ID-first order, validate currency match + sufficient funds, insert two balance updates + one transaction row. `deposit()` / `withdraw()` — single account + transaction. |
 | `UserOwnershipService` | Resolves current user from `Principal`; computes owned bank-account IDs for CLIENT role. Used by controllers for RBAC. |
 | `LoginAttemptService` | In-memory attempt counter; blocks after N failures for M minutes. |
-| `CleanupService` | Currently empty placeholder. |
+| `CleanupService` | `@Scheduled` job: purges expired entries from `LoginAttemptService` to bound in-memory growth. |
 
 ## Validation (`com.alex.service.validation`)
 
