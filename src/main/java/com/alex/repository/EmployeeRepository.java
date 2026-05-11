@@ -4,9 +4,7 @@ import com.alex.dto.Employee;
 import com.alex.dto.EmployeeProfile;
 import com.alex.repository.mapper.EmployeeProfileRowMapper;
 import com.alex.repository.mapper.EmployeeRowMapper;
-import com.alex.exception.DataAccessRuntimeException;
 import com.alex.exception.EmployeeNotFoundRuntimeException;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -32,11 +30,7 @@ public class EmployeeRepository implements IEmployeeRepository {
                 employee(first_name, last_name, create_date)
                 VALUES(?, ?, ?)
                 """;
-        try {
-            jdbcTemplate.update(query, employee.getFirstName(), employee.getLastName(), employee.getCreateDate());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
-        }
+        jdbcTemplate.update(query, employee.getFirstName(), employee.getLastName(), employee.getCreateDate());
         return commonJdbcRepository.getLastInsertedId();
     }
 
@@ -47,12 +41,8 @@ public class EmployeeRepository implements IEmployeeRepository {
                 FROM employee
                 WHERE id = ? AND delete_date IS NULL
                 """;
-        try {
-            List<Employee> results = jdbcTemplate.query(query, new EmployeeRowMapper(), id);
-            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
-        } catch (DataAccessException e){
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        List<Employee> results = jdbcTemplate.query(query, new EmployeeRowMapper(), id);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 
     @Override
@@ -63,11 +53,7 @@ public class EmployeeRepository implements IEmployeeRepository {
                 WHERE delete_date IS NULL
                 ORDER BY id
                 """;
-        try {
-            return jdbcTemplate.query(query, new EmployeeRowMapper());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        return jdbcTemplate.query(query, new EmployeeRowMapper());
     }
 
     @Override
@@ -79,37 +65,25 @@ public class EmployeeRepository implements IEmployeeRepository {
                 modify_date = ?
                 WHERE id = ? AND delete_date IS NULL
                """;
-        try {
-            int rowAffected = jdbcTemplate.update(query,
-                    employee.getFirstName(),
-                    employee.getLastName(),
-                    employee.getModifyDate(),
-                    id);
-            if(rowAffected == 0) {
-                throw new EmployeeNotFoundRuntimeException("There is no Employee with provided id = " + id);
-            }
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        int rowAffected = jdbcTemplate.update(query,
+                employee.getFirstName(),
+                employee.getLastName(),
+                employee.getModifyDate(),
+                id);
+        if(rowAffected == 0) {
+            throw new EmployeeNotFoundRuntimeException("There is no Employee with provided id = " + id);
         }
     }
 
     @Override
     public void deleteById(Long id) {
+        // EmployeeService.deleteById verifies existence via userAccountEmployeeRepository before this call.
         String query = """
                 UPDATE employee
                 SET delete_date = ?
                 WHERE id = ? AND delete_date IS NULL
                """;
-        try {
-            int rowAffected = jdbcTemplate.update(query,
-                    LocalDateTime.now(),
-                    id);
-            if(rowAffected == 0) {
-                throw new EmployeeNotFoundRuntimeException("There is no Employee with provided id = " + id);
-            }
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        jdbcTemplate.update(query, LocalDateTime.now(), id);
     }
 
     @Override
@@ -132,12 +106,8 @@ public class EmployeeRepository implements IEmployeeRepository {
                   AND ua.delete_date IS NULL
                   AND uae.delete_date IS NULL
                 """;
-        try {
-            List<EmployeeProfile> results = jdbcTemplate.query(query, new EmployeeProfileRowMapper(), userAccountId);
-            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        List<EmployeeProfile> results = jdbcTemplate.query(query, new EmployeeProfileRowMapper(), userAccountId);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 
     @Override
@@ -160,11 +130,7 @@ public class EmployeeRepository implements IEmployeeRepository {
                   AND ua.delete_date IS NULL
                   AND uae.delete_date IS NULL
                 """;
-        try {
-            List<EmployeeProfile> results = jdbcTemplate.query(query, new EmployeeProfileRowMapper(), employeeId);
-            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        List<EmployeeProfile> results = jdbcTemplate.query(query, new EmployeeProfileRowMapper(), employeeId);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 }

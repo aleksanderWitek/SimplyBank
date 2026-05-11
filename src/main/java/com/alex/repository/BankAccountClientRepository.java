@@ -1,7 +1,5 @@
 package com.alex.repository;
 
-import com.alex.exception.DataAccessRuntimeException;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -24,11 +22,7 @@ public class BankAccountClientRepository implements IBankAccountClientRepository
                 bank_account_client(bank_account_id, client_id, create_date)
                 VALUES (?, ?, ?)
                 """;
-        try {
-            jdbcTemplate.update(query, bankAccountId, clientId, LocalDateTime.now());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
-        }
+        jdbcTemplate.update(query, bankAccountId, clientId, LocalDateTime.now());
     }
 
     @Override
@@ -40,11 +34,7 @@ public class BankAccountClientRepository implements IBankAccountClientRepository
                 client_id = ? AND
                 delete_date IS NULL
                 """;
-        try {
-            jdbcTemplate.update(query, LocalDateTime.now(), bankAccountId, clientId);
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
-        }
+        jdbcTemplate.update(query, LocalDateTime.now(), bankAccountId, clientId);
     }
 
     @Override
@@ -54,11 +44,7 @@ public class BankAccountClientRepository implements IBankAccountClientRepository
                 FROM bank_account_client
                 WHERE client_id = ? AND delete_date IS NULL
                 """;
-        try {
-            return jdbcTemplate.queryForList(query, Long.class, clientId);
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
-        }
+        return jdbcTemplate.queryForList(query, Long.class, clientId);
     }
 
     @Override
@@ -68,10 +54,6 @@ public class BankAccountClientRepository implements IBankAccountClientRepository
                 FROM bank_account_client
                 WHERE bank_account_id = ? AND delete_date IS NULL
                 """;
-        try {
-            return jdbcTemplate.queryForList(query, Long.class, bankAccountId);
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
-        }
+        return jdbcTemplate.queryForList(query, Long.class, bankAccountId);
     }
 }

@@ -240,4 +240,13 @@ class BankAccountControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(delete("/api/bank_account/100").header("Authorization", bearer(token)))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    void deleteById_missingBankAccount_returnsNotFound() throws Exception {
+        insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
+        String token = generateToken("bob", "EMPLOYEE");
+
+        mockMvc.perform(delete("/api/bank_account/9999").header("Authorization", bearer(token)))
+                .andExpect(status().isNotFound());
+    }
 }

@@ -1,7 +1,5 @@
 package com.alex.repository;
 
-import com.alex.exception.DataAccessRuntimeException;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -25,11 +23,7 @@ public class UserAccountEmployeeRepository implements IUserAccountEmployeeReposi
                 user_account_employee(user_account_id, employee_id, create_date)
                 VALUES (?, ?, ?)
                 """;
-        try {
-            jdbcTemplate.update(query, userAccountId, employeeId, LocalDateTime.now());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
-        }
+        jdbcTemplate.update(query, userAccountId, employeeId, LocalDateTime.now());
     }
 
     @Override
@@ -41,11 +35,7 @@ public class UserAccountEmployeeRepository implements IUserAccountEmployeeReposi
                 employee_id = ? AND
                 delete_date IS NULL
                 """;
-        try {
-            jdbcTemplate.update(query, LocalDateTime.now(), userAccountId, employeeId);
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
-        }
+        jdbcTemplate.update(query, LocalDateTime.now(), userAccountId, employeeId);
     }
 
     @Override
@@ -55,11 +45,7 @@ public class UserAccountEmployeeRepository implements IUserAccountEmployeeReposi
                 FROM user_account_employee
                 WHERE employee_id = ? AND delete_date IS NULL
                 """;
-        try {
-            List<Long> results = jdbcTemplate.queryForList(query, Long.class, employeeId);
-            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
-        }
+        List<Long> results = jdbcTemplate.queryForList(query, Long.class, employeeId);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 }

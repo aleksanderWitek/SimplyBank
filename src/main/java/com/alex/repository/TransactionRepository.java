@@ -1,9 +1,7 @@
 package com.alex.repository;
 
 import com.alex.dto.Transaction;
-import com.alex.exception.DataAccessRuntimeException;
 import com.alex.repository.mapper.TransactionRowMapper;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -58,66 +56,42 @@ public class TransactionRepository implements ITransactionRepository{
                 create_date)
                 VALUES(?, ?, ?, ?, ?, ?, ?)
                 """;
-        try {
-            jdbcTemplate.update(query, transaction.getTransactionType().name(), transaction.getCurrency().name(),
-                    transaction.getAmount(),
-                    transaction.getBankAccountFrom() != null ? transaction.getBankAccountFrom().getId() : null,
-                    transaction.getBankAccountTo() != null ? transaction.getBankAccountTo().getId() : null,
-                    transaction.getDescription(), transaction.getCreateDate());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
-        }
+        jdbcTemplate.update(query, transaction.getTransactionType().name(), transaction.getCurrency().name(),
+                transaction.getAmount(),
+                transaction.getBankAccountFrom() != null ? transaction.getBankAccountFrom().getId() : null,
+                transaction.getBankAccountTo() != null ? transaction.getBankAccountTo().getId() : null,
+                transaction.getDescription(), transaction.getCreateDate());
         return commonJdbcRepository.getLastInsertedId();
     }
 
     @Override
     public Optional<Transaction> findById(Long id) {
         String query = BASE_QUERY + " WHERE t.id = ?";
-        try {
-            List<Transaction> results = jdbcTemplate.query(query, new TransactionRowMapper(), id);
-            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
-        } catch (DataAccessException e){
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        List<Transaction> results = jdbcTemplate.query(query, new TransactionRowMapper(), id);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 
     @Override
     public List<Transaction> findAll() {
         String query = BASE_QUERY + " ORDER BY t.create_date DESC";
-        try {
-            return jdbcTemplate.query(query, new TransactionRowMapper());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        return jdbcTemplate.query(query, new TransactionRowMapper());
     }
 
     @Override
     public List<Transaction> findTransactionsByBankAccountFromId(Long bankAccountFromId) {
         String query = BASE_QUERY + " WHERE t.bank_account_id_from = ? ORDER BY t.create_date DESC";
-        try {
-            return jdbcTemplate.query(query, new TransactionRowMapper(), bankAccountFromId);
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        return jdbcTemplate.query(query, new TransactionRowMapper(), bankAccountFromId);
     }
 
     @Override
     public List<Transaction> findTransactionsByBankAccountToId(Long bankAccountToId) {
         String query = BASE_QUERY + " WHERE t.bank_account_id_to = ? ORDER BY t.create_date DESC";
-        try {
-            return jdbcTemplate.query(query, new TransactionRowMapper(), bankAccountToId);
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        return jdbcTemplate.query(query, new TransactionRowMapper(), bankAccountToId);
     }
 
     @Override
     public List<Transaction> findTransactionsBetweenBankAccounts(Long bankAccountFromId, Long bankAccountToId) {
         String query = BASE_QUERY + " WHERE t.bank_account_id_from = ? AND t.bank_account_id_to = ? ORDER BY t.create_date DESC";
-        try {
-            return jdbcTemplate.query(query, new TransactionRowMapper(), bankAccountFromId, bankAccountToId);
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        return jdbcTemplate.query(query, new TransactionRowMapper(), bankAccountFromId, bankAccountToId);
     }
 }

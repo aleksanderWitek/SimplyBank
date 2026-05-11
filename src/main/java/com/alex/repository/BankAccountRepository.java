@@ -3,8 +3,6 @@ package com.alex.repository;
 import com.alex.dto.BankAccount;
 import com.alex.repository.mapper.BankAccountRowMapper;
 import com.alex.exception.BankAccountNotFoundRuntimeException;
-import com.alex.exception.DataAccessRuntimeException;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -31,12 +29,8 @@ public class BankAccountRepository implements IBankAccountRepository {
                 bank_account(number, account_type, currency, balance, create_date)
                 VALUES(?, ?, ?, ?, ?)
                 """;
-        try {
-            jdbcTemplate.update(query, bankAccount.getNumber(), bankAccount.getAccountType().name(),
-                    bankAccount.getCurrency().name(), bankAccount.getBalance(), bankAccount.getCreateDate());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database. " + e.getMessage());
-        }
+        jdbcTemplate.update(query, bankAccount.getNumber(), bankAccount.getAccountType().name(),
+                bankAccount.getCurrency().name(), bankAccount.getBalance(), bankAccount.getCreateDate());
         return commonJdbcRepository.getLastInsertedId();
     }
 
@@ -54,12 +48,8 @@ public class BankAccountRepository implements IBankAccountRepository {
                 FROM bank_account AS ba
                 WHERE ba.id = ? AND ba.delete_date IS NULL
                 """;
-        try {
-            List<BankAccount> results = jdbcTemplate.query(query, new BankAccountRowMapper(), id);
-            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
-        } catch (DataAccessException e){
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        List<BankAccount> results = jdbcTemplate.query(query, new BankAccountRowMapper(), id);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 
     @Override
@@ -77,12 +67,8 @@ public class BankAccountRepository implements IBankAccountRepository {
                 WHERE ba.id = ? AND ba.delete_date IS NULL
                 FOR UPDATE
                 """;
-        try {
-            List<BankAccount> results = jdbcTemplate.query(query, new BankAccountRowMapper(), id);
-            return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        List<BankAccount> results = jdbcTemplate.query(query, new BankAccountRowMapper(), id);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 
     @Override
@@ -99,47 +85,31 @@ public class BankAccountRepository implements IBankAccountRepository {
                 FROM bank_account AS ba
                 WHERE ba.delete_date IS NULL
                 """;
-        try {
-            return jdbcTemplate.query(query, new BankAccountRowMapper());
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        return jdbcTemplate.query(query, new BankAccountRowMapper());
     }
 
     @Override
     public void addToBalance(Long id, BigDecimal amount) {
+        // Callers acquire the row via findByIdForUpdate() before invoking this, so the row is guaranteed to exist.
         String query = """
                 UPDATE bank_account
                 SET balance = balance + ?,
                 modify_date = ?
                 WHERE id = ? AND delete_date IS NULL
                 """;
-        try {
-            int rowAffected = jdbcTemplate.update(query, amount, LocalDateTime.now(), id);
-            if (rowAffected == 0) {
-                throw new BankAccountNotFoundRuntimeException("There is no Bank Account with provided id = " + id);
-            }
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        jdbcTemplate.update(query, amount, LocalDateTime.now(), id);
     }
 
     @Override
     public void subtractFromBalance(Long id, BigDecimal amount) {
+        // Callers acquire the row via findByIdForUpdate() before invoking this, so the row is guaranteed to exist.
         String query = """
                 UPDATE bank_account
                 SET balance = balance - ?,
                 modify_date = ?
                 WHERE id = ? AND delete_date IS NULL
                 """;
-        try {
-            int rowAffected = jdbcTemplate.update(query, amount, LocalDateTime.now(), id);
-            if (rowAffected == 0) {
-                throw new BankAccountNotFoundRuntimeException("There is no Bank Account with provided id = " + id);
-            }
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        jdbcTemplate.update(query, amount, LocalDateTime.now(), id);
     }
 
     @Override
@@ -149,15 +119,11 @@ public class BankAccountRepository implements IBankAccountRepository {
                 SET delete_date = ?
                 WHERE id = ? AND delete_date IS NULL
                 """;
-        try {
-            int rowAffected = jdbcTemplate.update(query,
-                    LocalDateTime.now(),
-                    id);
-            if(rowAffected == 0) {
-                throw new BankAccountNotFoundRuntimeException("There is no Bank Account with provided id = " + id);
-            }
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
+        int rowAffected = jdbcTemplate.update(query,
+                LocalDateTime.now(),
+                id);
+        if(rowAffected == 0) {
+            throw new BankAccountNotFoundRuntimeException("There is no Bank Account with provided id = " + id);
         }
     }
 
@@ -168,11 +134,7 @@ public class BankAccountRepository implements IBankAccountRepository {
             FROM bank_account
             WHERE number = ? AND delete_date IS NULL
            """;
-        try {
-            Integer count = jdbcTemplate.queryForObject(query, Integer.class, number);
-            return count != null && count > 0;
-        } catch (DataAccessException e) {
-            throw new DataAccessRuntimeException("Can't access database: " + e.getMessage());
-        }
+        Integer count = jdbcTemplate.queryForObject(query, Integer.class, number);
+        return count != null && count > 0;
     }
 }
