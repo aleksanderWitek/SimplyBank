@@ -94,6 +94,20 @@ class BankAccountServiceTest {
         verify(bankAccountClientRepository).linkBankAccountToClient(42L, 7L);
     }
 
+    @Test
+    void save_clientAtTenAccounts_throwsIllegalStateRuntimeException() {
+        when(bankAccountClientRepository.countActiveBankAccountsByClientIdForUpdate(7L)).thenReturn(10);
+
+        BankAccountService service = newService();
+
+        assertThatThrownBy(() -> service.save(7L, "CHECKING", "EUR"))
+                .isInstanceOf(IllegalStateRuntimeException.class)
+                .hasMessage("Bank account limit reached (10 per client)");
+
+        verify(bankAccountRepository, never()).save(any(BankAccount.class));
+        verify(bankAccountClientRepository, never()).linkBankAccountToClient(anyLong(), anyLong());
+    }
+
     // findById ------------------------------------------------------------------------------------
 
     @Test
