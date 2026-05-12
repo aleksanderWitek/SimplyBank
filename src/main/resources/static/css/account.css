@@ -250,11 +250,38 @@ body {
     color: var(--gray-900);
     letter-spacing: -0.3px;
 }
+.hero-number-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 .hero-number {
     font-size: 14px;
     color: var(--gray-500);
     letter-spacing: 1px;
+    font-variant-numeric: tabular-nums;
+    user-select: all;
 }
+.hero-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--gray-200);
+    border-radius: 6px;
+    background: var(--white);
+    color: var(--gray-500);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.hero-copy-btn:hover {
+    background: var(--gray-100);
+    color: var(--blue-600);
+    border-color: var(--blue-100);
+}
+.hero-copy-btn:active { transform: translateY(1px); }
 .hero-currency {
     font-size: 11px;
     font-weight: 600;
