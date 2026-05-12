@@ -17,6 +17,13 @@ var AccountsAPI = {
     AUTH_ME:          "/api/auth/me"
 };
 
+var MAX_ACCOUNTS_PER_CLIENT = 10;
+
+var AccountsState = {
+    role: null,
+    allAccounts: []
+};
+
 // ============================================================
 // INIT
 // ============================================================
@@ -26,8 +33,10 @@ function init() {
 
     ajax(AccountsAPI.AUTH_ME, "GET")
         .done(function (user) {
+            AccountsState.role = (user.role || "").toUpperCase();
             renderUserHeader(user);
             initProfileLinks(user.id);
+            applyRoleVisibility();
         })
         .fail(function (jqxhr) {
             console.error("[init] GET " + AccountsAPI.AUTH_ME + " failed:", jqxhr);
@@ -38,6 +47,16 @@ function init() {
         });
 }
 
+function applyRoleVisibility() {
+    if (AccountsState.role === "CLIENT") {
+        $("#createAccountWrap").css("display", "flex");
+        $("#accountSearchWrap").hide();
+    } else if (AccountsState.role === "EMPLOYEE" || AccountsState.role === "ADMIN") {
+        $("#createAccountWrap").hide();
+        $("#accountSearchWrap").css("display", "flex");
+    }
+}
+
 // ============================================================
 // DATA LOADING
 // ============================================================
@@ -45,19 +64,49 @@ function init() {
 function loadAccounts() {
     ajax(AccountsAPI.BANK_ACCOUNT, "GET")
         .done(function (accounts) {
-            if (!accounts || accounts.length === 0) {
-                showLoading(false);
-                $("#emptyState").show();
-                return;
-            }
-            renderAccountRows(accounts);
-            loadAllStats(accounts);
+            AccountsState.allAccounts = Array.isArray(accounts) ? accounts : [];
+            updateCreateButtonState();
+            renderFilteredAccounts();
         })
         .fail(function (jqxhr) {
             console.error("[loadAccounts] GET " + AccountsAPI.BANK_ACCOUNT + " failed:", jqxhr);
             showLoading(false);
             notify("Could not load accounts", "error");
         });
+}
+
+function renderFilteredAccounts() {
+    var list = AccountsState.allAccounts;
+
+    if (AccountsState.role === "EMPLOYEE" || AccountsState.role === "ADMIN") {
+        var q = $.trim($("#filterAccountNumber").val() || "");
+        if (q) {
+            list = list.filter(function (a) {
+                return (a.number || "").indexOf(q) !== -1;
+            });
+            $("#btnClearSearch").show();
+        } else {
+            $("#btnClearSearch").hide();
+        }
+    }
+
+    $("#accountsList").empty();
+    if (!list.length) {
+        showLoading(false);
+        $("#accountsList").hide();
+        $("#emptyState").show();
+        return;
+    }
+    $("#emptyState").hide();
+    renderAccountRows(list);
+    loadAllStats(list);
+}
+
+function updateCreateButtonState() {
+    if (AccountsState.role !== "CLIENT") return;
+    var atLimit = AccountsState.allAccounts.length >= MAX_ACCOUNTS_PER_CLIENT;
+    $("#btnOpenCreate").prop("disabled", atLimit);
+    $("#limitReachedNotice").toggle(atLimit);
 }
 
 function loadAllStats(accounts) {
@@ -204,11 +253,84 @@ function showLoading(show) {
 // ENTRY POINT
 // ============================================================
 
+function openCreateModal() {
+    if ($("#btnOpenCreate").is(":disabled")) return;
+    $("#newAccountType").val("CHECKING");
+    $("#newAccountCurrency").val("EUR");
+    toggleCurrencyRow();
+    $("#createModalOverlay").addClass("open");
+    setTimeout(function () { $("#newAccountType").trigger("focus"); }, 0);
+}
+
+function closeCreateModal() {
+    $("#createModalOverlay").removeClass("open");
+}
+
+function toggleCurrencyRow() {
+    var type = $("#newAccountType").val();
+    if (type === "FOREIGN_CURRENCY") {
+        $("#currencyRow").show();
+    } else {
+        $("#currencyRow").hide();
+    }
+}
+
+function submitCreateAccount() {
+    var type = $("#newAccountType").val();
+    var currency = (type === "FOREIGN_CURRENCY") ? $("#newAccountCurrency").val() : "EUR";
+
+    var $btn = $("#createSubmit");
+    $btn.prop("disabled", true);
+
+    ajax(AccountsAPI.BANK_ACCOUNT, "POST", {
+        bankAccountType: type,
+        bankAccountCurrency: currency
+    })
+        .done(function () {
+            notify("Account created", "success");
+            closeCreateModal();
+            // Refresh page so the user sees the new account row + stats from scratch.
+            window.location.reload();
+        })
+        .fail(function (jqxhr) {
+            var msg = "Could not create account";
+            if (jqxhr.responseJSON && jqxhr.responseJSON.message) {
+                msg = jqxhr.responseJSON.message;
+            } else if (jqxhr.status === 409) {
+                msg = "Bank account limit reached";
+            }
+            console.error("[submitCreateAccount] POST " + AccountsAPI.BANK_ACCOUNT + " failed:", jqxhr);
+            notify(msg, "error");
+        })
+        .always(function () {
+            $btn.prop("disabled", false);
+        });
+}
+
 $(document).ready(function () {
     init();
 
     // Navigate to individual account page on row click (event delegation)
     $("#accountsList").on("click", ".account-row", function () {
         window.location.href = "/account?id=" + $(this).data("account-id");
+    });
+
+    // Create-account modal
+    $("#btnOpenCreate").on("click", openCreateModal);
+    $("#createModalClose, #createCancel").on("click", closeCreateModal);
+    $("#createModalOverlay").on("click", function (e) {
+        if (e.target === this) closeCreateModal();
+    });
+    $(document).on("keydown", function (e) {
+        if (e.key === "Escape") closeCreateModal();
+    });
+    $("#newAccountType").on("change", toggleCurrencyRow);
+    $("#createSubmit").on("click", submitCreateAccount);
+
+    // Staff account-number search
+    $("#filterAccountNumber").on("input", renderFilteredAccounts);
+    $("#btnClearSearch").on("click", function () {
+        $("#filterAccountNumber").val("");
+        renderFilteredAccounts();
     });
 });

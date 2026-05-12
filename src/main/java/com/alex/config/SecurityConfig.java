@@ -58,8 +58,9 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.GET, "/api/client/profile").authenticated()
                             .requestMatchers("/api/client/**").hasAnyRole("EMPLOYEE", "ADMIN")
 
-                            // Bank Account API — read for all, write for staff
+                            // Bank Account API — read for all, create for all (clients can self-serve, controller binds clientId from principal), other writes for staff
                             .requestMatchers(HttpMethod.GET, "/api/bank_account/**").authenticated()
+                            .requestMatchers(HttpMethod.POST, "/api/bank_account").authenticated()
                             .requestMatchers("/api/bank_account/**").hasAnyRole("EMPLOYEE", "ADMIN")
 
                             // Transaction API — GET all is staff-only, per-account and POST for all

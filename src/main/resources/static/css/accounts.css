@@ -181,6 +181,19 @@ body {
 /* --- Page Header --- */
 .page-header {
     margin-bottom: 28px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+.page-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+#createAccountWrap {
+    display: flex;
 }
 .page-title {
     font-size: 28px;
@@ -193,6 +206,139 @@ body {
     font-size: 15px;
     color: var(--gray-400);
     margin-top: 4px;
+}
+
+/* --- Action buttons / forms --- */
+.btn-primary, .btn-secondary {
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s;
+}
+.btn-primary {
+    background: var(--blue-600);
+    color: var(--white);
+}
+.btn-primary:hover { background: var(--blue-500); }
+.btn-primary:disabled {
+    background: var(--gray-300);
+    color: var(--gray-500);
+    cursor: not-allowed;
+}
+.btn-secondary {
+    background: var(--gray-100);
+    color: var(--gray-700);
+}
+.btn-secondary:hover { background: var(--gray-200); }
+
+.limit-reached {
+    font-size: 13px;
+    color: var(--amber-600);
+    font-weight: 500;
+}
+
+.filter-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.filter-input {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md, 8px);
+    padding: 10px 12px;
+    font-size: 14px;
+    width: 260px;
+    background: var(--white);
+    color: var(--gray-900);
+}
+.filter-input:focus {
+    outline: none;
+    border-color: var(--blue-500);
+    box-shadow: 0 0 0 3px var(--blue-100);
+}
+
+/* --- Create-account modal --- */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+    background: var(--white);
+    border-radius: 14px;
+    width: min(420px, 92vw);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.18);
+    overflow: hidden;
+}
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--gray-200);
+}
+.modal-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--gray-500);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+}
+.modal-close:hover { background: var(--gray-100); color: var(--gray-700); }
+.modal-body {
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.modal-footer {
+    padding: 14px 22px 18px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    border-top: 1px solid var(--gray-200);
+    background: var(--gray-50);
+}
+.form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+.form-select {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md, 8px);
+    padding: 10px 12px;
+    font-size: 14px;
+    background: var(--white);
+    color: var(--gray-900);
+    cursor: pointer;
+}
+.form-select:focus {
+    outline: none;
+    border-color: var(--blue-500);
+    box-shadow: 0 0 0 3px var(--blue-100);
 }
 
 /* ============================================================

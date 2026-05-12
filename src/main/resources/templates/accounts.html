@@ -26,7 +26,7 @@
                 <a href="/" class="nav-link">Dashboard</a>
                 <a href="/accounts" class="nav-link active">Accounts</a>
                 <a href="/transactions" class="nav-link">Transactions</a>
-                <a href="/new-transaction" class="nav-link">Transfer</a>
+                <a href="/new-transaction" class="nav-link" id="navTransfer">Transfer</a>
                 <a href="/management" class="nav-link" id="navManagement" style="display:none;">Management</a>
             </nav>
             <div class="header-actions">
@@ -54,6 +54,26 @@
                     <h1 class="page-title">My Accounts</h1>
                     <p class="page-subtitle">Overview of all your bank accounts and activity</p>
                 </div>
+                <div class="page-header-right">
+                    <!-- Client-only: create button + limit notice -->
+                    <div id="createAccountWrap" style="display:none; align-items:center; gap:12px;">
+                        <button id="btnOpenCreate" class="btn-primary" type="button">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            <span>Create account</span>
+                        </button>
+                        <span id="limitReachedNotice" class="limit-reached" style="display:none;">
+                            Bank accounts limit reached (10).
+                        </span>
+                    </div>
+                    <!-- Staff-only: account number search -->
+                    <div id="accountSearchWrap" class="filter-group" style="display:none;">
+                        <input type="text" id="filterAccountNumber" class="filter-input"
+                               placeholder="Search by account number" autocomplete="off">
+                        <button id="btnClearSearch" class="btn-secondary" type="button" style="display:none;">Clear</button>
+                    </div>
+                </div>
             </section>
 
             <!-- Loading State -->
@@ -79,5 +99,43 @@
 
         </div>
     </main>
+
+    <!-- Create Account Modal -->
+    <div class="modal-overlay" id="createModalOverlay">
+        <div class="modal" id="createModal">
+            <div class="modal-header">
+                <h2 class="modal-title">Open new account</h2>
+                <button class="modal-close" id="createModalClose" title="Close" type="button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            <form class="modal-body" id="createAccountForm" novalidate>
+                <div class="form-row">
+                    <label for="newAccountType" class="form-label">Account type</label>
+                    <select id="newAccountType" class="form-select" required>
+                        <option value="CHECKING">Checking</option>
+                        <option value="SAVING">Saving</option>
+                        <option value="BUSINESS">Business</option>
+                        <option value="FOREIGN_CURRENCY">Foreign currency</option>
+                    </select>
+                </div>
+                <div class="form-row" id="currencyRow" style="display:none;">
+                    <label for="newAccountCurrency" class="form-label">Currency</label>
+                    <select id="newAccountCurrency" class="form-select">
+                        <option value="EUR">EUR</option>
+                        <option value="USD">USD</option>
+                        <option value="GBP">GBP</option>
+                        <option value="PLN">PLN</option>
+                    </select>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="createCancel" type="button">Cancel</button>
+                <button class="btn-primary" id="createSubmit" type="button">Create</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

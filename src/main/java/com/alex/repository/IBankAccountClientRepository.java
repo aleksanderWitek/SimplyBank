@@ -8,4 +8,5 @@ public interface IBankAccountClientRepository {
     void unlinkBankAccountToClient(Long bankAccountId, Long clientId);
     List<Long> findBankAccountsIdLinkedToClientByClientId(Long clientId);
     List<Long> findClientsIdLinkedToBankAccountByBankAccountId(Long bankAccountId);
+    int countActiveBankAccountsByClientIdForUpdate(Long clientId);
 }

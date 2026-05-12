@@ -48,6 +48,18 @@ public class BankAccountClientRepository implements IBankAccountClientRepository
     }
 
     @Override
+    public int countActiveBankAccountsByClientIdForUpdate(Long clientId) {
+        String query = """
+                SELECT COUNT(*)
+                FROM bank_account_client
+                WHERE client_id = ? AND delete_date IS NULL
+                FOR UPDATE
+                """;
+        Integer count = jdbcTemplate.queryForObject(query, Integer.class, clientId);
+        return count != null ? count : 0;
+    }
+
+    @Override
     public List<Long> findClientsIdLinkedToBankAccountByBankAccountId(Long bankAccountId) {
         String query = """
                 SELECT client_id

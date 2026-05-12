@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -19,10 +20,11 @@ class BankAccountControllerIntegrationTest extends BaseIntegrationTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private String saveRequestJson(Long clientId, String type, String currency) throws Exception {
-        return objectMapper.writeValueAsString(Map.of(
-                "clientId", clientId,
-                "bankAccountType", type,
-                "bankAccountCurrency", currency));
+        Map<String, Object> body = new HashMap<>();
+        body.put("clientId", clientId);
+        body.put("bankAccountType", type);
+        body.put("bankAccountCurrency", currency);
+        return objectMapper.writeValueAsString(body);
     }
 
     // POST /api/bank_account ------------------------------------------------------------------
@@ -35,9 +37,36 @@ class BankAccountControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    void save_asClient_isForbidden() throws Exception {
+    void save_asClientLinkedToProfile_returnsCreatedAndIgnoresBodyClientId() throws Exception {
         insertUserAccount(1L, "alice", "Password1!", "CLIENT");
         insertClient(10L, "Alice", "A", "W", "M", "1", "ID");
+        linkUserAccountToClient(1L, 10L);
+        // Decoy client to verify the controller does NOT honor body clientId for CLIENT callers.
+        insertClient(20L, "Mallory", "M", "W", "M", "2", "ID2");
+        String token = generateToken("alice", "CLIENT");
+
+        mockMvc.perform(post("/api/bank_account")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content(saveRequestJson(20L, "CHECKING", "EUR")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.accountType").value("CHECKING"));
+
+        Integer linkedToAlice = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM bank_account_client WHERE client_id = 10 AND delete_date IS NULL",
+                Integer.class);
+        Integer linkedToMallory = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM bank_account_client WHERE client_id = 20 AND delete_date IS NULL",
+                Integer.class);
+        org.assertj.core.api.Assertions.assertThat(linkedToAlice).isEqualTo(1);
+        org.assertj.core.api.Assertions.assertThat(linkedToMallory).isEqualTo(0);
+    }
+
+    @Test
+    void save_asClientWithoutProfile_isForbidden() throws Exception {
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        insertClient(10L, "Alice", "A", "W", "M", "1", "ID");
+        // intentionally not linked
         String token = generateToken("alice", "CLIENT");
 
         mockMvc.perform(post("/api/bank_account")
@@ -45,6 +74,25 @@ class BankAccountControllerIntegrationTest extends BaseIntegrationTest {
                         .contentType("application/json")
                         .content(saveRequestJson(10L, "CHECKING", "EUR")))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void save_asClient_atTenAccounts_returnsConflict() throws Exception {
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        insertClient(10L, "Alice", "A", "W", "M", "1", "ID");
+        linkUserAccountToClient(1L, 10L);
+        for (long i = 1; i <= 10; i++) {
+            insertBankAccount(100L + i, "10000000000" + i, "CHECKING", "EUR", new BigDecimal("0.00"));
+            linkBankAccountToClient(100L + i, 10L);
+        }
+        String token = generateToken("alice", "CLIENT");
+
+        mockMvc.perform(post("/api/bank_account")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content(saveRequestJson(null, "CHECKING", "EUR")))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Bank account limit reached (10 per client)"));
     }
 
     @Test
