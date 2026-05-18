@@ -772,34 +772,41 @@ var DELETE_EMPLOYEE_BUTTON_HTML =
 // ============================================================
 
 function resetPasswordFor(inputId, errorId, buttonId, defaultButtonHtml, entityLabel) {
-    var accountId = $.trim($("#" + inputId).val());
+    var entityId = $.trim($("#" + inputId).val());
     $("#" + errorId).text("");
     $("#" + inputId).removeClass("invalid");
 
-    if (!accountId) {
-        $("#" + errorId).text("User Account ID is required");
+    if (!entityId) {
+        $("#" + errorId).text(entityLabel + " ID is required");
         $("#" + inputId).addClass("invalid");
         return;
     }
 
     var profileBase = (entityLabel === "Client") ? ManagementAPI.CLIENT : ManagementAPI.EMPLOYEE;
-    var profileUrl = profileBase + "/profile?userAccountId=" + encodeURIComponent(accountId);
+    var profileUrl = profileBase + "/" + encodeURIComponent(entityId) + "/profile";
 
     $("#" + buttonId).prop("disabled", true).html("Loading\u2026");
 
     ajax(profileUrl, "GET")
         .done(function (profile) {
             $("#" + buttonId).prop("disabled", false).html(defaultButtonHtml);
+
+            var userAccountId = profile.userAccountId;
+            if (!userAccountId) {
+                notify(entityLabel + " #" + entityId + " has no linked user account", "error");
+                return;
+            }
+
             var fullName = $.trim((profile.firstName || "") + " " + (profile.lastName || ""));
             var nameSuffix = fullName ? " (" + fullName + ")" : "";
 
             confirmAction(
                 "Reset " + entityLabel + " Password",
-                "Generate a new password for user account #" + accountId + nameSuffix + "? The current password will stop working immediately.",
+                "Generate a new password for " + entityLabel.toLowerCase() + " #" + entityId + nameSuffix + "? The current password will stop working immediately.",
                 function () {
                     $("#" + buttonId).prop("disabled", true).html("Resetting\u2026");
 
-                    ajax(ManagementAPI.USER_ACCOUNT + "/" + encodeURIComponent(accountId) + "/password/reset", "POST")
+                    ajax(ManagementAPI.USER_ACCOUNT + "/" + encodeURIComponent(userAccountId) + "/password/reset", "POST")
                         .done(function (response) {
                             notify("Password reset successfully", "success");
                             $("#" + inputId).val("");
@@ -812,7 +819,7 @@ function resetPasswordFor(inputId, errorId, buttonId, defaultButtonHtml, entityL
                             );
                         })
                         .fail(function (jqxhr) {
-                            console.error("[resetPasswordFor] POST " + ManagementAPI.USER_ACCOUNT + "/" + accountId + "/password/reset failed (entity=" + entityLabel + "):", jqxhr);
+                            console.error("[resetPasswordFor] POST " + ManagementAPI.USER_ACCOUNT + "/" + userAccountId + "/password/reset failed (entity=" + entityLabel + "):", jqxhr);
                             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                                 ? jqxhr.responseJSON.message
                                 : "Failed to reset password";
@@ -831,7 +838,7 @@ function resetPasswordFor(inputId, errorId, buttonId, defaultButtonHtml, entityL
             console.error("[resetPasswordFor] GET " + profileUrl + " failed (entity=" + entityLabel + "):", jqxhr);
             var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
                 ? jqxhr.responseJSON.message
-                : entityLabel + " not found for user account #" + accountId;
+                : entityLabel + " #" + entityId + " not found";
             notify(msg, "error");
         });
 }
