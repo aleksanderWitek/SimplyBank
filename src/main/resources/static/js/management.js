@@ -894,6 +894,9 @@ function applyRoleVisibility(role) {
         $("#tab-employees").removeClass("active").hide();
         $("#mgmtPageSubtitle").text("Manage clients");
 
+        // Password reset is admin-only on the backend; hide the card for employees.
+        $("#resetClientPasswordCard").hide();
+
         // If the employees tab was the active one for any reason, fall back to clients.
         if (!$(".mgmt-tab.active").is(":visible")) {
             $(".mgmt-tab").removeClass("active");
