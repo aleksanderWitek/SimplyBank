@@ -68,10 +68,14 @@ function copyCredentials() {
 
 var pendingConfirmCallback = null;
 
-function confirmAction(title, message, callback) {
+function confirmAction(title, message, callback, okLabel, okClass) {
     pendingConfirmCallback = callback;
     $("#confirmModalTitle").text(title);
     $("#confirmModalMessage").text(message);
+    var $ok = $("#confirmModalOk");
+    $ok.text(okLabel || "Delete");
+    $ok.removeClass("btn-danger btn-primary");
+    $ok.addClass(okClass || "btn-danger");
     $("#confirmModalOverlay").addClass("open");
 }
 
@@ -778,36 +782,58 @@ function resetPasswordFor(inputId, errorId, buttonId, defaultButtonHtml, entityL
         return;
     }
 
-    confirmAction(
-        "Reset " + entityLabel + " Password",
-        "Generate a new password for user account #" + accountId + "? The current password will stop working immediately.",
-        function () {
-            $("#" + buttonId).prop("disabled", true).html("Resetting\u2026");
+    var profileBase = (entityLabel === "Client") ? ManagementAPI.CLIENT : ManagementAPI.EMPLOYEE;
+    var profileUrl = profileBase + "/profile?userAccountId=" + encodeURIComponent(accountId);
 
-            ajax(ManagementAPI.USER_ACCOUNT + "/" + encodeURIComponent(accountId) + "/password/reset", "POST")
-                .done(function (response) {
-                    notify("Password reset successfully", "success");
-                    $("#" + inputId).val("");
-                    showCredentialsModal(
-                        entityLabel + " Password Reset",
-                        "Share the new password with the " + entityLabel.toLowerCase() + " \u2014 it will not be shown again.",
-                        response.login,
-                        response.newPassword,
-                        true
-                    );
-                })
-                .fail(function (jqxhr) {
-                    console.error("[resetPasswordFor] POST " + ManagementAPI.USER_ACCOUNT + "/" + accountId + "/password/reset failed (entity=" + entityLabel + "):", jqxhr);
-                    var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
-                        ? jqxhr.responseJSON.message
-                        : "Failed to reset password";
-                    notify(msg, "error");
-                })
-                .always(function () {
-                    $("#" + buttonId).prop("disabled", false).html(defaultButtonHtml);
-                });
-        }
-    );
+    $("#" + buttonId).prop("disabled", true).html("Loading\u2026");
+
+    ajax(profileUrl, "GET")
+        .done(function (profile) {
+            $("#" + buttonId).prop("disabled", false).html(defaultButtonHtml);
+            var fullName = $.trim((profile.firstName || "") + " " + (profile.lastName || ""));
+            var nameSuffix = fullName ? " (" + fullName + ")" : "";
+
+            confirmAction(
+                "Reset " + entityLabel + " Password",
+                "Generate a new password for user account #" + accountId + nameSuffix + "? The current password will stop working immediately.",
+                function () {
+                    $("#" + buttonId).prop("disabled", true).html("Resetting\u2026");
+
+                    ajax(ManagementAPI.USER_ACCOUNT + "/" + encodeURIComponent(accountId) + "/password/reset", "POST")
+                        .done(function (response) {
+                            notify("Password reset successfully", "success");
+                            $("#" + inputId).val("");
+                            showCredentialsModal(
+                                entityLabel + " Password Reset",
+                                "Share the new password with the " + entityLabel.toLowerCase() + " \u2014 it will not be shown again.",
+                                response.login,
+                                response.newPassword,
+                                true
+                            );
+                        })
+                        .fail(function (jqxhr) {
+                            console.error("[resetPasswordFor] POST " + ManagementAPI.USER_ACCOUNT + "/" + accountId + "/password/reset failed (entity=" + entityLabel + "):", jqxhr);
+                            var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
+                                ? jqxhr.responseJSON.message
+                                : "Failed to reset password";
+                            notify(msg, "error");
+                        })
+                        .always(function () {
+                            $("#" + buttonId).prop("disabled", false).html(defaultButtonHtml);
+                        });
+                },
+                "Reset",
+                "btn-primary"
+            );
+        })
+        .fail(function (jqxhr) {
+            $("#" + buttonId).prop("disabled", false).html(defaultButtonHtml);
+            console.error("[resetPasswordFor] GET " + profileUrl + " failed (entity=" + entityLabel + "):", jqxhr);
+            var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
+                ? jqxhr.responseJSON.message
+                : entityLabel + " not found for user account #" + accountId;
+            notify(msg, "error");
+        });
 }
 
 var RESET_BUTTON_HTML =
