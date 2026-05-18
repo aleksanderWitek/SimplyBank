@@ -6,7 +6,6 @@ import com.alex.dto.SaveBankAccountRequest;
 import com.alex.dto.UserAccount;
 import com.alex.exception.AccessDeniedRuntimeException;
 import com.alex.exception.BankAccountNotFoundRuntimeException;
-import com.alex.exception.IllegalArgumentRuntimeException;
 import com.alex.service.IBankAccountService;
 import com.alex.service.IClientService;
 import com.alex.service.UserOwnershipService;
@@ -40,20 +39,15 @@ public class BankAccountController {
                                                        Principal principal) {
         UserAccount currentUser = ownershipService.resolveCurrentUser(principal);
 
-        Long clientId;
-        if (ownershipService.isClient(currentUser)) {
-            // CLIENT can only create accounts for themselves; ignore any clientId from the body.
-            clientId = clientService.findProfileByUserAccountId(currentUser.getId())
-                    .map(ClientProfile::getClientId)
-                    .orElseThrow(() -> new AccessDeniedRuntimeException(
-                            "Current user is not linked to a client profile"));
-        } else {
-            // EMPLOYEE/ADMIN must specify which client the account is for.
-            clientId = request.getClientId();
-            if (clientId == null) {
-                throw new IllegalArgumentRuntimeException("clientId is required");
-            }
+        if (!ownershipService.isClient(currentUser)) {
+            throw new AccessDeniedRuntimeException(
+                    "Only clients can open bank accounts");
         }
+
+        Long clientId = clientService.findProfileByUserAccountId(currentUser.getId())
+                .map(ClientProfile::getClientId)
+                .orElseThrow(() -> new AccessDeniedRuntimeException(
+                        "Current user is not linked to a client profile"));
 
         BankAccount bankAccount = bankAccountService.save(
                 clientId, request.getBankAccountType(), request.getBankAccountCurrency());

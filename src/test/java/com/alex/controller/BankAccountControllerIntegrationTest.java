@@ -96,7 +96,7 @@ class BankAccountControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    void save_asEmployee_returnsCreated() throws Exception {
+    void save_asEmployee_isForbidden() throws Exception {
         insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
         insertClient(10L, "Alice", "A", "W", "M", "1", "ID");
         String token = generateToken("bob", "EMPLOYEE");
@@ -105,14 +105,12 @@ class BankAccountControllerIntegrationTest extends BaseIntegrationTest {
                         .header("Authorization", bearer(token))
                         .contentType("application/json")
                         .content(saveRequestJson(10L, "CHECKING", "EUR")))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.accountType").value("CHECKING"))
-                .andExpect(jsonPath("$.currency").value("EUR"))
-                .andExpect(jsonPath("$.balance").value(0));
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("Only clients can open bank accounts"));
     }
 
     @Test
-    void save_asAdmin_returnsCreated() throws Exception {
+    void save_asAdmin_isForbidden() throws Exception {
         insertUserAccount(3L, "carol", "Password1!", "ADMIN");
         insertClient(10L, "Alice", "A", "W", "M", "1", "ID");
         String token = generateToken("carol", "ADMIN");
@@ -121,34 +119,35 @@ class BankAccountControllerIntegrationTest extends BaseIntegrationTest {
                         .header("Authorization", bearer(token))
                         .contentType("application/json")
                         .content(saveRequestJson(10L, "SAVING", "USD")))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.accountType").value("SAVING"))
-                .andExpect(jsonPath("$.currency").value("USD"));
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("Only clients can open bank accounts"));
     }
 
     @Test
     void save_invalidType_returnsBadRequest() throws Exception {
-        insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
         insertClient(10L, "Alice", "A", "W", "M", "1", "ID");
-        String token = generateToken("bob", "EMPLOYEE");
+        linkUserAccountToClient(1L, 10L);
+        String token = generateToken("alice", "CLIENT");
 
         mockMvc.perform(post("/api/bank_account")
                         .header("Authorization", bearer(token))
                         .contentType("application/json")
-                        .content(saveRequestJson(10L, "INVALID", "EUR")))
+                        .content(saveRequestJson(null, "INVALID", "EUR")))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void save_invalidCurrency_returnsBadRequest() throws Exception {
-        insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
         insertClient(10L, "Alice", "A", "W", "M", "1", "ID");
-        String token = generateToken("bob", "EMPLOYEE");
+        linkUserAccountToClient(1L, 10L);
+        String token = generateToken("alice", "CLIENT");
 
         mockMvc.perform(post("/api/bank_account")
                         .header("Authorization", bearer(token))
                         .contentType("application/json")
-                        .content(saveRequestJson(10L, "CHECKING", "XYZ")))
+                        .content(saveRequestJson(null, "CHECKING", "XYZ")))
                 .andExpect(status().isBadRequest());
     }
 

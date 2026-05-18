@@ -1,7 +1,7 @@
 /**
  * SimplyBank — Management Page Controller
  *
- * Full CRUD management for Clients, Employees, and Bank Accounts.
+ * Full CRUD management for Clients and Employees.
  * Shared utilities (ajax, escapeHtml, notify, formatDate, etc.) are in common.js.
  */
 
@@ -12,7 +12,6 @@
 var ManagementAPI = {
     CLIENT:       "/api/client",
     EMPLOYEE:     "/api/employee",
-    BANK_ACCOUNT: "/api/bank_account",
     USER_ACCOUNT: "/api/user_account",
     AUTH_ME:      "/api/auth/me"
 };
@@ -828,112 +827,6 @@ function resetEmployeePassword() {
 }
 
 // ============================================================
-// BANK ACCOUNT: Create
-// ============================================================
-
-function validateBankAccountForm() {
-    var valid = true;
-
-    $(".field-error", "#createBankAccountForm").text("");
-    $(".field-input", "#createBankAccountForm").removeClass("invalid");
-
-    if (!$.trim($("#baClientId").val())) {
-        $("#baClientIdError").text("Client ID is required");
-        $("#baClientId").addClass("invalid");
-        valid = false;
-    }
-    if (!$("#baType").val()) {
-        $("#baTypeError").text("Account type is required");
-        $("#baType").addClass("invalid");
-        valid = false;
-    }
-    if (!$("#baCurrency").val()) {
-        $("#baCurrencyError").text("Currency is required");
-        $("#baCurrency").addClass("invalid");
-        valid = false;
-    }
-
-    return valid;
-}
-
-function submitCreateBankAccount() {
-    if (!validateBankAccountForm()) return;
-
-    var data = {
-        clientId:            parseInt($.trim($("#baClientId").val()), 10),
-        bankAccountType:     $("#baType").val(),
-        bankAccountCurrency: $("#baCurrency").val()
-    };
-
-    $("#btnCreateBankAccount").prop("disabled", true).html("Creating\u2026");
-
-    ajax(ManagementAPI.BANK_ACCOUNT, "POST", data)
-        .done(function () {
-            notify("Bank account created successfully", "success");
-            $("#createBankAccountForm")[0].reset();
-            $(".field-input", "#createBankAccountForm").removeClass("invalid");
-            $(".field-error", "#createBankAccountForm").text("");
-        })
-        .fail(function (jqxhr) {
-            console.error("[submitCreateBankAccount] POST " + ManagementAPI.BANK_ACCOUNT + " failed:", jqxhr);
-            var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
-                ? jqxhr.responseJSON.message
-                : "Failed to create bank account";
-            notify(msg, "error");
-        })
-        .always(function () {
-            $("#btnCreateBankAccount").prop("disabled", false).html(
-                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
-                    '<line x1="12" y1="5" x2="12" y2="19"/>' +
-                    '<line x1="5" y1="12" x2="19" y2="12"/>' +
-                '</svg> Create Account'
-            );
-        });
-}
-
-// ============================================================
-// BANK ACCOUNT: Delete
-// ============================================================
-
-function deleteBankAccount() {
-    var baId = $.trim($("#deleteBaId").val());
-    $("#deleteBaIdError").text("");
-    $("#deleteBaId").removeClass("invalid");
-
-    if (!baId) {
-        $("#deleteBaIdError").text("Bank Account ID is required");
-        $("#deleteBaId").addClass("invalid");
-        return;
-    }
-
-    confirmAction("Delete Bank Account", "Are you sure you want to delete bank account #" + baId + "? This action cannot be undone.", function () {
-        $("#btnDeleteBankAccount").prop("disabled", true).html("Deleting\u2026");
-
-        ajax(ManagementAPI.BANK_ACCOUNT + "/" + encodeURIComponent(baId), "DELETE")
-            .done(function () {
-                notify("Bank account deleted successfully", "success");
-                $("#deleteBaId").val("");
-                setTimeout(function () { window.location.reload(); }, 800);
-            })
-            .fail(function (jqxhr) {
-                console.error("[deleteBankAccount] DELETE " + ManagementAPI.BANK_ACCOUNT + "/" + baId + " failed:", jqxhr);
-                var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
-                    ? jqxhr.responseJSON.message
-                    : "Failed to delete bank account";
-                notify(msg, "error");
-            })
-            .always(function () {
-                $("#btnDeleteBankAccount").prop("disabled", false).html(
-                    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">' +
-                        '<polyline points="3 6 5 6 21 6"/>' +
-                        '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>' +
-                    '</svg> Delete Account'
-                );
-            });
-    });
-}
-
-// ============================================================
 // HELPERS
 // ============================================================
 
@@ -953,11 +846,29 @@ function loadCurrentUser() {
         .done(function (user) {
             renderUserHeader(user);
             initProfileLinks(user.id);
+            applyRoleVisibility((user.role || "").toUpperCase());
         })
         .fail(function (jqxhr) {
             console.error("[loadCurrentUser] GET " + ManagementAPI.AUTH_ME + " failed:", jqxhr);
             initProfileLinks();
         });
+}
+
+function applyRoleVisibility(role) {
+    if (role !== "ADMIN") {
+        // EMPLOYEE only manages clients; hide the Employees tab entirely.
+        $("#mgmtTabEmployees").hide();
+        $("#tab-employees").removeClass("active").hide();
+        $("#mgmtPageSubtitle").text("Manage clients");
+
+        // If the employees tab was the active one for any reason, fall back to clients.
+        if (!$(".mgmt-tab.active").is(":visible")) {
+            $(".mgmt-tab").removeClass("active");
+            $('.mgmt-tab[data-tab="clients"]').addClass("active");
+            $(".mgmt-tab-content").removeClass("active");
+            $("#tab-clients").addClass("active");
+        }
+    }
 }
 
 $(document).ready(function () {
@@ -995,13 +906,6 @@ $(document).ready(function () {
     // --- Password Reset ---
     $("#btnResetClientPassword").on("click", resetClientPassword);
     $("#btnResetEmpPassword").on("click", resetEmployeePassword);
-
-    // --- Bank Account ---
-    $("#createBankAccountForm").on("submit", function (e) {
-        e.preventDefault();
-        submitCreateBankAccount();
-    });
-    $("#btnDeleteBankAccount").on("click", deleteBankAccount);
 
     // --- Confirm Modal ---
     $("#confirmModalOk").on("click", function () {
