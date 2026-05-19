@@ -135,7 +135,7 @@ function renderAccountHero(account) {
     var currency      = (account.currency || "EUR").toUpperCase();
     var balance       = parseFloat(account.balance) || 0;
     var typeName      = formatAccountType(account.accountType);
-    var displayNumber = maskAccount(account.number);
+    var fullNumber    = account.number || "";
     var iconClass     = getTypeIconClass(account.accountType || "");
 
     var heroHtml =
@@ -146,9 +146,19 @@ function renderAccountHero(account) {
                 '</svg>' +
             '</div>' +
             '<div class="hero-info">' +
-                '<span class="hero-type">'     + escapeHtml(typeName)      + '</span>' +
-                '<span class="hero-number">'   + escapeHtml(displayNumber) + '</span>' +
-                '<span class="hero-currency">' + escapeHtml(currency)      + '</span>' +
+                '<span class="hero-type">'     + escapeHtml(typeName)   + '</span>' +
+                '<div class="hero-number-row">' +
+                    '<span class="hero-number" id="heroNumber">' + escapeHtml(fullNumber) + '</span>' +
+                    '<button type="button" class="hero-copy-btn" id="btnCopyNumber" ' +
+                            'data-number="' + escapeHtml(fullNumber) + '" ' +
+                            'title="Copy account number" aria-label="Copy account number">' +
+                        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                            '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>' +
+                            '<path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>' +
+                        '</svg>' +
+                    '</button>' +
+                '</div>' +
+                '<span class="hero-currency">' + escapeHtml(currency)   + '</span>' +
             '</div>' +
         '</div>' +
         '<div class="hero-right">' +
@@ -361,5 +371,31 @@ $(document).ready(function () {
         openDetail(txId);
     });
 
+    $(document).on("click", "#btnCopyNumber", function () {
+        var number = String($(this).data("number") || "");
+        if (!number) return;
+        copyToClipboard(number)
+            .then(function () { notify("Account number copied", "success"); })
+            .catch(function () { notify("Could not copy account number", "error"); });
+    });
+
     initModalClose();
 });
+
+function copyToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function (resolve, reject) {
+        var $ta = $('<textarea>').css({position: 'fixed', top: 0, left: 0, opacity: 0}).val(text).appendTo('body');
+        $ta[0].select();
+        try {
+            var ok = document.execCommand('copy');
+            $ta.remove();
+            ok ? resolve() : reject();
+        } catch (e) {
+            $ta.remove();
+            reject(e);
+        }
+    });
+}

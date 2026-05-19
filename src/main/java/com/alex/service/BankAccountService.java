@@ -26,6 +26,7 @@ public class BankAccountService implements IBankAccountService{
     private final IClientService clientService;
     private final SecureRandom secureRandom;
     private static final int MAX_GENERATION_ATTEMPTS = 100;
+    public static final int MAX_BANK_ACCOUNTS_PER_CLIENT = 10;
 
     public BankAccountService(IBankAccountRepository bankAccountRepository,
                               IBankAccountClientRepository bankAccountClientRepository, IClientService clientService, SecureRandom secureRandom) {
@@ -41,6 +42,12 @@ public class BankAccountService implements IBankAccountService{
         IdValidation.ensureIdPresent(clientId);
         BankAccountValidation.validateIfBankAccountTypeIsCorrect(bankAccountType, "Invalid bank account type");
         CurrencyValidation.validateIfCurrencyIsCorrect(bankAccountCurrency, "Invalid or not supported currency value");
+
+        int existing = bankAccountClientRepository.countActiveBankAccountsByClientIdForUpdate(clientId);
+        if (existing >= MAX_BANK_ACCOUNTS_PER_CLIENT) {
+            throw new IllegalStateRuntimeException(
+                    "Bank account limit reached (" + MAX_BANK_ACCOUNTS_PER_CLIENT + " per client)");
+        }
 
         BankAccountType accountType = BankAccountType.valueOf(bankAccountType);
         Currency currency = Currency.valueOf(bankAccountCurrency);

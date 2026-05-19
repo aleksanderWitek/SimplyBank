@@ -1,11 +1,13 @@
 package com.alex.controller;
 
 import com.alex.dto.BankAccount;
+import com.alex.dto.ClientProfile;
 import com.alex.dto.SaveBankAccountRequest;
 import com.alex.dto.UserAccount;
 import com.alex.exception.AccessDeniedRuntimeException;
 import com.alex.exception.BankAccountNotFoundRuntimeException;
 import com.alex.service.IBankAccountService;
+import com.alex.service.IClientService;
 import com.alex.service.UserOwnershipService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,17 +24,33 @@ public class BankAccountController {
 
     private final IBankAccountService bankAccountService;
     private final UserOwnershipService ownershipService;
+    private final IClientService clientService;
 
     public BankAccountController(IBankAccountService bankAccountService,
-                                 UserOwnershipService ownershipService) {
+                                 UserOwnershipService ownershipService,
+                                 IClientService clientService) {
         this.bankAccountService = bankAccountService;
         this.ownershipService = ownershipService;
+        this.clientService = clientService;
     }
 
     @PostMapping(consumes = "application/json")
-    public ResponseEntity<BankAccount> saveBankAccount(@RequestBody SaveBankAccountRequest request) {
+    public ResponseEntity<BankAccount> saveBankAccount(@RequestBody SaveBankAccountRequest request,
+                                                       Principal principal) {
+        UserAccount currentUser = ownershipService.resolveCurrentUser(principal);
+
+        if (!ownershipService.isClient(currentUser)) {
+            throw new AccessDeniedRuntimeException(
+                    "Only clients can open bank accounts");
+        }
+
+        Long clientId = clientService.findProfileByUserAccountId(currentUser.getId())
+                .map(ClientProfile::getClientId)
+                .orElseThrow(() -> new AccessDeniedRuntimeException(
+                        "Current user is not linked to a client profile"));
+
         BankAccount bankAccount = bankAccountService.save(
-                request.getClientId(), request.getBankAccountType(), request.getBankAccountCurrency());
+                clientId, request.getBankAccountType(), request.getBankAccountCurrency());
         return ResponseEntity.status(HttpStatus.CREATED).body(bankAccount);
     }
 

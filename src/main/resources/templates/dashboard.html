@@ -26,7 +26,7 @@
                 <a href="/" class="nav-link active">Dashboard</a>
                 <a href="/accounts" class="nav-link">Accounts</a>
                 <a href="/transactions" class="nav-link">Transactions</a>
-                <a href="/new-transaction" class="nav-link">Transfer</a>
+                <a href="/new-transaction" class="nav-link" id="navTransfer">Transfer</a>
                 <a href="/management" class="nav-link" id="navManagement" style="display:none;">Management</a>
             </nav>
             <div class="header-actions">
@@ -46,7 +46,7 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <div class="container">
+        <div class="container" id="clientDashboard">
             <!-- Welcome Section -->
             <section class="welcome-section">
                 <div>
@@ -286,6 +286,51 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- Staff Dashboard (EMPLOYEE / ADMIN) -->
+        <div class="container" id="staffDashboard" style="display:none;">
+            <section class="welcome-section">
+                <div>
+                    <h1 class="page-title" id="staffWelcomeTitle">Welcome back</h1>
+                    <p class="page-subtitle">Find accounts and transactions, or create new users from the management panel.</p>
+                </div>
+            </section>
+
+            <section class="quick-actions">
+                <h2 class="section-title">What would you like to do?</h2>
+                <div class="actions-grid" id="staffActionsGrid">
+                    <button class="action-card" type="button" id="staffActionFindAccounts">
+                        <div class="action-icon blue">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                                <line x1="2" y1="10" x2="22" y2="10"/>
+                            </svg>
+                        </div>
+                        <span class="action-label">Find accounts</span>
+                    </button>
+                    <button class="action-card" type="button" id="staffActionFindTransactions">
+                        <div class="action-icon green">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 9 6 9 18 15 18 15 6 21 6"/>
+                                <line x1="3" y1="12" x2="21" y2="12"/>
+                            </svg>
+                        </div>
+                        <span class="action-label">Find transactions</span>
+                    </button>
+                    <button class="action-card" type="button" id="staffActionCreateUser">
+                        <div class="action-icon purple">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                <circle cx="8.5" cy="7" r="4"/>
+                                <line x1="20" y1="8" x2="20" y2="14"/>
+                                <line x1="23" y1="11" x2="17" y2="11"/>
+                            </svg>
+                        </div>
+                        <span class="action-label">Create new user</span>
+                    </button>
                 </div>
             </section>
         </div>

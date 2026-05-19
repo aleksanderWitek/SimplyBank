@@ -227,6 +227,7 @@ function initManagementNav() {
             var role = (user.role || "").toUpperCase();
             if (role === "EMPLOYEE" || role === "ADMIN") {
                 $("#navManagement").show();
+                $("#navTransfer").hide();
             }
         })
         .fail(function (jqxhr) {

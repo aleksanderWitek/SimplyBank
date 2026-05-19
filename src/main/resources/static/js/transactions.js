@@ -218,6 +218,46 @@ function filterByAccountNumber() {
 }
 
 // ============================================================
+// FILTER BY TRANSACTION ID
+// ============================================================
+
+function filterByTransactionId() {
+    var raw = $.trim($("#filterTxId").val());
+
+    if (!raw) {
+        loadTransactions();
+        return;
+    }
+    if (!/^\d+$/.test(raw)) {
+        notify("Transaction ID must be numeric", "warning");
+        return;
+    }
+
+    showLoading(true);
+
+    ajax(TxListAPI.TRANSACTION + "/" + raw, "GET")
+        .done(function (tx) {
+            if (!tx) {
+                State.allTransactions = [];
+                applyFiltersAndRender();
+                notify("Transaction not found", "warning");
+                return;
+            }
+            State.allTransactions = [tx];
+            applyFiltersAndRender();
+        })
+        .fail(function (jqxhr) {
+            console.error("[filterByTransactionId] GET " + TxListAPI.TRANSACTION + "/" + raw + " failed:", jqxhr);
+            State.allTransactions = [];
+            applyFiltersAndRender();
+            var msg = (jqxhr.status === 404)
+                ? "No transaction found with ID " + raw
+                : "Failed to look up transaction";
+            notify(msg, jqxhr.status === 404 ? "warning" : "error");
+        });
+}
+
+// ============================================================
 // FILTERING & PAGINATION
 // ============================================================
 
@@ -423,6 +463,14 @@ $(document).ready(function () {
         if (e.key === "Enter") {
             e.preventDefault();
             filterByAccountNumber();
+        }
+    });
+
+    $("#btnFilterTxId").on("click", filterByTransactionId);
+    $("#filterTxId").on("keydown", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            filterByTransactionId();
         }
     });
 
