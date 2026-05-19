@@ -9,7 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping(path = "api/client", produces = "application/json; charset=UTF-8")
@@ -65,6 +67,12 @@ public class ClientController {
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<Void> deleteClientById(@PathVariable("id") Long id) {
         clientService.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(path = "/profile/delete", consumes = "application/json")
+    public ResponseEntity<Void> deleteOwnAccount(@RequestBody Map<String, String> body, Principal principal) {
+        clientService.deleteOwnAccount(principal, body.get("currentPassword"));
         return ResponseEntity.noContent().build();
     }
 

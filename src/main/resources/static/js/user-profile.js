@@ -17,15 +17,19 @@
 // ============================================================
 
 var ProfileAPI = {
-    USER_ACCOUNT:     "/api/user_account/{id}",
-    CLIENT_PROFILE:   "/api/client/profile?userAccountId={id}",
-    EMPLOYEE_PROFILE: "/api/employee/profile?userAccountId={id}",
-    ADMIN_PROFILE:    "/api/employee/admin-profile?userAccountId={id}",
-    UPDATE_PASSWORD:  "/api/user_account/{id}/password",
-    AUTH_ME:          "/api/auth/me"
+    USER_ACCOUNT:        "/api/user_account/{id}",
+    CLIENT_PROFILE:      "/api/client/profile?userAccountId={id}",
+    EMPLOYEE_PROFILE:    "/api/employee/profile?userAccountId={id}",
+    ADMIN_PROFILE:       "/api/employee/admin-profile?userAccountId={id}",
+    UPDATE_PASSWORD:     "/api/user_account/{id}/password",
+    DELETE_OWN_ACCOUNT:  "/api/client/profile/delete",
+    AUTH_ME:             "/api/auth/me"
 };
 
+var currentUserRole = null;
+
 var currentUserAccountId = null;
+var sessionUserAccountId = null;
 
 // ============================================================
 // INITIALIZATION
@@ -37,12 +41,24 @@ function getQueryParam(name) {
 }
 
 function init() {
-    var userId = getQueryParam("id");
-    if (userId) {
-        loadProfileByUserAccountId(userId);
-    } else {
-        loadProfile(ProfileAPI.AUTH_ME);
-    }
+    showLoading(true);
+
+    ajax(ProfileAPI.AUTH_ME, "GET")
+        .done(function (me) {
+            sessionUserAccountId = me.id;
+            var requestedId = getQueryParam("id");
+            var viewedId = requestedId ? Number(requestedId) : Number(sessionUserAccountId);
+            loadProfileByUserAccountId(viewedId);
+        })
+        .fail(function (jqxhr) {
+            console.error("[init] GET " + ProfileAPI.AUTH_ME + " failed:", jqxhr);
+            var requestedId = getQueryParam("id");
+            if (requestedId) {
+                loadProfileByUserAccountId(requestedId);
+            } else {
+                loadProfile(ProfileAPI.AUTH_ME);
+            }
+        });
 }
 
 // ============================================================
@@ -113,9 +129,25 @@ function loadProfile(url) {
 // ============================================================
 
 function renderProfile(profile) {
+    currentUserRole = (profile.role || "").toUpperCase();
     renderProfileHeader(profile);
     renderAccountInfo(profile);
     renderPersonalInfo(profile);
+    renderSecurityActions(profile);
+}
+
+function renderSecurityActions(profile) {
+    var role = (profile.role || "").toUpperCase();
+    var viewedUserAccountId = profile.userAccountId || profile.id || null;
+    var isOwnProfile = sessionUserAccountId != null
+        && viewedUserAccountId != null
+        && Number(sessionUserAccountId) === Number(viewedUserAccountId);
+
+    if (isOwnProfile && role === "CLIENT") {
+        $("#deleteAccountRow").show();
+    } else {
+        $("#deleteAccountRow").hide();
+    }
 }
 
 function renderProfileHeader(profile) {
@@ -329,10 +361,74 @@ function initPasswordModal() {
 }
 
 // ============================================================
+// ACCOUNT DELETION (Client self-service)
+// ============================================================
+
+function openDeleteAccountModal() {
+    $("#deleteForm")[0].reset();
+    $("#deleteCurrentPasswordError").text("");
+    $("#deleteCurrentPassword").removeClass("invalid");
+    $("#deleteModalOverlay").addClass("open");
+}
+
+function closeDeleteAccountModal() {
+    $("#deleteModalOverlay").removeClass("open");
+}
+
+function submitAccountDeletion() {
+    var currentPassword = $("#deleteCurrentPassword").val();
+    $("#deleteCurrentPasswordError").text("");
+    $("#deleteCurrentPassword").removeClass("invalid");
+
+    if (!currentPassword) {
+        $("#deleteCurrentPasswordError").text("Current password is required");
+        $("#deleteCurrentPassword").addClass("invalid");
+        return;
+    }
+
+    $("#btnDeleteSubmit").prop("disabled", true).text("Deleting…");
+
+    ajax(ProfileAPI.DELETE_OWN_ACCOUNT, "POST", { currentPassword: currentPassword })
+        .done(function () {
+            notify("Account deleted successfully", "success");
+            closeDeleteAccountModal();
+            setTimeout(function () { window.location.href = "/logout"; }, 800);
+        })
+        .fail(function (jqxhr) {
+            console.error("[submitAccountDeletion] POST " + ProfileAPI.DELETE_OWN_ACCOUNT + " failed:", jqxhr);
+            var msg = jqxhr.responseJSON && jqxhr.responseJSON.message
+                ? jqxhr.responseJSON.message
+                : "Failed to delete account";
+            $("#deleteCurrentPasswordError").text(msg);
+            $("#deleteCurrentPassword").addClass("invalid");
+            notify(msg, "error");
+            $("#btnDeleteSubmit").prop("disabled", false).text("Delete My Account");
+        });
+}
+
+function initDeleteAccountModal() {
+    $("#btnDeleteAccount").on("click", openDeleteAccountModal);
+    $("#deleteModalClose, #btnDeleteCancel").on("click", closeDeleteAccountModal);
+    $("#deleteModalOverlay").on("click", function (e) {
+        if (e.target === this) closeDeleteAccountModal();
+    });
+    $(document).on("keydown", function (e) {
+        if (e.key === "Escape" && $("#deleteModalOverlay").hasClass("open")) {
+            closeDeleteAccountModal();
+        }
+    });
+    $("#deleteForm").on("submit", function (e) {
+        e.preventDefault();
+        submitAccountDeletion();
+    });
+}
+
+// ============================================================
 // ENTRY POINT
 // ============================================================
 
 $(document).ready(function () {
     init();
     initPasswordModal();
+    initDeleteAccountModal();
 });

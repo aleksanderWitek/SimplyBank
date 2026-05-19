@@ -54,8 +54,10 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.GET, "/api/employee/profile").hasAnyRole("EMPLOYEE", "ADMIN")
                             .requestMatchers("/api/employee/**").hasRole("ADMIN")
 
-                            // Client API — profile for all authenticated, rest for staff
+                            // Client API — profile for all authenticated, self-delete for client, hard-delete admin-only, rest for staff
                             .requestMatchers(HttpMethod.GET, "/api/client/profile").authenticated()
+                            .requestMatchers(HttpMethod.POST, "/api/client/profile/delete").hasRole("CLIENT")
+                            .requestMatchers(HttpMethod.DELETE, "/api/client/**").hasRole("ADMIN")
                             .requestMatchers("/api/client/**").hasAnyRole("EMPLOYEE", "ADMIN")
 
                             // Bank Account API — read for all, create for all (clients can self-serve, controller binds clientId from principal), other writes for staff
