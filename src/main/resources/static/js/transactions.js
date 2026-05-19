@@ -31,7 +31,8 @@ var State = {
     totalPages: 1,
     currentUserId: null,
     currentUserBankAccountIds: [],
-    filterAccountNumber: ""
+    filterAccountNumber: "",
+    role: null
 };
 
 // ============================================================
@@ -63,6 +64,7 @@ function init() {
     ajax(TxListAPI.AUTH_ME, "GET")
         .done(function (user) {
             State.currentUserId = user.id;
+            State.role = (user.role || "").toUpperCase();
             renderUserHeader(user);
             initProfileLinks(user.id);
 
@@ -304,6 +306,12 @@ function renderPage() {
 // RENDER: Table Rows
 // ============================================================
 
+function buildStaffCounterpartyLabel(tx) {
+    var fromN = (tx.bankAccountFrom && tx.bankAccountFrom.number) || "—";
+    var toN   = (tx.bankAccountTo   && tx.bankAccountTo.number)   || "—";
+    return "From " + fromN + " → To " + toN;
+}
+
 function renderTransactionRows(transactions) {
     var $tbody = $("#transactionsBody");
 
@@ -319,6 +327,8 @@ function renderTransactionRows(transactions) {
     $("#emptyState").hide();
     $("#pagination").show();
 
+    var isStaff = State.role === "EMPLOYEE" || State.role === "ADMIN";
+
     var allRowsHtml = "";
     transactions.forEach(function (tx) {
         var dir       = tx._direction || getDirection(tx);
@@ -329,7 +339,9 @@ function renderTransactionRows(transactions) {
         var formatted = sign + formatCurrency(amount, currency);
         var status    = "completed";
 
-        var counterparty = buildCounterpartyLabel(tx, isIn);
+        var counterparty = isStaff
+            ? buildStaffCounterpartyLabel(tx)
+            : buildCounterpartyLabel(tx, isIn);
         var arrowSvg    = getDirectionArrowSvg(isIn, 20);
 
         allRowsHtml +=

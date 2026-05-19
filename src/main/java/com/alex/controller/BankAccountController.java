@@ -66,6 +66,44 @@ public class BankAccountController {
         return ResponseEntity.ok(bankAccount);
     }
 
+    @GetMapping(path = "/by-number/{number}")
+    public ResponseEntity<BankAccount> findBankAccountByNumber(@PathVariable("number") String number,
+                                                               Principal principal) {
+        UserAccount currentUser = ownershipService.resolveCurrentUser(principal);
+        if (ownershipService.isClient(currentUser)) {
+            throw new AccessDeniedRuntimeException("Only staff can search bank accounts by number");
+        }
+
+        BankAccount bankAccount = bankAccountService.findByNumber(number).orElseThrow(
+                () -> new BankAccountNotFoundRuntimeException(
+                        "There is no bank account with provided number:" + number));
+        return ResponseEntity.ok(bankAccount);
+    }
+
+    @GetMapping(path = "/by-client/{clientId}")
+    public ResponseEntity<List<BankAccount>> findBankAccountsByClientId(@PathVariable("clientId") Long clientId,
+                                                                       Principal principal) {
+        UserAccount currentUser = ownershipService.resolveCurrentUser(principal);
+        if (ownershipService.isClient(currentUser)) {
+            throw new AccessDeniedRuntimeException("Only staff can list bank accounts by client id");
+        }
+
+        List<BankAccount> bankAccounts = bankAccountService.findByClientId(clientId);
+        return ResponseEntity.ok(bankAccounts);
+    }
+
+    @GetMapping(path = "/{id}/owners")
+    public ResponseEntity<List<ClientProfile>> findOwnersOfBankAccount(@PathVariable("id") Long id,
+                                                                      Principal principal) {
+        UserAccount currentUser = ownershipService.resolveCurrentUser(principal);
+        if (ownershipService.isClient(currentUser)) {
+            throw new AccessDeniedRuntimeException("Only staff can view bank account owners");
+        }
+
+        List<ClientProfile> owners = bankAccountService.findOwnersByBankAccountId(id);
+        return ResponseEntity.ok(owners);
+    }
+
     @GetMapping
     public ResponseEntity<List<BankAccount>> findAllBankAccounts(Principal principal) {
         UserAccount currentUser = ownershipService.resolveCurrentUser(principal);

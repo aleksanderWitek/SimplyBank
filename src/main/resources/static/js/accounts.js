@@ -12,9 +12,13 @@
 
 var AccountsAPI = {
     BANK_ACCOUNT:     "/api/bank_account",
+    BY_NUMBER:        "/api/bank_account/by-number",
+    BY_CLIENT:        "/api/bank_account/by-client",
+    OWNERS_SUFFIX:    "/owners",
     TRANSACTION_FROM: "/api/transaction/bank_account_from",
     TRANSACTION_TO:   "/api/transaction/bank_account_to",
-    AUTH_ME:          "/api/auth/me"
+    AUTH_ME:          "/api/auth/me",
+    CLIENT:           "/api/client"
 };
 
 var MAX_ACCOUNTS_PER_CLIENT = 10;
@@ -57,6 +61,10 @@ function applyRoleVisibility() {
     }
 }
 
+function isStaff() {
+    return AccountsState.role === "EMPLOYEE" || AccountsState.role === "ADMIN";
+}
+
 // ============================================================
 // DATA LOADING
 // ============================================================
@@ -77,18 +85,6 @@ function loadAccounts() {
 
 function renderFilteredAccounts() {
     var list = AccountsState.allAccounts;
-
-    if (AccountsState.role === "EMPLOYEE" || AccountsState.role === "ADMIN") {
-        var q = $.trim($("#filterAccountNumber").val() || "");
-        if (q) {
-            list = list.filter(function (a) {
-                return (a.number || "").indexOf(q) !== -1;
-            });
-            $("#btnClearSearch").show();
-        } else {
-            $("#btnClearSearch").hide();
-        }
-    }
 
     $("#accountsList").empty();
     if (!list.length) {
@@ -236,6 +232,183 @@ function renderAccountRows(accounts) {
 }
 
 // ============================================================
+// STAFF SEARCH (by bank account number / by client id)
+// ============================================================
+
+function showStaffResults($html) {
+    $("#accountsList").hide();
+    $("#emptyState").hide();
+    $("#staffSearchResults").empty().append($html).show();
+    showLoading(false);
+}
+
+function clearStaffSearch() {
+    $("#filterAccountNumber").val("");
+    $("#filterClientId").val("");
+    $("#btnClearAccountNumber").hide();
+    $("#btnClearClientId").hide();
+    $("#staffSearchResults").empty().hide();
+    $("#emptyState").hide();
+
+    if (AccountsState.allAccounts.length) {
+        $("#accountsList").show();
+    } else {
+        $("#emptyState").show();
+    }
+}
+
+function searchByAccountNumber() {
+    var number = $.trim($("#filterAccountNumber").val() || "");
+    if (!number) {
+        clearStaffSearch();
+        return;
+    }
+    $("#filterClientId").val("");
+    $("#btnClearClientId").hide();
+
+    showLoading(true);
+    ajax(AccountsAPI.BY_NUMBER + "/" + encodeURIComponent(number), "GET")
+        .done(function (account) {
+            ajax(AccountsAPI.BANK_ACCOUNT + "/" + account.id + AccountsAPI.OWNERS_SUFFIX, "GET")
+                .done(function (owners) {
+                    var $card = buildAccountByNumberResult(account, Array.isArray(owners) ? owners : []);
+                    $("#btnClearAccountNumber").show();
+                    showStaffResults($card);
+                })
+                .fail(function (jqxhr) {
+                    console.error("[searchByAccountNumber] GET owners for account id=" + account.id + " failed:", jqxhr);
+                    var $card = buildAccountByNumberResult(account, []);
+                    $("#btnClearAccountNumber").show();
+                    showStaffResults($card);
+                });
+        })
+        .fail(function (jqxhr) {
+            showLoading(false);
+            if (jqxhr.status === 404) {
+                var $msg = $('<div class="staff-search-empty"></div>')
+                    .text("No bank account found with number: " + number);
+                $("#btnClearAccountNumber").show();
+                showStaffResults($msg);
+                notify("No bank account found with number: " + number, "warning");
+            } else {
+                console.error("[searchByAccountNumber] GET " + AccountsAPI.BY_NUMBER + "/" + number + " failed:", jqxhr);
+                notify("Failed to search bank account", "error");
+            }
+        });
+}
+
+function searchByClientId() {
+    var raw = $.trim($("#filterClientId").val() || "");
+    if (!raw) {
+        clearStaffSearch();
+        return;
+    }
+    if (!/^\d+$/.test(raw)) {
+        notify("Client ID must be numeric", "warning");
+        return;
+    }
+    $("#filterAccountNumber").val("");
+    $("#btnClearAccountNumber").hide();
+
+    showLoading(true);
+    var profileReq  = ajax(AccountsAPI.CLIENT + "/" + raw + "/profile", "GET");
+    var accountsReq = ajax(AccountsAPI.BY_CLIENT + "/" + raw, "GET");
+
+    $.when(profileReq, accountsReq)
+        .done(function (profileRes, accountsRes) {
+            var profile  = profileRes[0];
+            var accounts = Array.isArray(accountsRes[0]) ? accountsRes[0] : [];
+            var $card = buildAccountsByClientResult(profile, accounts);
+            $("#btnClearClientId").show();
+            showStaffResults($card);
+        })
+        .fail(function (jqxhr) {
+            showLoading(false);
+            if (jqxhr.status === 404) {
+                var $msg = $('<div class="staff-search-empty"></div>')
+                    .text("No client found with ID: " + raw);
+                $("#btnClearClientId").show();
+                showStaffResults($msg);
+                notify("No client found with ID: " + raw, "warning");
+            } else {
+                console.error("[searchByClientId] GET failed for clientId=" + raw + ":", jqxhr);
+                notify("Failed to look up client", "error");
+            }
+        });
+}
+
+function buildAccountByNumberResult(account, owners) {
+    var $card     = $('<div class="staff-search-card"></div>');
+    var $header   = $('<div class="staff-search-header"></div>');
+    var ownerLine = owners.length
+        ? owners.map(function (o) { return (o.firstName || "") + " " + (o.lastName || ""); }).join(", ")
+        : "Unknown owner";
+    $header.text("Owner: " + ownerLine);
+    $card.append($header);
+
+    var currency = (account.currency || "EUR").toUpperCase();
+    var balance  = parseFloat(account.balance) || 0;
+
+    var $row = $(
+        '<div class="staff-search-account">' +
+            '<div class="staff-search-account-info">' +
+                '<span class="staff-search-account-label">Account number</span>' +
+                '<span class="staff-search-account-number"></span>' +
+                '<span class="staff-search-account-type"></span>' +
+            '</div>' +
+            '<div class="staff-search-account-balance">' +
+                '<span class="staff-search-account-balance-label">Balance</span>' +
+                '<span class="staff-search-account-balance-value"></span>' +
+            '</div>' +
+        '</div>'
+    );
+    $row.find(".staff-search-account-number").text(account.number || "—");
+    $row.find(".staff-search-account-type").text(formatAccountType(account.accountType || ""));
+    $row.find(".staff-search-account-balance-value").text(formatCurrency(balance, currency) + " " + currency);
+    $card.append($row);
+    return $card;
+}
+
+function buildAccountsByClientResult(profile, accounts) {
+    var $card   = $('<div class="staff-search-card"></div>');
+    var $header = $('<div class="staff-search-header"></div>');
+    $header.text("Client: " + (profile.firstName || "") + " " + (profile.lastName || "") +
+                 " (ID " + profile.clientId + ")");
+    $card.append($header);
+
+    if (!accounts.length) {
+        $card.append($('<div class="staff-search-empty"></div>').text("This client has no bank accounts."));
+        return $card;
+    }
+
+    var $list = $('<div class="staff-search-accounts-list"></div>');
+    accounts.forEach(function (account) {
+        var currency = (account.currency || "EUR").toUpperCase();
+        var balance  = parseFloat(account.balance) || 0;
+
+        var $row = $(
+            '<div class="staff-search-account">' +
+                '<div class="staff-search-account-info">' +
+                    '<span class="staff-search-account-label">Account number</span>' +
+                    '<span class="staff-search-account-number"></span>' +
+                    '<span class="staff-search-account-type"></span>' +
+                '</div>' +
+                '<div class="staff-search-account-balance">' +
+                    '<span class="staff-search-account-balance-label">Balance</span>' +
+                    '<span class="staff-search-account-balance-value"></span>' +
+                '</div>' +
+            '</div>'
+        );
+        $row.find(".staff-search-account-number").text(account.number || "—");
+        $row.find(".staff-search-account-type").text(formatAccountType(account.accountType || ""));
+        $row.find(".staff-search-account-balance-value").text(formatCurrency(balance, currency) + " " + currency);
+        $list.append($row);
+    });
+    $card.append($list);
+    return $card;
+}
+
+// ============================================================
 // LOADING STATE
 // ============================================================
 
@@ -327,10 +500,17 @@ $(document).ready(function () {
     $("#newAccountType").on("change", toggleCurrencyRow);
     $("#createSubmit").on("click", submitCreateAccount);
 
-    // Staff account-number search
-    $("#filterAccountNumber").on("input", renderFilteredAccounts);
-    $("#btnClearSearch").on("click", function () {
-        $("#filterAccountNumber").val("");
-        renderFilteredAccounts();
+    // Staff search: by account number
+    $("#btnSearchAccountNumber").on("click", searchByAccountNumber);
+    $("#filterAccountNumber").on("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); searchByAccountNumber(); }
     });
+    $("#btnClearAccountNumber").on("click", clearStaffSearch);
+
+    // Staff search: by client id
+    $("#btnSearchClientId").on("click", searchByClientId);
+    $("#filterClientId").on("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); searchByClientId(); }
+    });
+    $("#btnClearClientId").on("click", clearStaffSearch);
 });

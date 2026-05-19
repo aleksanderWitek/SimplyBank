@@ -29,8 +29,10 @@ public class TransactionController {
     @PostMapping(path = "/transfer", consumes = "application/json")
     public ResponseEntity<Transaction> transfer(@RequestBody TransferRequest request, Principal principal) {
         UserAccount currentUser = ownershipService.resolveCurrentUser(principal);
-        if (ownershipService.isClient(currentUser)
-                && !ownershipService.ownsBankAccount(currentUser, request.getBankAccountFromId())) {
+        if (!ownershipService.isClient(currentUser)) {
+            throw new AccessDeniedRuntimeException("Only clients can transfer funds");
+        }
+        if (!ownershipService.ownsBankAccount(currentUser, request.getBankAccountFromId())) {
             throw new AccessDeniedRuntimeException("You do not have access to the source bank account");
         }
 
@@ -43,8 +45,10 @@ public class TransactionController {
     @PostMapping(path = "/deposit", consumes = "application/json")
     public ResponseEntity<Transaction> deposit(@RequestBody DepositRequest request, Principal principal) {
         UserAccount currentUser = ownershipService.resolveCurrentUser(principal);
-        if (ownershipService.isClient(currentUser)
-                && !ownershipService.ownsBankAccount(currentUser, request.getBankAccountToId())) {
+        if (!ownershipService.isClient(currentUser)) {
+            throw new AccessDeniedRuntimeException("Only clients can deposit funds");
+        }
+        if (!ownershipService.ownsBankAccount(currentUser, request.getBankAccountToId())) {
             throw new AccessDeniedRuntimeException("You do not have access to the target bank account");
         }
 
@@ -57,8 +61,10 @@ public class TransactionController {
     @PostMapping(path = "/withdraw", consumes = "application/json")
     public ResponseEntity<Transaction> withdraw(@RequestBody WithdrawRequest request, Principal principal) {
         UserAccount currentUser = ownershipService.resolveCurrentUser(principal);
-        if (ownershipService.isClient(currentUser)
-                && !ownershipService.ownsBankAccount(currentUser, request.getBankAccountFromId())) {
+        if (!ownershipService.isClient(currentUser)) {
+            throw new AccessDeniedRuntimeException("Only clients can withdraw funds");
+        }
+        if (!ownershipService.ownsBankAccount(currentUser, request.getBankAccountFromId())) {
             throw new AccessDeniedRuntimeException("You do not have access to the source bank account");
         }
 
