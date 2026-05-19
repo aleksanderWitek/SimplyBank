@@ -223,18 +223,6 @@ function loadAccountBalances() {
         });
 }
 
-function loadCurrentUser() {
-    ajax("/api/auth/me", "GET")
-        .done(function (user) {
-            DashboardRenderer.renderWelcome(user);
-            initProfileLinks(user.id);
-        })
-        .fail(function (jqxhr) {
-            console.error("[loadCurrentUser] GET /api/auth/me failed:", jqxhr);
-            initProfileLinks();
-        });
-}
-
 // ============================================================
 // QUICK ACTION HANDLERS
 // ============================================================
@@ -263,39 +251,69 @@ function initQuickActions() {
 // INITIALIZATION
 // ============================================================
 
-$(document).ready(function () {
-    loadCurrentUser();
-    loadAccountBalances();
+function renderStaffWelcome(user) {
+    if (user && user.firstName) {
+        $("#staffWelcomeTitle").text("Welcome back, " + user.firstName);
+    }
+    if (user && (user.firstName || user.lastName)) {
+        var initials = (user.firstName || "").charAt(0) + (user.lastName || "").charAt(0);
+        $(".user-avatar").text(initials.toUpperCase());
+        $(".user-name").text((user.firstName || "") + " " + (user.lastName || "").charAt(0) + ".");
+    }
+}
 
-    // Load transactions after we know the user role and bank accounts
+function initStaffActions() {
+    $("#staffActionFindAccounts").on("click", function () {
+        window.location.href = "/accounts";
+    });
+    $("#staffActionFindTransactions").on("click", function () {
+        window.location.href = "/transactions";
+    });
+    $("#staffActionCreateUser").on("click", function () {
+        window.location.href = "/management";
+    });
+}
+
+$(document).ready(function () {
     ajax("/api/auth/me", "GET")
         .done(function (user) {
             var role = (user.role || "").toUpperCase();
+            initProfileLinks(user.id);
+
             if (role === "EMPLOYEE" || role === "ADMIN") {
-                loadTransactions(role, []);
-            } else {
-                BankAccountService.findAll()
-                    .done(function (accounts) {
-                        loadTransactions(role, Array.isArray(accounts) ? accounts : []);
-                    })
-                    .fail(function (jqxhr) {
-                        console.error("[ready] BankAccountService.findAll failed for role=" + role + ", loading transactions with empty account list:", jqxhr);
-                        loadTransactions(role, []);
-                    });
+                $("#clientDashboard").hide();
+                $("#staffDashboard").show();
+                renderStaffWelcome(user);
+                initStaffActions();
+                return;
             }
+
+            // CLIENT: render the full client dashboard
+            DashboardRenderer.renderWelcome(user);
+            loadAccountBalances();
+            BankAccountService.findAll()
+                .done(function (accounts) {
+                    loadTransactions(role, Array.isArray(accounts) ? accounts : []);
+                })
+                .fail(function (jqxhr) {
+                    console.error("[ready] BankAccountService.findAll failed for role=" + role + ", loading transactions with empty account list:", jqxhr);
+                    loadTransactions(role, []);
+                });
+            initQuickActions();
+
+            $("#clientDashboard .btn-primary").on("click", function () {
+                window.location.href = "/new-transaction";
+            });
+            $("#clientDashboard .transactions-section .btn-secondary").on("click", function () {
+                window.location.href = "/transactions";
+            });
         })
         .fail(function (jqxhr) {
-            console.error("[ready] GET /api/auth/me failed, loading transactions without role context:", jqxhr);
+            console.error("[ready] GET /api/auth/me failed:", jqxhr);
+            initProfileLinks();
+            // Fall back to client dashboard rendering
+            loadAccountBalances();
             loadTransactions("", []);
+            initQuickActions();
         });
-
-    initQuickActions();
-
-    $(".btn-primary").on("click", function () {
-        window.location.href = "/new-transaction";
-    });
-
-    $(".transactions-section .btn-secondary").on("click", function () {
-        window.location.href = "/transactions";
-    });
 });

@@ -52,15 +52,14 @@
             <section class="page-header">
                 <div class="page-header-left">
                     <h1 class="page-title">Management</h1>
-                    <p class="page-subtitle">Manage clients, employees, and bank accounts</p>
+                    <p class="page-subtitle" id="mgmtPageSubtitle">Manage clients and employees</p>
                 </div>
             </section>
 
             <!-- Tab Navigation -->
             <div class="mgmt-tabs">
                 <button class="mgmt-tab active" data-tab="clients">Clients</button>
-                <button class="mgmt-tab" data-tab="employees">Employees</button>
-                <button class="mgmt-tab" data-tab="accounts">Bank Accounts</button>
+                <button class="mgmt-tab" data-tab="employees" id="mgmtTabEmployees">Employees</button>
             </div>
 
             <!-- ============================================================
@@ -296,7 +295,7 @@
                 </section>
 
                 <!-- Reset Client Password -->
-                <section class="mgmt-card">
+                <section class="mgmt-card" id="resetClientPasswordCard">
                     <div class="mgmt-card-header">
                         <div class="mgmt-card-icon blue">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -309,8 +308,8 @@
                     </div>
                     <div class="form-grid">
                         <div class="field-group">
-                            <label class="field-label" for="resetClientAccountId">User Account ID <span class="req">*</span></label>
-                            <input class="field-input" type="number" id="resetClientAccountId" placeholder="Enter user account ID">
+                            <label class="field-label" for="resetClientAccountId">Client ID <span class="req">*</span></label>
+                            <input class="field-input" type="number" id="resetClientAccountId" placeholder="Enter client ID">
                             <div class="field-error" id="resetClientAccountIdError"></div>
                         </div>
                     </div>
@@ -532,8 +531,8 @@
                     </div>
                     <div class="form-grid">
                         <div class="field-group">
-                            <label class="field-label" for="resetEmpAccountId">User Account ID <span class="req">*</span></label>
-                            <input class="field-input" type="number" id="resetEmpAccountId" placeholder="Enter user account ID">
+                            <label class="field-label" for="resetEmpAccountId">Employee ID <span class="req">*</span></label>
+                            <input class="field-input" type="number" id="resetEmpAccountId" placeholder="Enter employee ID">
                             <div class="field-error" id="resetEmpAccountIdError"></div>
                         </div>
                     </div>
@@ -544,99 +543,6 @@
                                 <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                             </svg>
                             Reset Password
-                        </button>
-                    </div>
-                </section>
-
-            </div>
-
-            <!-- ============================================================
-                 BANK ACCOUNTS TAB
-                 ============================================================ -->
-            <div class="mgmt-tab-content" id="tab-accounts">
-
-                <!-- Create Bank Account -->
-                <section class="mgmt-card">
-                    <div class="mgmt-card-header">
-                        <div class="mgmt-card-icon purple">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-                                <line x1="1" y1="10" x2="23" y2="10"/>
-                            </svg>
-                        </div>
-                        <h2 class="mgmt-card-title">Create Bank Account</h2>
-                        <p class="mgmt-card-desc">Open a new bank account for an existing client</p>
-                    </div>
-                    <form id="createBankAccountForm" autocomplete="off">
-                        <div class="form-grid">
-                            <div class="field-group">
-                                <label class="field-label" for="baClientId">Client ID <span class="req">*</span></label>
-                                <input class="field-input" type="number" id="baClientId" placeholder="Enter client ID" required>
-                                <div class="field-error" id="baClientIdError"></div>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label" for="baType">Account Type <span class="req">*</span></label>
-                                <select class="field-input" id="baType" required>
-                                    <option value="">Select type</option>
-                                    <option value="CHECKING">Checking</option>
-                                    <option value="SAVING">Saving</option>
-                                    <option value="BUSINESS">Business</option>
-                                    <option value="FOREIGN_CURRENCY">Foreign Currency</option>
-                                </select>
-                                <div class="field-error" id="baTypeError"></div>
-                            </div>
-                            <div class="field-group">
-                                <label class="field-label" for="baCurrency">Currency <span class="req">*</span></label>
-                                <select class="field-input" id="baCurrency" required>
-                                    <option value="">Select currency</option>
-                                    <option value="PLN">PLN</option>
-                                    <option value="EUR">EUR</option>
-                                    <option value="GBP">GBP</option>
-                                    <option value="USD">USD</option>
-                                </select>
-                                <div class="field-error" id="baCurrencyError"></div>
-                            </div>
-                        </div>
-                        <div class="form-actions">
-                            <button class="btn btn-primary btn-purple" id="btnCreateBankAccount" type="submit">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="12" y1="5" x2="12" y2="19"/>
-                                    <line x1="5" y1="12" x2="19" y2="12"/>
-                                </svg>
-                                Create Account
-                            </button>
-                        </div>
-                    </form>
-                </section>
-
-                <!-- Delete Bank Account -->
-                <section class="mgmt-card">
-                    <div class="mgmt-card-header">
-                        <div class="mgmt-card-icon red">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="3 6 5 6 21 6"/>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                                <line x1="10" y1="11" x2="10" y2="17"/>
-                                <line x1="14" y1="11" x2="14" y2="17"/>
-                            </svg>
-                        </div>
-                        <h2 class="mgmt-card-title">Delete Bank Account</h2>
-                        <p class="mgmt-card-desc">Permanently close and remove a bank account</p>
-                    </div>
-                    <div class="form-grid">
-                        <div class="field-group">
-                            <label class="field-label" for="deleteBaId">Bank Account ID <span class="req">*</span></label>
-                            <input class="field-input" type="number" id="deleteBaId" placeholder="Enter bank account ID">
-                            <div class="field-error" id="deleteBaIdError"></div>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn btn-danger" id="btnDeleteBankAccount" type="button">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="3 6 5 6 21 6"/>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                            </svg>
-                            Delete Account
                         </button>
                     </div>
                 </section>
