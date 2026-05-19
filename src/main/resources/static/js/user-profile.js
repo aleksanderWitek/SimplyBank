@@ -29,7 +29,7 @@ var ProfileAPI = {
 var currentUserRole = null;
 
 var currentUserAccountId = null;
-var isOwnProfileView = false;
+var sessionUserAccountId = null;
 
 // ============================================================
 // INITIALIZATION
@@ -41,14 +41,24 @@ function getQueryParam(name) {
 }
 
 function init() {
-    var userId = getQueryParam("id");
-    if (userId) {
-        isOwnProfileView = false;
-        loadProfileByUserAccountId(userId);
-    } else {
-        isOwnProfileView = true;
-        loadProfile(ProfileAPI.AUTH_ME);
-    }
+    showLoading(true);
+
+    ajax(ProfileAPI.AUTH_ME, "GET")
+        .done(function (me) {
+            sessionUserAccountId = me.id;
+            var requestedId = getQueryParam("id");
+            var viewedId = requestedId ? Number(requestedId) : Number(sessionUserAccountId);
+            loadProfileByUserAccountId(viewedId);
+        })
+        .fail(function (jqxhr) {
+            console.error("[init] GET " + ProfileAPI.AUTH_ME + " failed:", jqxhr);
+            var requestedId = getQueryParam("id");
+            if (requestedId) {
+                loadProfileByUserAccountId(requestedId);
+            } else {
+                loadProfile(ProfileAPI.AUTH_ME);
+            }
+        });
 }
 
 // ============================================================
@@ -128,7 +138,12 @@ function renderProfile(profile) {
 
 function renderSecurityActions(profile) {
     var role = (profile.role || "").toUpperCase();
-    if (isOwnProfileView && role === "CLIENT") {
+    var viewedUserAccountId = profile.userAccountId || profile.id || null;
+    var isOwnProfile = sessionUserAccountId != null
+        && viewedUserAccountId != null
+        && Number(sessionUserAccountId) === Number(viewedUserAccountId);
+
+    if (isOwnProfile && role === "CLIENT") {
         $("#deleteAccountRow").show();
     } else {
         $("#deleteAccountRow").hide();
