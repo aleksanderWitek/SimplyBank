@@ -5,16 +5,21 @@ import com.alex.dto.Client;
 import com.alex.dto.ClientCreationResponse;
 import com.alex.dto.ClientProfile;
 import com.alex.dto.UserAccount;
+import com.alex.exception.ClientNotFoundRuntimeException;
 import com.alex.exception.UserAccountNotFoundRuntimeException;
 import com.alex.repository.IBankAccountClientRepository;
 import com.alex.repository.IClientRepository;
 import com.alex.repository.IUserAccountClientRepository;
+import com.alex.repository.IUserAccountRepository;
 import com.alex.service.validation.ClientValidation;
 import com.alex.service.validation.IdValidation;
+import com.alex.service.validation.PasswordValidation;
 import com.alex.service.validation.UserAccountValidation;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -26,15 +31,21 @@ public class ClientService implements IClientService {
     private final IUserAccountClientRepository userAccountClientRepository;
     private final IBankAccountClientRepository bankAccountClientRepository;
     private final IUserAccountService userAccountService;
+    private final IUserAccountRepository userAccountRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public ClientService(IClientRepository clientRepository,
                          IUserAccountClientRepository userAccountClientRepository,
                          IBankAccountClientRepository bankAccountClientRepository,
-                         IUserAccountService userAccountService) {
+                         IUserAccountService userAccountService,
+                         IUserAccountRepository userAccountRepository,
+                         PasswordEncoder passwordEncoder) {
         this.clientRepository = clientRepository;
         this.userAccountClientRepository = userAccountClientRepository;
         this.bankAccountClientRepository = bankAccountClientRepository;
         this.userAccountService = userAccountService;
+        this.userAccountRepository = userAccountRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
@@ -90,6 +101,20 @@ public class ClientService implements IClientService {
         userAccountClientRepository.unlinkUserAccountFromClient(userAccountId, id);
         userAccountService.deleteById(userAccountId);
         clientRepository.deleteById(id);
+    }
+
+    @Transactional
+    @Override
+    public void deleteOwnAccount(Principal principal, String currentPassword) {
+        UserAccount userAccount = userAccountRepository.findByLogin(principal.getName())
+                .orElseThrow(() -> new UserAccountNotFoundRuntimeException(
+                        "There is no User Account for login:" + principal.getName()));
+        PasswordValidation.authenticatePassword(currentPassword, userAccount.getPassword(), passwordEncoder);
+
+        Long clientId = userAccountClientRepository.findClientIdByUserAccountId(userAccount.getId())
+                .orElseThrow(() -> new ClientNotFoundRuntimeException(
+                        "There is no Client linked to User Account with id:" + userAccount.getId()));
+        deleteById(clientId);
     }
 
     @Transactional(readOnly = true)

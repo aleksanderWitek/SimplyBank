@@ -108,6 +108,13 @@
                         </div>
                         <button class="btn-change-password" id="btnChangePassword" type="button">Change Password</button>
                     </div>
+                    <div class="security-row security-row-danger" id="deleteAccountRow" style="display:none;">
+                        <div class="security-info">
+                            <span class="security-label">Delete Account</span>
+                            <span class="security-hint">Permanently remove your account and all associated data</span>
+                        </div>
+                        <button class="btn-delete-account" id="btnDeleteAccount" type="button">Delete Account</button>
+                    </div>
                 </section>
 
             </div>
@@ -147,6 +154,32 @@
                 <div class="pwd-modal-actions">
                     <button class="btn-pwd-cancel" id="btnPwdCancel" type="button">Cancel</button>
                     <button class="btn-pwd-submit" id="btnPwdSubmit" type="submit">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="pwd-modal-overlay" id="deleteModalOverlay">
+        <div class="pwd-modal">
+            <div class="pwd-modal-header">
+                <h3 class="pwd-modal-title">Delete Account</h3>
+                <button class="pwd-modal-close" id="deleteModalClose" type="button">&times;</button>
+            </div>
+            <p class="delete-modal-warning">
+                This will permanently delete your account and unlink all your bank accounts.
+                <strong>This action cannot be undone.</strong>
+                Enter your current password to confirm.
+            </p>
+            <form id="deleteForm" autocomplete="off">
+                <div class="pwd-field-group">
+                    <label class="pwd-label" for="deleteCurrentPassword">Current Password <span class="req">*</span></label>
+                    <input class="pwd-input" type="password" id="deleteCurrentPassword" name="deleteCurrentPassword" required>
+                    <div class="pwd-field-error" id="deleteCurrentPasswordError"></div>
+                </div>
+                <div class="pwd-modal-actions">
+                    <button class="btn-pwd-cancel" id="btnDeleteCancel" type="button">Cancel</button>
+                    <button class="btn-delete-submit" id="btnDeleteSubmit" type="submit">Delete My Account</button>
                 </div>
             </form>
         </div>
