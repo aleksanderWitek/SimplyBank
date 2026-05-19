@@ -48,4 +48,15 @@ public class UserAccountClientRepository implements IUserAccountClientRepository
         List<Long> results = jdbcTemplate.queryForList(query, Long.class, clientId);
         return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
+
+    @Override
+    public Optional<Long> findClientIdByUserAccountId(Long userAccountId) {
+        String query = """
+                SELECT client_id
+                FROM user_account_client
+                WHERE user_account_id = ? AND delete_date IS NULL
+                """;
+        List<Long> results = jdbcTemplate.queryForList(query, Long.class, userAccountId);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
+    }
 }
