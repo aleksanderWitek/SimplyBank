@@ -617,3 +617,126 @@ body {
         padding: 10px 12px;
     }
 }
+/* ============================================================
+   Staff Search (by account number / client id)
+   ============================================================ */
+#accountSearchWrap {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+#accountSearchWrap .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: stretch;
+}
+#accountSearchWrap .filter-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--gray-400);
+}
+#accountSearchWrap .filter-input-group {
+    display: flex;
+    gap: 0;
+}
+#accountSearchWrap .filter-input {
+    width: 220px;
+    border-radius: var(--radius-md, 8px) 0 0 var(--radius-md, 8px);
+}
+#accountSearchWrap .filter-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--blue-600);
+    color: var(--white);
+    border: 1px solid var(--blue-600);
+    border-radius: 0 var(--radius-md, 8px) var(--radius-md, 8px) 0;
+    padding: 0 14px;
+    cursor: pointer;
+    transition: background .15s;
+}
+#accountSearchWrap .filter-btn:hover {
+    background: var(--blue-500);
+}
+#accountSearchWrap .btn-secondary {
+    margin-top: 6px;
+    align-self: flex-start;
+}
+
+#staffSearchResults {
+    margin-top: 8px;
+}
+.staff-search-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-md, 12px);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+.staff-search-header {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-900);
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--gray-100);
+}
+.staff-search-accounts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.staff-search-account {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 16px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-100);
+    border-radius: var(--radius-sm, 8px);
+}
+.staff-search-account-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.staff-search-account-label,
+.staff-search-account-balance-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray-400);
+}
+.staff-search-account-number {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 15px;
+    color: var(--gray-900);
+    font-weight: 600;
+}
+.staff-search-account-type {
+    font-size: 12px;
+    color: var(--gray-500);
+}
+.staff-search-account-balance {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-end;
+}
+.staff-search-account-balance-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+.staff-search-empty {
+    padding: 16px;
+    color: var(--gray-500);
+    font-size: 14px;
+    text-align: center;
+}

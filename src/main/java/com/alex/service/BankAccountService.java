@@ -3,6 +3,7 @@ package com.alex.service;
 import com.alex.BankAccountType;
 import com.alex.Currency;
 import com.alex.dto.BankAccount;
+import com.alex.dto.ClientProfile;
 import com.alex.exception.IllegalStateRuntimeException;
 import com.alex.repository.IBankAccountClientRepository;
 import com.alex.repository.IBankAccountRepository;
@@ -105,6 +106,41 @@ public class BankAccountService implements IBankAccountService{
     @Override
     public List<BankAccount> findAll() {
         return bankAccountRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public Optional<BankAccount> findByNumber(String number) {
+        if (number == null || number.isBlank()) {
+            return Optional.empty();
+        }
+        return bankAccountRepository.findByNumber(number);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<BankAccount> findByClientId(Long clientId) {
+        IdValidation.ensureIdPresent(clientId);
+        List<Long> accountIds = bankAccountClientRepository
+                .findBankAccountsIdLinkedToClientByClientId(clientId);
+        return accountIds.stream()
+                .map(bankAccountRepository::findById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<ClientProfile> findOwnersByBankAccountId(Long bankAccountId) {
+        IdValidation.ensureIdPresent(bankAccountId);
+        List<Long> clientIds = bankAccountClientRepository
+                .findClientsIdLinkedToBankAccountByBankAccountId(bankAccountId);
+        return clientIds.stream()
+                .map(clientService::findProfileById)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Transactional

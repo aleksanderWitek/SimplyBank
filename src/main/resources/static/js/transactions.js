@@ -31,7 +31,8 @@ var State = {
     totalPages: 1,
     currentUserId: null,
     currentUserBankAccountIds: [],
-    filterAccountNumber: ""
+    filterAccountNumber: "",
+    role: null
 };
 
 // ============================================================
@@ -63,8 +64,15 @@ function init() {
     ajax(TxListAPI.AUTH_ME, "GET")
         .done(function (user) {
             State.currentUserId = user.id;
+            State.role = (user.role || "").toUpperCase();
             renderUserHeader(user);
             initProfileLinks(user.id);
+
+            if (isStaff()) {
+                applyStaffPageChrome();
+                showStaffSearchPrompt();
+                return;
+            }
 
             loadUserBankAccounts(user.id)
                 .always(function () {
@@ -76,6 +84,24 @@ function init() {
             initProfileLinks();
             loadTransactions();
         });
+}
+
+function isStaff() {
+    return State.role === "EMPLOYEE" || State.role === "ADMIN";
+}
+
+function applyStaffPageChrome() {
+    $(".page-subtitle").text("Look up transactions by ID or bank account number");
+    $(".summary-strip").hide();
+}
+
+function showStaffSearchPrompt() {
+    showLoading(false);
+    $(".transactions-table-wrapper").hide();
+    $("#pagination").hide();
+    $("#emptyState").show()
+        .find(".empty-title").text("Search to view transactions").end()
+        .find(".empty-subtitle").text("Use the Account or Transaction # filter above");
 }
 
 function loadUserBankAccounts(userId) {
@@ -158,10 +184,15 @@ function filterByAccountNumber() {
     State.filterAccountNumber = accountNumber;
 
     if (!accountNumber) {
-        // Reset to normal view — reload user's transactions
-        loadTransactions();
+        if (isStaff()) {
+            State.allTransactions = [];
+            showStaffSearchPrompt();
+        } else {
+            loadTransactions();
+        }
         return;
     }
+    $("#filterTxId").val("");
 
     showLoading(true);
 
@@ -225,13 +256,19 @@ function filterByTransactionId() {
     var raw = $.trim($("#filterTxId").val());
 
     if (!raw) {
-        loadTransactions();
+        if (isStaff()) {
+            State.allTransactions = [];
+            showStaffSearchPrompt();
+        } else {
+            loadTransactions();
+        }
         return;
     }
     if (!/^\d+$/.test(raw)) {
         notify("Transaction ID must be numeric", "warning");
         return;
     }
+    $("#filterAccount").val("");
 
     showLoading(true);
 
@@ -304,13 +341,22 @@ function renderPage() {
 // RENDER: Table Rows
 // ============================================================
 
+function buildStaffCounterpartyLabel(tx) {
+    var fromN = (tx.bankAccountFrom && tx.bankAccountFrom.number) || "—";
+    var toN   = (tx.bankAccountTo   && tx.bankAccountTo.number)   || "—";
+    return "From " + fromN + " → To " + toN;
+}
+
 function renderTransactionRows(transactions) {
     var $tbody = $("#transactionsBody");
 
     if (!transactions || transactions.length === 0) {
         $tbody.empty();
         $(".transactions-table-wrapper").hide();
-        $("#emptyState").show();
+        $("#emptyState")
+            .show()
+            .find(".empty-title").text("No transactions found").end()
+            .find(".empty-subtitle").text("Adjust your filters or check back later");
         $("#pagination").hide();
         return;
     }
@@ -318,6 +364,8 @@ function renderTransactionRows(transactions) {
     $(".transactions-table-wrapper").show();
     $("#emptyState").hide();
     $("#pagination").show();
+
+    var isStaff = State.role === "EMPLOYEE" || State.role === "ADMIN";
 
     var allRowsHtml = "";
     transactions.forEach(function (tx) {
@@ -329,7 +377,9 @@ function renderTransactionRows(transactions) {
         var formatted = sign + formatCurrency(amount, currency);
         var status    = "completed";
 
-        var counterparty = buildCounterpartyLabel(tx, isIn);
+        var counterparty = isStaff
+            ? buildStaffCounterpartyLabel(tx)
+            : buildCounterpartyLabel(tx, isIn);
         var arrowSvg    = getDirectionArrowSvg(isIn, 20);
 
         allRowsHtml +=
