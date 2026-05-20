@@ -47,7 +47,11 @@ function init() {
             initProfileLinks();
         })
         .always(function () {
-            loadAccounts();
+            if (isStaff()) {
+                showStaffSearchPrompt();
+            } else {
+                loadAccounts();
+            }
         });
 }
 
@@ -58,7 +62,20 @@ function applyRoleVisibility() {
     } else if (AccountsState.role === "EMPLOYEE" || AccountsState.role === "ADMIN") {
         $("#createAccountWrap").hide();
         $("#accountSearchWrap").css("display", "flex");
+        $("#pageTitle").text("Accounts");
+        $("#pageSubtitle").text("Look up bank accounts by number or by client ID");
     }
+}
+
+function showStaffSearchPrompt() {
+    showLoading(false);
+    $("#accountsList").hide();
+    $("#emptyState").hide();
+    $("#staffSearchResults")
+        .empty()
+        .append($('<div class="staff-search-empty"></div>')
+            .text("Search by bank account number or client ID to view accounts."))
+        .show();
 }
 
 function isStaff() {
@@ -247,14 +264,7 @@ function clearStaffSearch() {
     $("#filterClientId").val("");
     $("#btnClearAccountNumber").hide();
     $("#btnClearClientId").hide();
-    $("#staffSearchResults").empty().hide();
-    $("#emptyState").hide();
-
-    if (AccountsState.allAccounts.length) {
-        $("#accountsList").show();
-    } else {
-        $("#emptyState").show();
-    }
+    showStaffSearchPrompt();
 }
 
 function searchByAccountNumber() {

@@ -68,6 +68,12 @@ function init() {
             renderUserHeader(user);
             initProfileLinks(user.id);
 
+            if (isStaff()) {
+                applyStaffPageChrome();
+                showStaffSearchPrompt();
+                return;
+            }
+
             loadUserBankAccounts(user.id)
                 .always(function () {
                     loadTransactions();
@@ -78,6 +84,24 @@ function init() {
             initProfileLinks();
             loadTransactions();
         });
+}
+
+function isStaff() {
+    return State.role === "EMPLOYEE" || State.role === "ADMIN";
+}
+
+function applyStaffPageChrome() {
+    $(".page-subtitle").text("Look up transactions by ID or bank account number");
+    $(".summary-strip").hide();
+}
+
+function showStaffSearchPrompt() {
+    showLoading(false);
+    $(".transactions-table-wrapper").hide();
+    $("#pagination").hide();
+    $("#emptyState").show()
+        .find(".empty-title").text("Search to view transactions").end()
+        .find(".empty-subtitle").text("Use the Account or Transaction # filter above");
 }
 
 function loadUserBankAccounts(userId) {
@@ -160,10 +184,15 @@ function filterByAccountNumber() {
     State.filterAccountNumber = accountNumber;
 
     if (!accountNumber) {
-        // Reset to normal view — reload user's transactions
-        loadTransactions();
+        if (isStaff()) {
+            State.allTransactions = [];
+            showStaffSearchPrompt();
+        } else {
+            loadTransactions();
+        }
         return;
     }
+    $("#filterTxId").val("");
 
     showLoading(true);
 
@@ -227,13 +256,19 @@ function filterByTransactionId() {
     var raw = $.trim($("#filterTxId").val());
 
     if (!raw) {
-        loadTransactions();
+        if (isStaff()) {
+            State.allTransactions = [];
+            showStaffSearchPrompt();
+        } else {
+            loadTransactions();
+        }
         return;
     }
     if (!/^\d+$/.test(raw)) {
         notify("Transaction ID must be numeric", "warning");
         return;
     }
+    $("#filterAccount").val("");
 
     showLoading(true);
 
@@ -318,7 +353,10 @@ function renderTransactionRows(transactions) {
     if (!transactions || transactions.length === 0) {
         $tbody.empty();
         $(".transactions-table-wrapper").hide();
-        $("#emptyState").show();
+        $("#emptyState")
+            .show()
+            .find(".empty-title").text("No transactions found").end()
+            .find(".empty-subtitle").text("Adjust your filters or check back later");
         $("#pagination").hide();
         return;
     }
