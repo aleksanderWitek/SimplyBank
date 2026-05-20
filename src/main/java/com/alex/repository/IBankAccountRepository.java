@@ -9,6 +9,7 @@ import java.util.Optional;
 public interface IBankAccountRepository {
     Long save(BankAccount bankAccount);
     Optional<BankAccount> findById(Long id);
+    Optional<BankAccount> findByNumber(String number);
     Optional<BankAccount> findByIdForUpdate(Long id);
     List<BankAccount> findAll();
     void addToBalance(Long id, BigDecimal amount);

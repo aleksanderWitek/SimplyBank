@@ -51,8 +51,8 @@
             <!-- Page Header -->
             <section class="page-header">
                 <div class="page-header-left">
-                    <h1 class="page-title">My Accounts</h1>
-                    <p class="page-subtitle">Overview of all your bank accounts and activity</p>
+                    <h1 class="page-title" id="pageTitle">My Accounts</h1>
+                    <p class="page-subtitle" id="pageSubtitle">Overview of all your bank accounts and activity</p>
                 </div>
                 <div class="page-header-right">
                     <!-- Client-only: create button + limit notice -->
@@ -67,11 +67,34 @@
                             Bank accounts limit reached (10).
                         </span>
                     </div>
-                    <!-- Staff-only: account number search -->
-                    <div id="accountSearchWrap" class="filter-group" style="display:none;">
-                        <input type="text" id="filterAccountNumber" class="filter-input"
-                               placeholder="Search by account number" autocomplete="off">
-                        <button id="btnClearSearch" class="btn-secondary" type="button" style="display:none;">Clear</button>
+                    <!-- Staff-only: search by account number OR client id -->
+                    <div id="accountSearchWrap" style="display:none;">
+                        <div class="filter-group">
+                            <label for="filterAccountNumber" class="filter-label">Account</label>
+                            <div class="filter-input-group">
+                                <input type="text" id="filterAccountNumber" class="filter-input"
+                                       placeholder="Search by account number" autocomplete="off">
+                                <button class="filter-btn" id="btnSearchAccountNumber" type="button" title="Search">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <button id="btnClearAccountNumber" class="btn-secondary" type="button" style="display:none;">Clear</button>
+                        </div>
+                        <div class="filter-group">
+                            <label for="filterClientId" class="filter-label">Client&nbsp;ID</label>
+                            <div class="filter-input-group">
+                                <input type="text" id="filterClientId" class="filter-input"
+                                       placeholder="Search by client ID" inputmode="numeric" autocomplete="off">
+                                <button class="filter-btn" id="btnSearchClientId" type="button" title="Search">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <button id="btnClearClientId" class="btn-secondary" type="button" style="display:none;">Clear</button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -94,6 +117,11 @@
 
             <!-- Accounts List -->
             <section class="accounts-list" id="accountsList" style="display:none;">
+                <!-- Populated by JS -->
+            </section>
+
+            <!-- Staff search results (account-by-number or client-by-id) -->
+            <section id="staffSearchResults" style="display:none;">
                 <!-- Populated by JS -->
             </section>
 

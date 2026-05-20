@@ -53,6 +53,24 @@ public class BankAccountRepository implements IBankAccountRepository {
     }
 
     @Override
+    public Optional<BankAccount> findByNumber(String number) {
+        String query = """
+                SELECT ba.id,
+                ba.number,
+                ba.account_type,
+                ba.currency,
+                ba.balance,
+                ba.create_date,
+                ba.modify_date,
+                ba.delete_date
+                FROM bank_account AS ba
+                WHERE ba.number = ? AND ba.delete_date IS NULL
+                """;
+        List<BankAccount> results = jdbcTemplate.query(query, new BankAccountRowMapper(), number);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
+    }
+
+    @Override
     public Optional<BankAccount> findByIdForUpdate(Long id) {
         String query = """
                 SELECT ba.id,

@@ -60,18 +60,23 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.DELETE, "/api/client/**").hasRole("ADMIN")
                             .requestMatchers("/api/client/**").hasAnyRole("EMPLOYEE", "ADMIN")
 
-                            // Bank Account API — read for all, create for all (clients can self-serve, controller binds clientId from principal), other writes for staff
+                            // Bank Account API — staff-only lookup endpoints first, then general read for all, then create
+                            .requestMatchers(HttpMethod.GET, "/api/bank_account/by-number/**").hasAnyRole("EMPLOYEE", "ADMIN")
+                            .requestMatchers(HttpMethod.GET, "/api/bank_account/by-client/**").hasAnyRole("EMPLOYEE", "ADMIN")
+                            .requestMatchers(HttpMethod.GET, "/api/bank_account/*/owners").hasAnyRole("EMPLOYEE", "ADMIN")
                             .requestMatchers(HttpMethod.GET, "/api/bank_account/**").authenticated()
                             .requestMatchers(HttpMethod.POST, "/api/bank_account").authenticated()
                             .requestMatchers("/api/bank_account/**").hasAnyRole("EMPLOYEE", "ADMIN")
 
-                            // Transaction API — GET all is staff-only, per-account and POST for all
+                            // Transaction API — GET all is staff-only; funds movement is CLIENT-only
                             .requestMatchers(HttpMethod.GET, "/api/transaction/bank_account_from/**").authenticated()
                             .requestMatchers(HttpMethod.GET, "/api/transaction/bank_account_to/**").authenticated()
                             .requestMatchers(HttpMethod.GET, "/api/transaction/between_bank_accounts").authenticated()
                             .requestMatchers(HttpMethod.GET, "/api/transaction/{id}").authenticated()
                             .requestMatchers(HttpMethod.GET, "/api/transaction").hasAnyRole("EMPLOYEE", "ADMIN")
-                            .requestMatchers(HttpMethod.POST, "/api/transaction/**").authenticated()
+                            .requestMatchers(HttpMethod.POST, "/api/transaction/transfer").hasRole("CLIENT")
+                            .requestMatchers(HttpMethod.POST, "/api/transaction/deposit").hasRole("CLIENT")
+                            .requestMatchers(HttpMethod.POST, "/api/transaction/withdraw").hasRole("CLIENT")
 
                             // User Account API — list all and admin password reset are admin-only, rest authenticated
                             .requestMatchers(HttpMethod.GET, "/api/user_account").hasRole("ADMIN")
