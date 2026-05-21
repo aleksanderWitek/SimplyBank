@@ -33,6 +33,16 @@ public class TransactionValidation {
         }
     }
 
+    public static void validateDailyDepositLimit(BigDecimal alreadyDepositedToday,
+                                                 BigDecimal amount,
+                                                 BigDecimal dailyLimit) {
+        if (alreadyDepositedToday.add(amount).compareTo(dailyLimit) > 0) {
+            throw new IllegalStateRuntimeException(
+                    "Daily deposit limit of " + dailyLimit.toPlainString()
+                            + " exceeded. Already deposited today: " + alreadyDepositedToday.toPlainString());
+        }
+    }
+
     public static void validateCurrencyMatch(BankAccount account, String currency) {
         if (currency == null || account.getCurrency() == null) {
             return;
