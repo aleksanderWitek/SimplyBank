@@ -48,13 +48,14 @@ public class TransactionController {
         if (!ownershipService.isClient(currentUser)) {
             throw new AccessDeniedRuntimeException("Only clients can deposit funds");
         }
-        if (!ownershipService.ownsBankAccount(currentUser, request.getBankAccountToId())) {
+        Set<Long> ownedIds = ownershipService.getOwnedBankAccountIds(currentUser);
+        if (!ownedIds.contains(request.getBankAccountToId())) {
             throw new AccessDeniedRuntimeException("You do not have access to the target bank account");
         }
 
         Transaction transaction = transactionService.deposit(
                 request.getBankAccountToId(), request.getAmount(),
-                request.getCurrency(), request.getDescription());
+                request.getCurrency(), request.getDescription(), ownedIds);
         return ResponseEntity.status(HttpStatus.CREATED).body(transaction);
     }
 
