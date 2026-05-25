@@ -54,6 +54,18 @@ function getDirection(tx) {
     return amt >= 0 ? "incoming" : "outgoing";
 }
 
+function isInternalTransfer(tx) {
+    var userIds = State.currentUserBankAccountIds;
+    if (!userIds || userIds.length === 0) return false;
+
+    var fromId = (tx.bankAccountFrom && tx.bankAccountFrom.id) || null;
+    var toId   = (tx.bankAccountTo   && tx.bankAccountTo.id)   || null;
+
+    return fromId !== null && toId !== null
+        && userIds.indexOf(fromId) !== -1
+        && userIds.indexOf(toId)   !== -1;
+}
+
 // ============================================================
 // DATA LOADING
 // ============================================================
@@ -414,6 +426,7 @@ function renderSummary(list) {
     var outTotal = 0;
 
     list.forEach(function (tx) {
+        if (isInternalTransfer(tx)) return;
         var amt = Math.abs(parseFloat(tx.amount) || 0);
         if (tx._direction === "incoming") inTotal  += amt;
         else                              outTotal += amt;
