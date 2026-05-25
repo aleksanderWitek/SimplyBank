@@ -9,24 +9,30 @@ import com.alex.repository.ITransactionRepository;
 import com.alex.service.validation.CurrencyValidation;
 import com.alex.service.validation.IdValidation;
 import com.alex.service.validation.TransactionValidation;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class TransactionService implements ITransactionService {
 
     private final ITransactionRepository transactionRepository;
     private final IBankAccountService bankAccountService;
+    private final BigDecimal dailyDepositLimit;
 
     public TransactionService(ITransactionRepository transactionRepository,
-                              IBankAccountService bankAccountService) {
+                              IBankAccountService bankAccountService,
+                              @Value("${bank.deposit.daily-limit}") BigDecimal dailyDepositLimit) {
         this.transactionRepository = transactionRepository;
         this.bankAccountService = bankAccountService;
+        this.dailyDepositLimit = dailyDepositLimit;
     }
 
     @Transactional
@@ -75,7 +81,8 @@ public class TransactionService implements ITransactionService {
     @Transactional
     @Override
     public Transaction deposit(Long bankAccountToId, BigDecimal amount,
-                               String currency, String description) {
+                               String currency, String description,
+                               Set<Long> ownerBankAccountIds) {
         validateInputData(bankAccountToId, amount, currency, description);
 
         BankAccount bankAccountTo = bankAccountService.findByIdForUpdate(bankAccountToId)
@@ -83,6 +90,12 @@ public class TransactionService implements ITransactionService {
                         "Bank account not found with id: " + bankAccountToId));
 
         TransactionValidation.validateCurrencyMatch(bankAccountTo, currency);
+
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime startOfNextDay = startOfDay.plusDays(1);
+        BigDecimal depositedToday = transactionRepository.sumDepositsForAccountsBetween(
+                ownerBankAccountIds, startOfDay, startOfNextDay);
+        TransactionValidation.validateDailyDepositLimit(depositedToday, amount, dailyDepositLimit);
 
         bankAccountService.addToBalance(bankAccountToId, amount);
 

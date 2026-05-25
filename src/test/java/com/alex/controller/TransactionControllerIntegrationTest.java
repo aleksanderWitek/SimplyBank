@@ -190,6 +190,115 @@ class TransactionControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    void deposit_exceedingDailyLimitOnSameAccount_returnsConflict() throws Exception {
+        setupAliceWithAccount(1L, 10L, 100L, new BigDecimal("0.00"), "PLN", "alice");
+        String token = generateToken("alice", "CLIENT");
+
+        // First deposit: 600 PLN — succeeds
+        String first = objectMapper.writeValueAsString(Map.of(
+                "bankAccountToId", 100L, "amount", 600.00,
+                "currency", "PLN", "description", "x"));
+        mockMvc.perform(post("/api/transaction/deposit")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content(first))
+                .andExpect(status().isCreated());
+
+        // Second deposit: 500 PLN — 600 + 500 = 1100 > 1000 → 409
+        String second = objectMapper.writeValueAsString(Map.of(
+                "bankAccountToId", 100L, "amount", 500.00,
+                "currency", "PLN", "description", "x"));
+        mockMvc.perform(post("/api/transaction/deposit")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content(second))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Daily deposit limit")));
+
+        assertThat(balanceOf(100L)).isEqualByComparingTo("600.00");
+    }
+
+    @Test
+    void deposit_exceedingDailyLimitAcrossCurrenciesAndAccounts_returnsConflict() throws Exception {
+        // Alice owns a PLN account (100) and an EUR account (200). 600 PLN + 500 EUR > 1000.
+        setupAliceWithAccount(1L, 10L, 100L, new BigDecimal("0.00"), "PLN", "alice");
+        insertBankAccount(200L, "100000000002", "CHECKING", "EUR", new BigDecimal("0.00"));
+        linkBankAccountToClient(200L, 10L);
+        String token = generateToken("alice", "CLIENT");
+
+        String first = objectMapper.writeValueAsString(Map.of(
+                "bankAccountToId", 100L, "amount", 600.00,
+                "currency", "PLN", "description", "x"));
+        mockMvc.perform(post("/api/transaction/deposit")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content(first))
+                .andExpect(status().isCreated());
+
+        String second = objectMapper.writeValueAsString(Map.of(
+                "bankAccountToId", 200L, "amount", 500.00,
+                "currency", "EUR", "description", "x"));
+        mockMvc.perform(post("/api/transaction/deposit")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content(second))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("Daily deposit limit")));
+
+        assertThat(balanceOf(200L)).isEqualByComparingTo("0.00");
+    }
+
+    @Test
+    void deposit_atDailyLimitBoundary_succeeds() throws Exception {
+        setupAliceWithAccount(1L, 10L, 100L, new BigDecimal("0.00"), "PLN", "alice");
+        String token = generateToken("alice", "CLIENT");
+
+        String first = objectMapper.writeValueAsString(Map.of(
+                "bankAccountToId", 100L, "amount", 400.00,
+                "currency", "PLN", "description", "x"));
+        mockMvc.perform(post("/api/transaction/deposit")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content(first))
+                .andExpect(status().isCreated());
+
+        // 400 + 600 = 1000 exactly → still allowed
+        String second = objectMapper.writeValueAsString(Map.of(
+                "bankAccountToId", 100L, "amount", 600.00,
+                "currency", "PLN", "description", "x"));
+        mockMvc.perform(post("/api/transaction/deposit")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content(second))
+                .andExpect(status().isCreated());
+
+        assertThat(balanceOf(100L)).isEqualByComparingTo("1000.00");
+    }
+
+    @Test
+    void deposit_yesterdayDoesNotCountTowardsTodaysLimit() throws Exception {
+        setupAliceWithAccount(1L, 10L, 100L, new BigDecimal("0.00"), "PLN", "alice");
+        // Backdated DEPOSIT row: 800 yesterday should not count against today's bucket.
+        jdbcTemplate.update(
+                "INSERT INTO transaction (transaction_type, currency, amount, bank_account_id_from, bank_account_id_to, description, create_date)"
+                        + " VALUES ('DEPOSIT', 'PLN', 800.00, NULL, ?, 'yesterday', ?)",
+                100L, java.sql.Timestamp.valueOf(LocalDateTime.now().minusDays(1)));
+
+        String token = generateToken("alice", "CLIENT");
+        String body = objectMapper.writeValueAsString(Map.of(
+                "bankAccountToId", 100L, "amount", 900.00,
+                "currency", "PLN", "description", "today"));
+        mockMvc.perform(post("/api/transaction/deposit")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content(body))
+                .andExpect(status().isCreated());
+
+        // Balance: 800 (backdated row only inserted the transaction, didn't touch balance) + 900 today
+        assertThat(balanceOf(100L)).isEqualByComparingTo("900.00");
+    }
+
+    @Test
     void deposit_asEmployee_updatesAnyAccount() throws Exception {
         insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
         insertBankAccount(100L, "100000000001", "CHECKING", "EUR", new BigDecimal("50.00"));

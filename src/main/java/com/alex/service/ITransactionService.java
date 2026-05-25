@@ -5,10 +5,11 @@ import com.alex.dto.Transaction;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface ITransactionService {
     Transaction transfer(Long bankAccountFromId, Long bankAccountToId, BigDecimal amount, String currency, String description);
-    Transaction deposit(Long bankAccountToId, BigDecimal amount, String currency, String description);
+    Transaction deposit(Long bankAccountToId, BigDecimal amount, String currency, String description, Set<Long> ownerBankAccountIds);
     Transaction withdraw(Long bankAccountFromId, BigDecimal amount, String currency, String description);
     Optional<Transaction> findById(Long id);
     List<Transaction> findAll();

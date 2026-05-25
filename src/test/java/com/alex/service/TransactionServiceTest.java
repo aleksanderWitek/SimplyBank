@@ -10,10 +10,10 @@ import com.alex.exception.IllegalArgumentRuntimeException;
 import com.alex.exception.IllegalStateRuntimeException;
 import com.alex.exception.NullPointerRuntimeException;
 import com.alex.repository.ITransactionRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -21,10 +21,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -33,10 +35,17 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class TransactionServiceTest {
 
+    private static final BigDecimal DAILY_LIMIT = new BigDecimal("1000");
+
     @Mock private ITransactionRepository transactionRepository;
     @Mock private IBankAccountService bankAccountService;
 
-    @InjectMocks private TransactionService service;
+    private TransactionService service;
+
+    @BeforeEach
+    void setUp() {
+        service = new TransactionService(transactionRepository, bankAccountService, DAILY_LIMIT);
+    }
 
     private static BankAccount account(Long id, BigDecimal balance, Currency currency) {
         return new BankAccount(id, "num-" + id, BankAccountType.CHECKING, currency,
@@ -181,20 +190,20 @@ class TransactionServiceTest {
 
     @Test
     void deposit_nullId_throwsNullPointerRuntimeException() {
-        assertThatThrownBy(() -> service.deposit(null, BigDecimal.TEN, "EUR", "d"))
+        assertThatThrownBy(() -> service.deposit(null, BigDecimal.TEN, "EUR", "d", Set.of(1L)))
                 .isInstanceOf(NullPointerRuntimeException.class);
     }
 
     @Test
     void deposit_invalidCurrency_throwsIllegalArgumentRuntimeException() {
-        assertThatThrownBy(() -> service.deposit(1L, BigDecimal.TEN, "XYZ", "d"))
+        assertThatThrownBy(() -> service.deposit(1L, BigDecimal.TEN, "XYZ", "d", Set.of(1L)))
                 .isInstanceOf(IllegalArgumentRuntimeException.class);
     }
 
     @Test
     void deposit_accountNotFound_throwsBankAccountNotFoundRuntimeException() {
         when(bankAccountService.findByIdForUpdate(1L)).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> service.deposit(1L, BigDecimal.TEN, "EUR", "d"))
+        assertThatThrownBy(() -> service.deposit(1L, BigDecimal.TEN, "EUR", "d", Set.of(1L)))
                 .isInstanceOf(BankAccountNotFoundRuntimeException.class);
     }
 
@@ -203,7 +212,7 @@ class TransactionServiceTest {
         when(bankAccountService.findByIdForUpdate(1L))
                 .thenReturn(Optional.of(account(1L, BigDecimal.TEN, Currency.USD)));
 
-        assertThatThrownBy(() -> service.deposit(1L, BigDecimal.TEN, "EUR", "d"))
+        assertThatThrownBy(() -> service.deposit(1L, BigDecimal.TEN, "EUR", "d", Set.of(1L)))
                 .isInstanceOf(IllegalArgumentRuntimeException.class)
                 .hasMessageContaining("Currency mismatch");
     }
@@ -212,9 +221,11 @@ class TransactionServiceTest {
     void deposit_happyPath_addsToBalanceAndSavesTransaction() {
         BankAccount to = account(1L, new BigDecimal("50.00"), Currency.EUR);
         when(bankAccountService.findByIdForUpdate(1L)).thenReturn(Optional.of(to));
+        when(transactionRepository.sumDepositsForAccountsBetween(eq(Set.of(1L)), any(), any()))
+                .thenReturn(BigDecimal.ZERO);
         when(transactionRepository.save(any(Transaction.class))).thenReturn(5L);
 
-        Transaction result = service.deposit(1L, new BigDecimal("20.00"), "EUR", null);
+        Transaction result = service.deposit(1L, new BigDecimal("20.00"), "EUR", null, Set.of(1L));
 
         assertThat(result.getId()).isEqualTo(5L);
         assertThat(result.getTransactionType()).isEqualTo(TransactionType.DEPOSIT);
@@ -223,6 +234,49 @@ class TransactionServiceTest {
 
         verify(bankAccountService).addToBalance(1L, new BigDecimal("20.00"));
         verify(bankAccountService, never()).subtractFromBalance(any(), any());
+    }
+
+    @Test
+    void deposit_atDailyLimitBoundary_succeeds() {
+        BankAccount to = account(1L, new BigDecimal("0.00"), Currency.EUR);
+        when(bankAccountService.findByIdForUpdate(1L)).thenReturn(Optional.of(to));
+        when(transactionRepository.sumDepositsForAccountsBetween(eq(Set.of(1L)), any(), any()))
+                .thenReturn(new BigDecimal("400"));
+        when(transactionRepository.save(any(Transaction.class))).thenReturn(5L);
+
+        Transaction result = service.deposit(1L, new BigDecimal("600"), "EUR", null, Set.of(1L));
+
+        assertThat(result.getAmount()).isEqualByComparingTo("600");
+        verify(bankAccountService).addToBalance(1L, new BigDecimal("600"));
+    }
+
+    @Test
+    void deposit_exceedsDailyLimit_throwsIllegalStateRuntimeException() {
+        BankAccount to = account(1L, new BigDecimal("0.00"), Currency.EUR);
+        when(bankAccountService.findByIdForUpdate(1L)).thenReturn(Optional.of(to));
+        when(transactionRepository.sumDepositsForAccountsBetween(eq(Set.of(1L)), any(), any()))
+                .thenReturn(new BigDecimal("999"));
+
+        assertThatThrownBy(() -> service.deposit(1L, new BigDecimal("2"), "EUR", null, Set.of(1L)))
+                .isInstanceOf(IllegalStateRuntimeException.class)
+                .hasMessageContaining("Daily deposit limit");
+
+        verify(bankAccountService, never()).addToBalance(any(), any());
+        verify(transactionRepository, never()).save(any());
+    }
+
+    @Test
+    void deposit_aggregatesAcrossOwnedAccountsRegardlessOfCurrency() {
+        // Two accounts owned by the same client. Sum across both already used 600 today (whatever the currency),
+        // so a 500 deposit on either must be rejected.
+        BankAccount to = account(2L, new BigDecimal("0.00"), Currency.USD);
+        when(bankAccountService.findByIdForUpdate(2L)).thenReturn(Optional.of(to));
+        when(transactionRepository.sumDepositsForAccountsBetween(eq(Set.of(1L, 2L)), any(), any()))
+                .thenReturn(new BigDecimal("600"));
+
+        assertThatThrownBy(() -> service.deposit(2L, new BigDecimal("500"), "USD", null, Set.of(1L, 2L)))
+                .isInstanceOf(IllegalStateRuntimeException.class)
+                .hasMessageContaining("Daily deposit limit");
     }
 
     // withdraw ------------------------------------------------------------------------------------
