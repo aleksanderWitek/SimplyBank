@@ -26,7 +26,7 @@ function ajax(url, method, data) {
 
 function formatCurrency(amount, currency) {
     currency = (currency || "EUR").toUpperCase();
-    const symbols = { EUR: "\u20AC", USD: "$", GBP: "\u00A3" };
+    const symbols = { EUR: "\u20AC", USD: "$", GBP: "\u00A3", PLN: "z\u0142 " };
     const sym = symbols[currency] || currency + " ";
     return sym + Math.abs(parseFloat(amount) || 0).toLocaleString("en-IE", {
         minimumFractionDigits: 2,
