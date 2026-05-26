@@ -2,7 +2,9 @@ package com.alex.controller;
 
 import com.alex.dto.*;
 import com.alex.exception.AccessDeniedRuntimeException;
+import com.alex.exception.BankAccountNotFoundRuntimeException;
 import com.alex.exception.TransactionNotFoundRuntimeException;
+import com.alex.service.IBankAccountService;
 import com.alex.service.ITransactionService;
 import com.alex.service.UserOwnershipService;
 import org.springframework.http.HttpStatus;
@@ -18,11 +20,14 @@ import java.util.Set;
 public class TransactionController {
 
     private final ITransactionService transactionService;
+    private final IBankAccountService bankAccountService;
     private final UserOwnershipService ownershipService;
 
     public TransactionController(ITransactionService transactionService,
+                                 IBankAccountService bankAccountService,
                                  UserOwnershipService ownershipService) {
         this.transactionService = transactionService;
+        this.bankAccountService = bankAccountService;
         this.ownershipService = ownershipService;
     }
 
@@ -36,8 +41,19 @@ public class TransactionController {
             throw new AccessDeniedRuntimeException("You do not have access to the source bank account");
         }
 
+        Long toId = request.getBankAccountToId();
+        if (toId == null) {
+            String toNumber = request.getBankAccountToNumber();
+            if (toNumber != null && !toNumber.isBlank()) {
+                toId = bankAccountService.findByNumber(toNumber)
+                        .orElseThrow(() -> new BankAccountNotFoundRuntimeException(
+                                "Bank account not found with number: " + toNumber))
+                        .getId();
+            }
+        }
+
         Transaction transaction = transactionService.transfer(
-                request.getBankAccountFromId(), request.getBankAccountToId(),
+                request.getBankAccountFromId(), toId,
                 request.getAmount(), request.getCurrency(), request.getDescription());
         return ResponseEntity.status(HttpStatus.CREATED).body(transaction);
     }

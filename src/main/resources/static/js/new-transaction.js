@@ -644,8 +644,8 @@ function buildPayload() {
             base.bankAccountFromId = parseInt(FormState.fromAccountId);
             break;
         case "PAYMENT":
-            base.bankAccountFromId     = parseInt(FormState.fromAccountId);
-            base.externalAccountNumber = FormState.externalAccount;
+            base.bankAccountFromId    = parseInt(FormState.fromAccountId);
+            base.bankAccountToNumber  = FormState.externalAccount;
             break;
     }
 
