@@ -20,6 +20,7 @@
 var TxAPI = {
     AUTH_ME:       "/api/auth/me",
     BANK_ACCOUNT:  "/api/bank_account",
+    BANK_ACCOUNT_CURRENCY: "/api/bank_account/by-number/{number}/currency",
     TRANSFER:      "/api/transaction/transfer",
     DEPOSIT:       "/api/transaction/deposit",
     WITHDRAW:      "/api/transaction/withdraw"
@@ -46,7 +47,10 @@ var FormState = {
     category: "",
     accounts: [],
     currentUserId: null,
-    submitting: false
+    submitting: false,
+    recipientCurrency: null,
+    recipientLookupInFlight: false,
+    recipientLookupNotFound: false
 };
 
 // ============================================================
@@ -205,6 +209,18 @@ var TxValidation = {
         // External account — required for PAYMENT
         if (type === "PAYMENT") {
             if (!this.validateExternalAccount(formState.externalAccount)) {
+                valid = false;
+            } else if (formState.recipientLookupNotFound) {
+                this.addError("externalAccount", "Recipient account not found");
+                valid = false;
+            } else if (formState.recipientCurrency && formState.currency
+                    && formState.recipientCurrency !== formState.currency) {
+                this.addError("externalAccount",
+                    "Recipient account currency (" + formState.recipientCurrency +
+                    ") does not match your account's currency (" + formState.currency + ")");
+                valid = false;
+            } else if (!formState.recipientCurrency) {
+                this.addError("externalAccount", "Verifying recipient account…");
                 valid = false;
             }
         }
@@ -454,6 +470,7 @@ function initFieldEvents() {
         liveValidateSameAccount();
         refreshDrivingCurrency();
         liveValidateCurrencyMatch();
+        liveValidateRecipientCurrency();
     });
 
     $("#toAccount").on("change", function () {
@@ -466,6 +483,23 @@ function initFieldEvents() {
 
     $("#externalAccount").on("input", function () {
         FormState.externalAccount = $(this).val();
+        FormState.recipientCurrency = null;
+        FormState.recipientLookupNotFound = false;
+        $("#externalAccountError").text("");
+        $("#externalAccount").removeClass("invalid valid");
+    });
+
+    $("#externalAccount").on("blur", function () {
+        var value = $(this).val();
+        FormState.externalAccount = value;
+        if (FormState.transactionType !== "PAYMENT") return;
+        TxValidation.errors = {};
+        if (!TxValidation.validateExternalAccount(value)) {
+            $("#externalAccountError").text(TxValidation.errors.externalAccount);
+            $("#externalAccount").addClass("invalid").removeClass("valid");
+            return;
+        }
+        lookupRecipientCurrency(value.replace(/\s/g, ""));
     });
 
     $("#amount").on("input", function () {
@@ -567,6 +601,59 @@ function liveValidateCurrencyMatch() {
     }
 }
 
+function fetchRecipientCurrency(number) {
+    var url = TxAPI.BANK_ACCOUNT_CURRENCY.replace("{number}", encodeURIComponent(number));
+    return ajax(url, "GET");
+}
+
+function lookupRecipientCurrency(number) {
+    FormState.recipientLookupInFlight = true;
+    FormState.recipientCurrency = null;
+    FormState.recipientLookupNotFound = false;
+    $("#externalAccountError").text("Verifying recipient account…");
+
+    fetchRecipientCurrency(number)
+        .done(function (resp) {
+            FormState.recipientLookupInFlight = false;
+            if (FormState.externalAccount && FormState.externalAccount.replace(/\s/g, "") !== number) {
+                return;
+            }
+            FormState.recipientCurrency = resp && resp.currency ? String(resp.currency).toUpperCase() : null;
+            liveValidateRecipientCurrency();
+        })
+        .fail(function (jqxhr) {
+            FormState.recipientLookupInFlight = false;
+            if (FormState.externalAccount && FormState.externalAccount.replace(/\s/g, "") !== number) {
+                return;
+            }
+            if (jqxhr.status === 404) {
+                FormState.recipientLookupNotFound = true;
+                FormState.recipientCurrency = null;
+                $("#externalAccountError").text("Recipient account not found");
+                $("#externalAccount").addClass("invalid").removeClass("valid");
+            } else {
+                $("#externalAccountError").text("Could not verify recipient account");
+                $("#externalAccount").addClass("invalid").removeClass("valid");
+            }
+        });
+}
+
+function liveValidateRecipientCurrency() {
+    if (FormState.transactionType !== "PAYMENT") return;
+    if (!FormState.recipientCurrency || !FormState.currency) return;
+
+    if (FormState.recipientCurrency !== FormState.currency) {
+        $("#externalAccountError").text(
+            "Recipient account currency (" + FormState.recipientCurrency +
+            ") does not match your account's currency (" + FormState.currency + ")"
+        );
+        $("#externalAccount").addClass("invalid").removeClass("valid");
+    } else {
+        $("#externalAccountError").text("");
+        TxValidation.markValid("externalAccount");
+    }
+}
+
 // ============================================================
 // STEP 2 -> 3  (validate & move)
 // ============================================================
@@ -580,6 +667,17 @@ function initStep2Actions() {
         FormState.currency        = $("#currency").val();
         FormState.description     = $("#description").val();
         FormState.category        = $("#category").val();
+
+        if (FormState.transactionType === "PAYMENT"
+                && FormState.externalAccount
+                && !FormState.recipientCurrency
+                && !FormState.recipientLookupNotFound
+                && !FormState.recipientLookupInFlight) {
+            var cleaned = FormState.externalAccount.replace(/\s/g, "");
+            if (cleaned.length >= 8 && /^[A-Za-z0-9]+$/.test(cleaned)) {
+                lookupRecipientCurrency(cleaned);
+            }
+        }
 
         if (TxValidation.validateStep2(FormState)) {
             goToStep(3);
@@ -735,6 +833,9 @@ function resetForm() {
     FormState.description     = "";
     FormState.category        = "";
     FormState.submitting      = false;
+    FormState.recipientCurrency       = null;
+    FormState.recipientLookupInFlight = false;
+    FormState.recipientLookupNotFound = false;
 
     $(".type-option").removeClass("selected");
     $("#btnToStep2").prop("disabled", true);
