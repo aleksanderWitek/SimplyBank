@@ -61,6 +61,7 @@ public class SecurityConfig {
                             .requestMatchers("/api/client/**").hasAnyRole("EMPLOYEE", "ADMIN")
 
                             // Bank Account API — staff-only lookup endpoints first, then general read for all, then create
+                            .requestMatchers(HttpMethod.GET, "/api/bank_account/by-number/*/currency").authenticated()
                             .requestMatchers(HttpMethod.GET, "/api/bank_account/by-number/**").hasAnyRole("EMPLOYEE", "ADMIN")
                             .requestMatchers(HttpMethod.GET, "/api/bank_account/by-client/**").hasAnyRole("EMPLOYEE", "ADMIN")
                             .requestMatchers(HttpMethod.GET, "/api/bank_account/*/owners").hasAnyRole("EMPLOYEE", "ADMIN")
