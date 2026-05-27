@@ -1,5 +1,6 @@
 package com.alex.controller;
 
+import com.alex.dto.AccountCurrencyResponse;
 import com.alex.dto.BankAccount;
 import com.alex.dto.ClientProfile;
 import com.alex.dto.SaveBankAccountRequest;
@@ -78,6 +79,17 @@ public class BankAccountController {
                 () -> new BankAccountNotFoundRuntimeException(
                         "There is no bank account with provided number:" + number));
         return ResponseEntity.ok(bankAccount);
+    }
+
+    @GetMapping(path = "/by-number/{number}/currency")
+    public ResponseEntity<AccountCurrencyResponse> findBankAccountCurrencyByNumber(@PathVariable("number") String number,
+                                                                                   Principal principal) {
+        ownershipService.resolveCurrentUser(principal);
+
+        BankAccount bankAccount = bankAccountService.findByNumber(number).orElseThrow(
+                () -> new BankAccountNotFoundRuntimeException(
+                        "There is no bank account with provided number:" + number));
+        return ResponseEntity.ok(new AccountCurrencyResponse(bankAccount.getCurrency()));
     }
 
     @GetMapping(path = "/by-client/{clientId}")
