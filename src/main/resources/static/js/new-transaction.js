@@ -622,7 +622,7 @@ function lookupRecipientCurrency(number) {
     var stale = function () {
         return FormState.externalAccount && FormState.externalAccount.replace(/\s/g, "") !== number;
     };
-    ajax(url, "GET")
+    FormState.recipientLookupPromise = ajax(url, "GET")
         .done(function (resp) {
             if (stale()) return;
             FormState.recipientCurrency = String(resp.currency).toUpperCase();
@@ -663,18 +663,25 @@ function initStep2Actions() {
             lookupRecipientCurrency(FormState.externalAccount.replace(/\s/g, ""));
         }
 
-        if (TxValidation.validateStep2(FormState)) {
-            goToStep(3);
-        } else {
-            if (TxValidation.errors.amount) {
-                $(".amount-input-wrap").addClass("invalid");
-            }
+        var pending = FormState.recipientLookupPromise;
+        if (pending && pending.state && pending.state() === "pending") {
+            pending.always(function () { tryAdvanceFromStep2(); });
+            return;
         }
+        tryAdvanceFromStep2();
     });
 
     $("#btnBackToStep1").on("click", function () {
         goToStep(1);
     });
+}
+
+function tryAdvanceFromStep2() {
+    if (TxValidation.validateStep2(FormState)) {
+        goToStep(3);
+    } else if (TxValidation.errors.amount) {
+        $(".amount-input-wrap").addClass("invalid");
+    }
 }
 
 // ============================================================
