@@ -1,6 +1,5 @@
 package com.alex.controller;
 
-import com.alex.dto.AccountCurrencyResponse;
 import com.alex.dto.BankAccount;
 import com.alex.dto.ClientProfile;
 import com.alex.dto.SaveBankAccountRequest;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -82,14 +82,14 @@ public class BankAccountController {
     }
 
     @GetMapping(path = "/by-number/{number}/currency")
-    public ResponseEntity<AccountCurrencyResponse> findBankAccountCurrencyByNumber(@PathVariable("number") String number,
-                                                                                   Principal principal) {
+    public ResponseEntity<Map<String, Object>> findBankAccountCurrencyByNumber(@PathVariable("number") String number,
+                                                                               Principal principal) {
         ownershipService.resolveCurrentUser(principal);
 
         BankAccount bankAccount = bankAccountService.findByNumber(number).orElseThrow(
                 () -> new BankAccountNotFoundRuntimeException(
                         "There is no bank account with provided number:" + number));
-        return ResponseEntity.ok(new AccountCurrencyResponse(bankAccount.getCurrency()));
+        return ResponseEntity.ok(Map.of("currency", bankAccount.getCurrency()));
     }
 
     @GetMapping(path = "/by-client/{clientId}")

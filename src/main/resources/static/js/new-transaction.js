@@ -49,7 +49,6 @@ var FormState = {
     currentUserId: null,
     submitting: false,
     recipientCurrency: null,
-    recipientLookupInFlight: false,
     recipientLookupNotFound: false
 };
 
@@ -208,19 +207,9 @@ var TxValidation = {
 
         // External account — required for PAYMENT
         if (type === "PAYMENT") {
-            if (!this.validateExternalAccount(formState.externalAccount)) {
-                valid = false;
-            } else if (formState.recipientLookupNotFound) {
-                this.addError("externalAccount", "Recipient account not found");
-                valid = false;
-            } else if (formState.recipientCurrency && formState.currency
-                    && formState.recipientCurrency !== formState.currency) {
-                this.addError("externalAccount",
-                    "Recipient account currency (" + formState.recipientCurrency +
-                    ") does not match your account's currency (" + formState.currency + ")");
-                valid = false;
-            } else if (!formState.recipientCurrency) {
-                this.addError("externalAccount", "Verifying recipient account…");
+            var recipientMsg = recipientCurrencyError();
+            if (recipientMsg) {
+                this.addError("externalAccount", recipientMsg);
                 valid = false;
             }
         }
@@ -470,7 +459,7 @@ function initFieldEvents() {
         liveValidateSameAccount();
         refreshDrivingCurrency();
         liveValidateCurrencyMatch();
-        liveValidateRecipientCurrency();
+        renderRecipientError();
     });
 
     $("#toAccount").on("change", function () {
@@ -490,16 +479,13 @@ function initFieldEvents() {
     });
 
     $("#externalAccount").on("blur", function () {
-        var value = $(this).val();
-        FormState.externalAccount = value;
+        FormState.externalAccount = $(this).val();
         if (FormState.transactionType !== "PAYMENT") return;
-        TxValidation.errors = {};
-        if (!TxValidation.validateExternalAccount(value)) {
-            $("#externalAccountError").text(TxValidation.errors.externalAccount);
-            $("#externalAccount").addClass("invalid").removeClass("valid");
-            return;
+        var cleaned = (FormState.externalAccount || "").replace(/\s/g, "");
+        if (cleaned && TxValidation.validateExternalAccount(FormState.externalAccount)) {
+            lookupRecipientCurrency(cleaned);
         }
-        lookupRecipientCurrency(value.replace(/\s/g, ""));
+        renderRecipientError();
     });
 
     $("#amount").on("input", function () {
@@ -601,57 +587,59 @@ function liveValidateCurrencyMatch() {
     }
 }
 
-function fetchRecipientCurrency(number) {
-    var url = TxAPI.BANK_ACCOUNT_CURRENCY.replace("{number}", encodeURIComponent(number));
-    return ajax(url, "GET");
+// Single source of truth for the recipient field's PAYMENT-time state.
+// Returns null when the recipient is OK, otherwise the user-facing message.
+function recipientCurrencyError() {
+    var prevErrors = TxValidation.errors;
+    TxValidation.errors = {};
+    var formatOk = TxValidation.validateExternalAccount(FormState.externalAccount);
+    var formatMsg = TxValidation.errors.externalAccount;
+    TxValidation.errors = prevErrors;
+    if (!formatOk) return formatMsg;
+    if (FormState.recipientLookupNotFound) return "Recipient account not found";
+    if (!FormState.recipientCurrency)       return "Verifying recipient account…";
+    if (FormState.currency && FormState.recipientCurrency !== FormState.currency) {
+        return "Recipient account currency (" + FormState.recipientCurrency +
+               ") does not match your account's currency (" + FormState.currency + ")";
+    }
+    return null;
 }
 
-function lookupRecipientCurrency(number) {
-    FormState.recipientLookupInFlight = true;
-    FormState.recipientCurrency = null;
-    FormState.recipientLookupNotFound = false;
-    $("#externalAccountError").text("Verifying recipient account…");
-
-    fetchRecipientCurrency(number)
-        .done(function (resp) {
-            FormState.recipientLookupInFlight = false;
-            if (FormState.externalAccount && FormState.externalAccount.replace(/\s/g, "") !== number) {
-                return;
-            }
-            FormState.recipientCurrency = resp && resp.currency ? String(resp.currency).toUpperCase() : null;
-            liveValidateRecipientCurrency();
-        })
-        .fail(function (jqxhr) {
-            FormState.recipientLookupInFlight = false;
-            if (FormState.externalAccount && FormState.externalAccount.replace(/\s/g, "") !== number) {
-                return;
-            }
-            if (jqxhr.status === 404) {
-                FormState.recipientLookupNotFound = true;
-                FormState.recipientCurrency = null;
-                $("#externalAccountError").text("Recipient account not found");
-                $("#externalAccount").addClass("invalid").removeClass("valid");
-            } else {
-                $("#externalAccountError").text("Could not verify recipient account");
-                $("#externalAccount").addClass("invalid").removeClass("valid");
-            }
-        });
-}
-
-function liveValidateRecipientCurrency() {
+function renderRecipientError() {
     if (FormState.transactionType !== "PAYMENT") return;
-    if (!FormState.recipientCurrency || !FormState.currency) return;
-
-    if (FormState.recipientCurrency !== FormState.currency) {
-        $("#externalAccountError").text(
-            "Recipient account currency (" + FormState.recipientCurrency +
-            ") does not match your account's currency (" + FormState.currency + ")"
-        );
+    var msg = recipientCurrencyError();
+    if (msg) {
+        $("#externalAccountError").text(msg);
         $("#externalAccount").addClass("invalid").removeClass("valid");
     } else {
         $("#externalAccountError").text("");
         TxValidation.markValid("externalAccount");
     }
+}
+
+function lookupRecipientCurrency(number) {
+    var url = TxAPI.BANK_ACCOUNT_CURRENCY.replace("{number}", encodeURIComponent(number));
+    var stale = function () {
+        return FormState.externalAccount && FormState.externalAccount.replace(/\s/g, "") !== number;
+    };
+    FormState.recipientLookupPromise = ajax(url, "GET")
+        .done(function (resp) {
+            if (stale()) return;
+            FormState.recipientCurrency = String(resp.currency).toUpperCase();
+            FormState.recipientLookupNotFound = false;
+            renderRecipientError();
+        })
+        .fail(function (jqxhr) {
+            if (stale()) return;
+            FormState.recipientCurrency = null;
+            FormState.recipientLookupNotFound = (jqxhr.status === 404);
+            if (jqxhr.status === 404) {
+                renderRecipientError();
+            } else {
+                $("#externalAccountError").text("Could not verify recipient account");
+                $("#externalAccount").addClass("invalid").removeClass("valid");
+            }
+        });
 }
 
 // ============================================================
@@ -669,28 +657,31 @@ function initStep2Actions() {
         FormState.category        = $("#category").val();
 
         if (FormState.transactionType === "PAYMENT"
-                && FormState.externalAccount
                 && !FormState.recipientCurrency
                 && !FormState.recipientLookupNotFound
-                && !FormState.recipientLookupInFlight) {
-            var cleaned = FormState.externalAccount.replace(/\s/g, "");
-            if (cleaned.length >= 8 && /^[A-Za-z0-9]+$/.test(cleaned)) {
-                lookupRecipientCurrency(cleaned);
-            }
+                && TxValidation.validateExternalAccount(FormState.externalAccount)) {
+            lookupRecipientCurrency(FormState.externalAccount.replace(/\s/g, ""));
         }
 
-        if (TxValidation.validateStep2(FormState)) {
-            goToStep(3);
-        } else {
-            if (TxValidation.errors.amount) {
-                $(".amount-input-wrap").addClass("invalid");
-            }
+        var pending = FormState.recipientLookupPromise;
+        if (pending && pending.state && pending.state() === "pending") {
+            pending.always(function () { tryAdvanceFromStep2(); });
+            return;
         }
+        tryAdvanceFromStep2();
     });
 
     $("#btnBackToStep1").on("click", function () {
         goToStep(1);
     });
+}
+
+function tryAdvanceFromStep2() {
+    if (TxValidation.validateStep2(FormState)) {
+        goToStep(3);
+    } else if (TxValidation.errors.amount) {
+        $(".amount-input-wrap").addClass("invalid");
+    }
 }
 
 // ============================================================
@@ -834,7 +825,6 @@ function resetForm() {
     FormState.category        = "";
     FormState.submitting      = false;
     FormState.recipientCurrency       = null;
-    FormState.recipientLookupInFlight = false;
     FormState.recipientLookupNotFound = false;
 
     $(".type-option").removeClass("selected");
