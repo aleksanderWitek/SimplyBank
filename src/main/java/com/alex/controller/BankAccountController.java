@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -78,6 +79,17 @@ public class BankAccountController {
                 () -> new BankAccountNotFoundRuntimeException(
                         "There is no bank account with provided number:" + number));
         return ResponseEntity.ok(bankAccount);
+    }
+
+    @GetMapping(path = "/by-number/{number}/currency")
+    public ResponseEntity<Map<String, Object>> findBankAccountCurrencyByNumber(@PathVariable("number") String number,
+                                                                               Principal principal) {
+        ownershipService.resolveCurrentUser(principal);
+
+        BankAccount bankAccount = bankAccountService.findByNumber(number).orElseThrow(
+                () -> new BankAccountNotFoundRuntimeException(
+                        "There is no bank account with provided number:" + number));
+        return ResponseEntity.ok(Map.of("currency", bankAccount.getCurrency()));
     }
 
     @GetMapping(path = "/by-client/{clientId}")

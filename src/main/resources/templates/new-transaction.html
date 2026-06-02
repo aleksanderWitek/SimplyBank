@@ -178,13 +178,11 @@
                     <div class="field-group">
                         <label class="field-label" for="amount">Amount <span class="req">*</span></label>
                         <div class="amount-input-wrap">
-                            <select id="currency" class="currency-select">
-                                <option value="EUR">€ EUR</option>
-                                <option value="USD">$ USD</option>
-                                <option value="GBP">£ GBP</option>
-                            </select>
+                            <span id="currencyDisplay" class="currency-display" data-placeholder="true">Select account</span>
+                            <input id="currency" type="hidden" value="">
                             <input id="amount" type="text" inputmode="decimal" class="field-input amount-input" placeholder="0.00" autocomplete="off">
                         </div>
+                        <div class="field-hint" id="currencyHint">Currency is set by the selected account</div>
                         <div class="field-error" id="amountError"></div>
                     </div>
 

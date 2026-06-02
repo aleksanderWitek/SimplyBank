@@ -20,12 +20,15 @@
 var TxAPI = {
     AUTH_ME:       "/api/auth/me",
     BANK_ACCOUNT:  "/api/bank_account",
+    BANK_ACCOUNT_CURRENCY: "/api/bank_account/by-number/{number}/currency",
     TRANSFER:      "/api/transaction/transfer",
     DEPOSIT:       "/api/transaction/deposit",
     WITHDRAW:      "/api/transaction/withdraw"
 };
 
-var VALID_CURRENCIES = ["EUR", "USD", "GBP"];
+var VALID_CURRENCIES = ["EUR", "USD", "GBP", "PLN"];
+
+var CURRENCY_SYMBOLS = { EUR: "€", USD: "$", GBP: "£", PLN: "zł" };
 var VALID_TX_TYPES   = ["TRANSFER", "DEPOSIT", "WITHDRAWAL", "PAYMENT"];
 
 // ============================================================
@@ -44,7 +47,9 @@ var FormState = {
     category: "",
     accounts: [],
     currentUserId: null,
-    submitting: false
+    submitting: false,
+    recipientCurrency: null,
+    recipientLookupNotFound: false
 };
 
 // ============================================================
@@ -202,7 +207,9 @@ var TxValidation = {
 
         // External account — required for PAYMENT
         if (type === "PAYMENT") {
-            if (!this.validateExternalAccount(formState.externalAccount)) {
+            var recipientMsg = recipientCurrencyError();
+            if (recipientMsg) {
+                this.addError("externalAccount", recipientMsg);
                 valid = false;
             }
         }
@@ -210,6 +217,20 @@ var TxValidation = {
         // Same-account check for TRANSFER
         if (type === "TRANSFER" && formState.fromAccountId && formState.toAccountId) {
             if (!this.validateTransactionAccounts(formState.fromAccountId, formState.toAccountId)) {
+                valid = false;
+            }
+        }
+
+        // Cross-currency check for TRANSFER (backend rejects mismatched currencies)
+        if (type === "TRANSFER" && formState.fromAccountId && formState.toAccountId
+                && String(formState.fromAccountId) !== String(formState.toAccountId)) {
+            var fromAcctCur = formState.accounts.find(function (a) { return String(a.id) === String(formState.fromAccountId); });
+            var toAcctCur   = formState.accounts.find(function (a) { return String(a.id) === String(formState.toAccountId); });
+            if (fromAcctCur && toAcctCur && fromAcctCur.currency && toAcctCur.currency
+                    && fromAcctCur.currency !== toAcctCur.currency) {
+                this.addError("toAccount",
+                    "Destination account currency (" + toAcctCur.currency +
+                    ") must match source account currency (" + fromAcctCur.currency + ")");
                 valid = false;
             }
         }
@@ -350,6 +371,7 @@ function configureStep2ForType(type) {
     }
 
     TxValidation.clearAll();
+    refreshDrivingCurrency();
 }
 
 // ============================================================
@@ -426,7 +448,7 @@ function initFieldEvents() {
     $("#fromAccount").on("change", function () {
         var id = $(this).val();
         FormState.fromAccountId = id || null;
-        var acct = FormState.accounts.find(function (a) { return String(a.id) === String(id); });
+        var acct = findAccount(id);
         if (acct) {
             var bal = formatCurrency(acct.balance, acct.currency || "EUR");
             $("#fromBalance").html('Available balance: <span class="bal-num">' + bal + '</span>');
@@ -435,20 +457,35 @@ function initFieldEvents() {
             $("#fromBalance").text("");
         }
         liveValidateSameAccount();
+        refreshDrivingCurrency();
+        liveValidateCurrencyMatch();
+        renderRecipientError();
     });
 
     $("#toAccount").on("change", function () {
         FormState.toAccountId = $(this).val() || null;
         TxValidation.markValid("toAccount");
         liveValidateSameAccount();
+        refreshDrivingCurrency();
+        liveValidateCurrencyMatch();
     });
 
     $("#externalAccount").on("input", function () {
         FormState.externalAccount = $(this).val();
+        FormState.recipientCurrency = null;
+        FormState.recipientLookupNotFound = false;
+        $("#externalAccountError").text("");
+        $("#externalAccount").removeClass("invalid valid");
     });
 
-    $("#currency").on("change", function () {
-        FormState.currency = $(this).val();
+    $("#externalAccount").on("blur", function () {
+        FormState.externalAccount = $(this).val();
+        if (FormState.transactionType !== "PAYMENT") return;
+        var cleaned = (FormState.externalAccount || "").replace(/\s/g, "");
+        if (cleaned && TxValidation.validateExternalAccount(FormState.externalAccount)) {
+            lookupRecipientCurrency(cleaned);
+        }
+        renderRecipientError();
     });
 
     $("#amount").on("input", function () {
@@ -498,6 +535,113 @@ function liveValidateSameAccount() {
     }
 }
 
+function findAccount(id) {
+    if (!id) return null;
+    return FormState.accounts.find(function (a) { return String(a.id) === String(id); }) || null;
+}
+
+function resolveCurrencyAccount() {
+    var type = FormState.transactionType;
+    if (type === "DEPOSIT") return findAccount(FormState.toAccountId);
+    return findAccount(FormState.fromAccountId);
+}
+
+function applyCurrencyFromAccount(acct) {
+    var $display = $("#currencyDisplay");
+    var $hidden  = $("#currency");
+    if (acct && acct.currency) {
+        var code = String(acct.currency).toUpperCase();
+        var sym  = CURRENCY_SYMBOLS[code] || "";
+        FormState.currency = code;
+        $hidden.val(code);
+        $display.text(sym ? sym + " " + code : code).attr("data-placeholder", "false");
+    } else {
+        FormState.currency = "";
+        $hidden.val("");
+        $display.text("Select account").attr("data-placeholder", "true");
+    }
+}
+
+function refreshDrivingCurrency() {
+    applyCurrencyFromAccount(resolveCurrencyAccount());
+}
+
+function liveValidateCurrencyMatch() {
+    if (FormState.transactionType !== "TRANSFER") return;
+    if (!FormState.fromAccountId || !FormState.toAccountId) return;
+    if (String(FormState.fromAccountId) === String(FormState.toAccountId)) return;
+
+    var fromAcct = findAccount(FormState.fromAccountId);
+    var toAcct   = findAccount(FormState.toAccountId);
+    if (!fromAcct || !toAcct || !fromAcct.currency || !toAcct.currency) return;
+
+    if (fromAcct.currency !== toAcct.currency) {
+        $("#toAccountError").text(
+            "Destination account currency (" + toAcct.currency +
+            ") must match source account currency (" + fromAcct.currency + ")"
+        );
+        $("#toAccount").addClass("invalid").removeClass("valid");
+    } else {
+        $("#toAccountError").text("");
+        TxValidation.markValid("toAccount");
+    }
+}
+
+// Single source of truth for the recipient field's PAYMENT-time state.
+// Returns null when the recipient is OK, otherwise the user-facing message.
+function recipientCurrencyError() {
+    var prevErrors = TxValidation.errors;
+    TxValidation.errors = {};
+    var formatOk = TxValidation.validateExternalAccount(FormState.externalAccount);
+    var formatMsg = TxValidation.errors.externalAccount;
+    TxValidation.errors = prevErrors;
+    if (!formatOk) return formatMsg;
+    if (FormState.recipientLookupNotFound) return "Recipient account not found";
+    if (!FormState.recipientCurrency)       return "Verifying recipient account…";
+    if (FormState.currency && FormState.recipientCurrency !== FormState.currency) {
+        return "Recipient account currency (" + FormState.recipientCurrency +
+               ") does not match your account's currency (" + FormState.currency + ")";
+    }
+    return null;
+}
+
+function renderRecipientError() {
+    if (FormState.transactionType !== "PAYMENT") return;
+    var msg = recipientCurrencyError();
+    if (msg) {
+        $("#externalAccountError").text(msg);
+        $("#externalAccount").addClass("invalid").removeClass("valid");
+    } else {
+        $("#externalAccountError").text("");
+        TxValidation.markValid("externalAccount");
+    }
+}
+
+function lookupRecipientCurrency(number) {
+    var url = TxAPI.BANK_ACCOUNT_CURRENCY.replace("{number}", encodeURIComponent(number));
+    var stale = function () {
+        return FormState.externalAccount && FormState.externalAccount.replace(/\s/g, "") !== number;
+    };
+    FormState.recipientLookupPromise = ajax(url, "GET")
+        .done(function (resp) {
+            if (stale()) return;
+            FormState.recipientCurrency = String(resp.currency).toUpperCase();
+            FormState.recipientLookupNotFound = false;
+            renderRecipientError();
+        })
+        .fail(function (jqxhr) {
+            if (stale()) return;
+            FormState.recipientCurrency = null;
+            FormState.recipientLookupNotFound = (jqxhr.status === 404);
+            if (jqxhr.status === 404) {
+                renderRecipientError();
+            } else {
+                $("#externalAccountError").text("Could not verify recipient account");
+                $("#externalAccount").addClass("invalid").removeClass("valid");
+            }
+        });
+}
+
 // ============================================================
 // STEP 2 -> 3  (validate & move)
 // ============================================================
@@ -512,18 +656,32 @@ function initStep2Actions() {
         FormState.description     = $("#description").val();
         FormState.category        = $("#category").val();
 
-        if (TxValidation.validateStep2(FormState)) {
-            goToStep(3);
-        } else {
-            if (TxValidation.errors.amount) {
-                $(".amount-input-wrap").addClass("invalid");
-            }
+        if (FormState.transactionType === "PAYMENT"
+                && !FormState.recipientCurrency
+                && !FormState.recipientLookupNotFound
+                && TxValidation.validateExternalAccount(FormState.externalAccount)) {
+            lookupRecipientCurrency(FormState.externalAccount.replace(/\s/g, ""));
         }
+
+        var pending = FormState.recipientLookupPromise;
+        if (pending && pending.state && pending.state() === "pending") {
+            pending.always(function () { tryAdvanceFromStep2(); });
+            return;
+        }
+        tryAdvanceFromStep2();
     });
 
     $("#btnBackToStep1").on("click", function () {
         goToStep(1);
     });
+}
+
+function tryAdvanceFromStep2() {
+    if (TxValidation.validateStep2(FormState)) {
+        goToStep(3);
+    } else if (TxValidation.errors.amount) {
+        $(".amount-input-wrap").addClass("invalid");
+    }
 }
 
 // ============================================================
@@ -644,8 +802,8 @@ function buildPayload() {
             base.bankAccountFromId = parseInt(FormState.fromAccountId);
             break;
         case "PAYMENT":
-            base.bankAccountFromId     = parseInt(FormState.fromAccountId);
-            base.externalAccountNumber = FormState.externalAccount;
+            base.bankAccountFromId    = parseInt(FormState.fromAccountId);
+            base.bankAccountToNumber  = FormState.externalAccount;
             break;
     }
 
@@ -662,10 +820,12 @@ function resetForm() {
     FormState.toAccountId     = null;
     FormState.externalAccount = null;
     FormState.amount          = null;
-    FormState.currency        = "EUR";
+    FormState.currency        = "";
     FormState.description     = "";
     FormState.category        = "";
     FormState.submitting      = false;
+    FormState.recipientCurrency       = null;
+    FormState.recipientLookupNotFound = false;
 
     $(".type-option").removeClass("selected");
     $("#btnToStep2").prop("disabled", true);
@@ -673,10 +833,10 @@ function resetForm() {
     $("#toAccount").val("");
     $("#externalAccount").val("");
     $("#amount").val("");
-    $("#currency").val("EUR");
     $("#description").val("");
     $("#category").val("");
     $("#fromBalance").text("");
+    applyCurrencyFromAccount(null);
     TxValidation.clearAll();
 
     goToStep(1);
