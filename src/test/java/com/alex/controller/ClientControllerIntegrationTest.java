@@ -279,10 +279,11 @@ class ClientControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    void deleteById_asEmployee_returnsNoContent() throws Exception {
+    void deleteById_asAdmin_returnsNoContent() throws Exception {
+        // Hard-delete is ADMIN-only (SecurityConfig: DELETE /api/client/** hasRole ADMIN).
         // Create a client with linked user_account via the POST endpoint so soft-delete works.
-        insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
-        String token = generateToken("bob", "EMPLOYEE");
+        insertUserAccount(2L, "bob", "Password1!", "ADMIN");
+        String token = generateToken("bob", "ADMIN");
         // Save via API so link row exists.
         String saveBody = clientJson("Del", "Target");
         String response = mockMvc.perform(post("/api/client")
@@ -301,12 +302,55 @@ class ClientControllerIntegrationTest extends BaseIntegrationTest {
 
     @Test
     void deleteById_missingLink_returnsNotFound() throws Exception {
-        insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
+        insertUserAccount(2L, "bob", "Password1!", "ADMIN");
         insertClient(10L, "Alice", "Anderson", "Warsaw", "Main", "1A", "ID001");
-        String token = generateToken("bob", "EMPLOYEE");
+        String token = generateToken("bob", "ADMIN");
 
         mockMvc.perform(delete("/api/client/10").header("Authorization", bearer(token)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("There is no User Account linked to Client with id:10"));
     }
+
+    // POST /api/client/profile/delete (client self-service deletion) ---------------------------
+
+    @Test
+    void deleteOwnAccount_asClientWithCorrectPassword_returnsNoContent() throws Exception {
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        insertClient(10L, "Alice", "Anderson", "Warsaw", "Main", "1A", "ID001");
+        linkUserAccountToClient(1L, 10L);
+        String token = generateToken("alice", "CLIENT");
+
+        mockMvc.perform(post("/api/client/profile/delete")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content("{\"currentPassword\":\"Password1!\"}"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void deleteOwnAccount_wrongPassword_returnsBadRequest() throws Exception {
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        insertClient(10L, "Alice", "Anderson", "Warsaw", "Main", "1A", "ID001");
+        linkUserAccountToClient(1L, 10L);
+        String token = generateToken("alice", "CLIENT");
+
+        mockMvc.perform(post("/api/client/profile/delete")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content("{\"currentPassword\":\"WrongPass1!\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void deleteOwnAccount_clientWithoutProfileLink_returnsNotFound() throws Exception {
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        String token = generateToken("alice", "CLIENT");
+
+        mockMvc.perform(post("/api/client/profile/delete")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content("{\"currentPassword\":\"Password1!\"}"))
+                .andExpect(status().isNotFound());
+    }
+
 }

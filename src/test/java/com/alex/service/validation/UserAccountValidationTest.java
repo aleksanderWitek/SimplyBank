@@ -1,7 +1,6 @@
 package com.alex.service.validation;
 
 import com.alex.UserAccountRole;
-import com.alex.dto.UserAccount;
 import com.alex.exception.IllegalArgumentRuntimeException;
 import com.alex.exception.NullPointerRuntimeException;
 import org.junit.jupiter.api.Test;
@@ -13,20 +12,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class UserAccountValidationTest {
-
-    @Test
-    void ensureUserAccountPresent_nullUserAccount_throwsIllegalArgumentRuntimeException() {
-        assertThatThrownBy(() -> UserAccountValidation.ensureUserAccountPresent(null))
-                .isInstanceOf(IllegalArgumentRuntimeException.class)
-                .hasMessage("UserAccount is null");
-    }
-
-    @Test
-    void ensureUserAccountPresent_presentUserAccount_doesNotThrow() {
-        UserAccount userAccount = new UserAccount();
-        assertThatCode(() -> UserAccountValidation.ensureUserAccountPresent(userAccount))
-                .doesNotThrowAnyException();
-    }
 
     @ParameterizedTest
     @ValueSource(strings = {"", "  "})

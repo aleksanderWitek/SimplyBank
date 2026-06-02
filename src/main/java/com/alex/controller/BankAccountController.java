@@ -70,10 +70,8 @@ public class BankAccountController {
     @GetMapping(path = "/by-number/{number}")
     public ResponseEntity<BankAccount> findBankAccountByNumber(@PathVariable("number") String number,
                                                                Principal principal) {
-        UserAccount currentUser = ownershipService.resolveCurrentUser(principal);
-        if (ownershipService.isClient(currentUser)) {
-            throw new AccessDeniedRuntimeException("Only staff can search bank accounts by number");
-        }
+        // Authorization (EMPLOYEE/ADMIN only) is enforced by SecurityConfig for this path.
+        ownershipService.resolveCurrentUser(principal);
 
         BankAccount bankAccount = bankAccountService.findByNumber(number).orElseThrow(
                 () -> new BankAccountNotFoundRuntimeException(
@@ -95,10 +93,8 @@ public class BankAccountController {
     @GetMapping(path = "/by-client/{clientId}")
     public ResponseEntity<List<BankAccount>> findBankAccountsByClientId(@PathVariable("clientId") Long clientId,
                                                                        Principal principal) {
-        UserAccount currentUser = ownershipService.resolveCurrentUser(principal);
-        if (ownershipService.isClient(currentUser)) {
-            throw new AccessDeniedRuntimeException("Only staff can list bank accounts by client id");
-        }
+        // Authorization (EMPLOYEE/ADMIN only) is enforced by SecurityConfig for this path.
+        ownershipService.resolveCurrentUser(principal);
 
         List<BankAccount> bankAccounts = bankAccountService.findByClientId(clientId);
         return ResponseEntity.ok(bankAccounts);
@@ -107,10 +103,8 @@ public class BankAccountController {
     @GetMapping(path = "/{id}/owners")
     public ResponseEntity<List<ClientProfile>> findOwnersOfBankAccount(@PathVariable("id") Long id,
                                                                       Principal principal) {
-        UserAccount currentUser = ownershipService.resolveCurrentUser(principal);
-        if (ownershipService.isClient(currentUser)) {
-            throw new AccessDeniedRuntimeException("Only staff can view bank account owners");
-        }
+        // Authorization (EMPLOYEE/ADMIN only) is enforced by SecurityConfig for this path.
+        ownershipService.resolveCurrentUser(principal);
 
         List<ClientProfile> owners = bankAccountService.findOwnersByBankAccountId(id);
         return ResponseEntity.ok(owners);

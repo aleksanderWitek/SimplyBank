@@ -72,10 +72,7 @@ public class TransactionService implements ITransactionService {
                 Currency.valueOf(currency.toUpperCase()), amount, bankAccountFrom, bankAccountTo,
                 description, LocalDateTime.now());
 
-        Long id = transactionRepository.save(transaction);
-        return new Transaction(id, transaction.getTransactionType(), transaction.getCurrency(),
-                transaction.getAmount(), transaction.getBankAccountFrom(), transaction.getBankAccountTo(),
-                transaction.getDescription(), transaction.getCreateDate());
+        return persist(transaction);
     }
 
     @Transactional
@@ -103,10 +100,7 @@ public class TransactionService implements ITransactionService {
                 Currency.valueOf(currency.toUpperCase()), amount, null, bankAccountTo,
                 description, LocalDateTime.now());
 
-        Long id = transactionRepository.save(transaction);
-        return new Transaction(id, transaction.getTransactionType(), transaction.getCurrency(),
-                transaction.getAmount(), transaction.getBankAccountFrom(), transaction.getBankAccountTo(),
-                transaction.getDescription(), transaction.getCreateDate());
+        return persist(transaction);
     }
 
     @Transactional
@@ -128,10 +122,7 @@ public class TransactionService implements ITransactionService {
                 Currency.valueOf(currency.toUpperCase()), amount, bankAccountFrom, null,
                 description, LocalDateTime.now());
 
-        Long id = transactionRepository.save(transaction);
-        return new Transaction(id, transaction.getTransactionType(), transaction.getCurrency(),
-                transaction.getAmount(), transaction.getBankAccountFrom(), transaction.getBankAccountTo(),
-                transaction.getDescription(), transaction.getCreateDate());
+        return persist(transaction);
     }
 
     @Transactional(readOnly = true)
@@ -167,6 +158,13 @@ public class TransactionService implements ITransactionService {
         IdValidation.ensureIdPresent(bankAccountFromId);
         IdValidation.ensureIdPresent(bankAccountToId);
         return transactionRepository.findTransactionsBetweenBankAccounts(bankAccountFromId, bankAccountToId);
+    }
+
+    private Transaction persist(Transaction transaction) {
+        Long id = transactionRepository.save(transaction);
+        return new Transaction(id, transaction.getTransactionType(), transaction.getCurrency(),
+                transaction.getAmount(), transaction.getBankAccountFrom(), transaction.getBankAccountTo(),
+                transaction.getDescription(), transaction.getCreateDate());
     }
 
     private void validateTransferInputData(Long bankAccountFromId, Long bankAccountToId,

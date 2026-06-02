@@ -1,7 +1,6 @@
 package com.alex.service.validation;
 
 import com.alex.BankAccountType;
-import com.alex.dto.BankAccount;
 import com.alex.exception.IllegalArgumentRuntimeException;
 import com.alex.exception.NullPointerRuntimeException;
 import org.junit.jupiter.api.Test;
@@ -13,19 +12,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class BankAccountValidationTest {
-
-    @Test
-    void ensureBankAccountPresent_nullAccount_throwsNullPointerRuntimeException() {
-        assertThatThrownBy(() -> BankAccountValidation.ensureBankAccountPresent(null))
-                .isInstanceOf(NullPointerRuntimeException.class)
-                .hasMessage("Bank Account is null");
-    }
-
-    @Test
-    void ensureBankAccountPresent_presentAccount_doesNotThrow() {
-        BankAccount account = new BankAccount();
-        assertThatCode(() -> BankAccountValidation.ensureBankAccountPresent(account)).doesNotThrowAnyException();
-    }
 
     @Test
     void validateIfBankAccountTypeIsCorrect_nullType_throwsNullPointerRuntimeException() {

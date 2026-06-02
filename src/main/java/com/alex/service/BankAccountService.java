@@ -18,6 +18,8 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class BankAccountService implements IBankAccountService{
@@ -123,11 +125,7 @@ public class BankAccountService implements IBankAccountService{
         IdValidation.ensureIdPresent(clientId);
         List<Long> accountIds = bankAccountClientRepository
                 .findBankAccountsIdLinkedToClientByClientId(clientId);
-        return accountIds.stream()
-                .map(bankAccountRepository::findById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(java.util.stream.Collectors.toList());
+        return resolvePresent(accountIds, bankAccountRepository::findById);
     }
 
     @Transactional(readOnly = true)
@@ -136,11 +134,7 @@ public class BankAccountService implements IBankAccountService{
         IdValidation.ensureIdPresent(bankAccountId);
         List<Long> clientIds = bankAccountClientRepository
                 .findClientsIdLinkedToBankAccountByBankAccountId(bankAccountId);
-        return clientIds.stream()
-                .map(clientService::findProfileById)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(java.util.stream.Collectors.toList());
+        return resolvePresent(clientIds, clientService::findProfileById);
     }
 
     @Transactional
@@ -166,6 +160,13 @@ public class BankAccountService implements IBankAccountService{
         }
         throw new IllegalStateRuntimeException("Unable to generate unique bank account number after "
                 + MAX_GENERATION_ATTEMPTS + " attempts");
+    }
+
+    private static <T> List<T> resolvePresent(List<Long> ids, Function<Long, Optional<T>> lookup) {
+        return ids.stream()
+                .map(lookup)
+                .flatMap(Optional::stream)
+                .collect(Collectors.toList());
     }
 
     private String generateRandomAccountNumber() {

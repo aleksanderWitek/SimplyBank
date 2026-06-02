@@ -3,6 +3,7 @@ package com.alex.service;
 import com.alex.UserAccountRole;
 import com.alex.dto.ClientProfile;
 import com.alex.dto.UserAccount;
+import com.alex.exception.AccessDeniedRuntimeException;
 import com.alex.exception.UserAccountNotFoundRuntimeException;
 import com.alex.repository.IBankAccountClientRepository;
 import com.alex.repository.IUserAccountRepository;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
@@ -79,6 +81,21 @@ class UserOwnershipServiceTest {
     void isAdmin_falseForNonAdminRole() {
         assertThat(service.isAdmin(user(1L, UserAccountRole.CLIENT))).isFalse();
         assertThat(service.isAdmin(user(1L, UserAccountRole.EMPLOYEE))).isFalse();
+    }
+
+    // ensureClient --------------------------------------------------------------------------------
+
+    @Test
+    void ensureClient_clientRole_doesNotThrow() {
+        assertThatCode(() -> service.ensureClient(user(1L, UserAccountRole.CLIENT), "transfer funds"))
+                .doesNotThrowAnyException();
+    }
+
+    @Test
+    void ensureClient_nonClientRole_throwsAccessDeniedRuntimeException() {
+        assertThatThrownBy(() -> service.ensureClient(user(1L, UserAccountRole.EMPLOYEE), "transfer funds"))
+                .isInstanceOf(AccessDeniedRuntimeException.class)
+                .hasMessage("Only clients can transfer funds");
     }
 
     // getOwnedBankAccountIds ----------------------------------------------------------------------

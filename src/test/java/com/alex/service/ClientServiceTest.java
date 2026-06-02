@@ -11,13 +11,16 @@ import com.alex.exception.UserAccountNotFoundRuntimeException;
 import com.alex.repository.IBankAccountClientRepository;
 import com.alex.repository.IClientRepository;
 import com.alex.repository.IUserAccountClientRepository;
+import com.alex.repository.IUserAccountRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +39,8 @@ class ClientServiceTest {
     @Mock private IUserAccountClientRepository userAccountClientRepository;
     @Mock private IBankAccountClientRepository bankAccountClientRepository;
     @Mock private IUserAccountService userAccountService;
+    @Mock private IUserAccountRepository userAccountRepository;
+    @Mock private PasswordEncoder passwordEncoder;
 
     @InjectMocks private ClientService service;
 
@@ -192,6 +197,20 @@ class ClientServiceTest {
         verify(userAccountClientRepository).unlinkUserAccountFromClient(99L, 1L);
         verify(userAccountService).deleteById(99L);
         verify(clientRepository).deleteById(1L);
+    }
+
+    // deleteOwnAccount ----------------------------------------------------------------------------
+
+    @Test
+    void deleteOwnAccount_unknownLogin_throwsUserAccountNotFoundRuntimeException() {
+        Principal principal = () -> "ghost";
+        when(userAccountRepository.findByLogin("ghost")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.deleteOwnAccount(principal, "Password1!"))
+                .isInstanceOf(UserAccountNotFoundRuntimeException.class)
+                .hasMessageContaining("There is no User Account for login:ghost");
+
+        verify(clientRepository, never()).deleteById(any());
     }
 
     // findProfileByUserAccountId ------------------------------------------------------------------
