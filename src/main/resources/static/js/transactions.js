@@ -328,7 +328,7 @@ function applyFiltersAndRender() {
 
     if (statusFilter !== "ALL") {
         list = list.filter(function (tx) {
-            return (tx.status || "").toUpperCase() === statusFilter;
+            return (tx.status || "COMPLETED").toUpperCase() === statusFilter;
         });
     }
 
