@@ -3,10 +3,13 @@ package com.alex.config;
 import com.alex.exception.SecurityRuntimeException;
 import com.alex.service.LoginAttemptService;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
 
 @Component
 public class LoginRateLimitFilter extends OncePerRequestFilter {
@@ -19,7 +22,7 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                    FilterChain filterChain) {
+                                    FilterChain filterChain) throws ServletException, IOException {
         try {
             if ("POST".equalsIgnoreCase(request.getMethod()) && "/login".equals(request.getServletPath())) {
                 String username = request.getParameter("username");
@@ -30,9 +33,12 @@ public class LoginRateLimitFilter extends OncePerRequestFilter {
                     return;
                 }
             }
-            filterChain.doFilter(request, response);
         } catch (Exception e) {
+            // Guard only the rate-limit logic; downstream errors must surface normally
+            // rather than being masked as a generic security failure.
             throw new SecurityRuntimeException("Failed to process login rate limit filter", e);
         }
+
+        filterChain.doFilter(request, response);
     }
 }

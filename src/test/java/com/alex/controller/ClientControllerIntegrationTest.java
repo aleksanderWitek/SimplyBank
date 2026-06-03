@@ -353,4 +353,18 @@ class ClientControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    void deleteOwnAccount_tokenForUnknownUser_redirectsToLoginInsteadOfServerError() throws Exception {
+        // Well-formed CLIENT token whose login has no user_account row: must be treated as
+        // unauthenticated (standard login redirect), not blow up with a 500.
+        String token = generateToken("ghost", "CLIENT");
+
+        mockMvc.perform(post("/api/client/profile/delete")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content("{\"currentPassword\":\"Password1!\"}"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
 }

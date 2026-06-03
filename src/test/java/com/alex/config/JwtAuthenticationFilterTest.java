@@ -14,6 +14,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.List;
 
@@ -130,6 +131,22 @@ class JwtAuthenticationFilterTest {
         verify(chain).doFilter(request, response);
         verify(userAccountService, never()).loadUserByUsername(any());
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isSameAs(existing);
+    }
+
+    @Test
+    void doFilterInternal_validTokenUnknownUser_continuesChainWithoutAuthenticating() throws Exception {
+        when(request.getRequestURI()).thenReturn("/api/accounts");
+        when(request.getHeader("Authorization")).thenReturn("Bearer good");
+        when(jwtService.isTokenValid("good")).thenReturn(true);
+        when(jwtService.extractUsername("good")).thenReturn("ghost");
+        when(userAccountService.loadUserByUsername("ghost"))
+                .thenThrow(new UsernameNotFoundException("User not found with login: ghost"));
+
+        new JwtAuthenticationFilter(jwtService, userAccountService)
+                .doFilter(request, response, chain);
+
+        verify(chain).doFilter(request, response);
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
     }
 
     @Test
