@@ -1,17 +1,10 @@
 package com.alex.service.validation;
 
 import com.alex.UserAccountRole;
-import com.alex.dto.UserAccount;
 import com.alex.exception.IllegalArgumentRuntimeException;
 import com.alex.exception.NullPointerRuntimeException;
 
 public class UserAccountValidation {
-
-    public static void ensureUserAccountPresent(UserAccount userAccount) {
-        if(userAccount == null) {
-            throw new IllegalArgumentRuntimeException("UserAccount is null");
-        }
-    }
 
     public static void ensureFirstNamePresent(String firstName) {
         if(firstName == null || firstName.trim().isEmpty()) {

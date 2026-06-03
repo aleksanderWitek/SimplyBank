@@ -299,7 +299,8 @@ class TransactionControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    void deposit_asEmployee_updatesAnyAccount() throws Exception {
+    void deposit_asEmployee_isForbidden() throws Exception {
+        // Funds movement is CLIENT-only (SecurityConfig: POST /api/transaction/deposit hasRole CLIENT).
         insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
         insertBankAccount(100L, "100000000001", "CHECKING", "EUR", new BigDecimal("50.00"));
         String token = generateToken("bob", "EMPLOYEE");
@@ -311,9 +312,9 @@ class TransactionControllerIntegrationTest extends BaseIntegrationTest {
                         .header("Authorization", bearer(token))
                         .contentType("application/json")
                         .content(body))
-                .andExpect(status().isCreated());
+                .andExpect(status().isForbidden());
 
-        assertThat(balanceOf(100L)).isEqualByComparingTo("75.00");
+        assertThat(balanceOf(100L)).isEqualByComparingTo("50.00");
     }
 
     // POST /api/transaction/withdraw ----------------------------------------------------------
@@ -535,5 +536,65 @@ class TransactionControllerIntegrationTest extends BaseIntegrationTest {
                         .header("Authorization", bearer(token)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    // POST /api/transaction/transfer — recipient resolved by account number -------------------
+
+    @Test
+    void transfer_byRecipientAccountNumber_updatesBalances() throws Exception {
+        setupAliceWithAccount(1L, 10L, 100L, new BigDecimal("100.00"), "EUR", "alice");
+        insertBankAccount(200L, "100000000200", "CHECKING", "EUR", new BigDecimal("0.00"));
+        String token = generateToken("alice", "CLIENT");
+        String body = objectMapper.writeValueAsString(Map.of(
+                "bankAccountFromId", 100L, "bankAccountToNumber", "100000000200",
+                "amount", 30.00, "currency", "EUR", "description", "by number"));
+
+        mockMvc.perform(post("/api/transaction/transfer")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content(body))
+                .andExpect(status().isCreated());
+
+        assertThat(balanceOf(100L)).isEqualByComparingTo("70.00");
+        assertThat(balanceOf(200L)).isEqualByComparingTo("30.00");
+    }
+
+    @Test
+    void transfer_byUnknownRecipientNumber_returnsNotFound() throws Exception {
+        setupAliceWithAccount(1L, 10L, 100L, new BigDecimal("100.00"), "EUR", "alice");
+        String token = generateToken("alice", "CLIENT");
+        String body = objectMapper.writeValueAsString(Map.of(
+                "bankAccountFromId", 100L, "bankAccountToNumber", "999999999999",
+                "amount", 30.00, "currency", "EUR", "description", "x"));
+
+        mockMvc.perform(post("/api/transaction/transfer")
+                        .header("Authorization", bearer(token))
+                        .contentType("application/json")
+                        .content(body))
+                .andExpect(status().isNotFound());
+    }
+
+    // GET /api/transaction/{id} — deposit/withdrawal rows have a null counterparty ------------
+
+    @Test
+    void findById_depositIntoOwnedAccount_asClient_returnsTransaction() throws Exception {
+        setupAliceWithAccount(1L, 10L, 100L, new BigDecimal("0.00"), "EUR", "alice");
+        insertTransaction(500L, "DEPOSIT", "EUR", new BigDecimal("5.00"), null, 100L);
+        String token = generateToken("alice", "CLIENT");
+
+        mockMvc.perform(get("/api/transaction/500").header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.transactionType").value("DEPOSIT"));
+    }
+
+    @Test
+    void findById_withdrawalFromOwnedAccount_asClient_returnsTransaction() throws Exception {
+        setupAliceWithAccount(1L, 10L, 100L, new BigDecimal("50.00"), "EUR", "alice");
+        insertTransaction(500L, "WITHDRAWAL", "EUR", new BigDecimal("5.00"), 100L, null);
+        String token = generateToken("alice", "CLIENT");
+
+        mockMvc.perform(get("/api/transaction/500").header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.transactionType").value("WITHDRAWAL"));
     }
 }

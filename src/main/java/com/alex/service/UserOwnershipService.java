@@ -3,6 +3,7 @@ package com.alex.service;
 import com.alex.UserAccountRole;
 import com.alex.dto.ClientProfile;
 import com.alex.dto.UserAccount;
+import com.alex.exception.AccessDeniedRuntimeException;
 import com.alex.exception.UserAccountNotFoundRuntimeException;
 import com.alex.repository.IBankAccountClientRepository;
 import com.alex.repository.IUserAccountRepository;
@@ -36,6 +37,12 @@ public class UserOwnershipService {
 
     public boolean isClient(UserAccount userAccount) {
         return userAccount.getRole() == UserAccountRole.CLIENT;
+    }
+
+    public void ensureClient(UserAccount userAccount, String action) {
+        if (!isClient(userAccount)) {
+            throw new AccessDeniedRuntimeException("Only clients can " + action);
+        }
     }
 
     public boolean isAdmin(UserAccount userAccount) {

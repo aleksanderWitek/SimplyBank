@@ -3,6 +3,7 @@ package com.alex.service;
 import com.alex.BankAccountType;
 import com.alex.Currency;
 import com.alex.dto.BankAccount;
+import com.alex.dto.ClientProfile;
 import com.alex.exception.IllegalArgumentRuntimeException;
 import com.alex.exception.IllegalStateRuntimeException;
 import com.alex.exception.NullPointerRuntimeException;
@@ -264,6 +265,70 @@ class BankAccountServiceTest {
         assertThatThrownBy(service::generateUniqueBankAccountNumber)
                 .isInstanceOf(IllegalStateRuntimeException.class)
                 .hasMessageContaining("Unable to generate unique bank account number after 100 attempts");
+    }
+
+    // findByNumber --------------------------------------------------------------------------------
+
+    @Test
+    void findByNumber_nullNumber_returnsEmptyWithoutHittingRepository() {
+        BankAccountService service = newService();
+        assertThat(service.findByNumber(null)).isEmpty();
+        verifyNoInteractions(bankAccountRepository);
+    }
+
+    @Test
+    void findByNumber_blankNumber_returnsEmptyWithoutHittingRepository() {
+        BankAccountService service = newService();
+        assertThat(service.findByNumber("   ")).isEmpty();
+        verifyNoInteractions(bankAccountRepository);
+    }
+
+    @Test
+    void findByNumber_presentNumber_delegatesToRepository() {
+        BankAccount account = new BankAccount(1L, "100000000000", BankAccountType.CHECKING, Currency.EUR,
+                BigDecimal.ONE, LocalDateTime.now());
+        when(bankAccountRepository.findByNumber("100000000000")).thenReturn(Optional.of(account));
+
+        BankAccountService service = newService();
+        assertThat(service.findByNumber("100000000000")).contains(account);
+    }
+
+    @Test
+    void findByNumber_unknownNumber_returnsEmpty() {
+        when(bankAccountRepository.findByNumber("999")).thenReturn(Optional.empty());
+
+        BankAccountService service = newService();
+        assertThat(service.findByNumber("999")).isEmpty();
+    }
+
+    // findByClientId ------------------------------------------------------------------------------
+
+    @Test
+    void findByClientId_returnsOnlyResolvableAccountsAndSkipsMissing() {
+        when(bankAccountClientRepository.findBankAccountsIdLinkedToClientByClientId(7L))
+                .thenReturn(List.of(100L, 200L));
+        BankAccount account = new BankAccount(100L, "100000000000", BankAccountType.CHECKING, Currency.EUR,
+                BigDecimal.TEN, LocalDateTime.now());
+        when(bankAccountRepository.findById(100L)).thenReturn(Optional.of(account));
+        when(bankAccountRepository.findById(200L)).thenReturn(Optional.empty());
+
+        BankAccountService service = newService();
+        assertThat(service.findByClientId(7L)).containsExactly(account);
+    }
+
+    // findOwnersByBankAccountId -------------------------------------------------------------------
+
+    @Test
+    void findOwnersByBankAccountId_returnsOnlyResolvableProfilesAndSkipsMissing() {
+        when(bankAccountClientRepository.findClientsIdLinkedToBankAccountByBankAccountId(5L))
+                .thenReturn(List.of(10L, 20L));
+        ClientProfile profile = new ClientProfile(10L, "A", "B", "C", "S", "1", "ID",
+                LocalDateTime.now(), null, 1L, "alice", "CLIENT", LocalDateTime.now());
+        when(clientService.findProfileById(10L)).thenReturn(Optional.of(profile));
+        when(clientService.findProfileById(20L)).thenReturn(Optional.empty());
+
+        BankAccountService service = newService();
+        assertThat(service.findOwnersByBankAccountId(5L)).containsExactly(profile);
     }
 
     private BankAccountService newService() {

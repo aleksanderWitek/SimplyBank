@@ -296,4 +296,112 @@ class BankAccountControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(delete("/api/bank_account/9999").header("Authorization", bearer(token)))
                 .andExpect(status().isNotFound());
     }
+
+    // GET /api/bank_account/by-number/{number} ------------------------------------------------
+
+    @Test
+    void findByNumber_asEmployee_returnsAccount() throws Exception {
+        insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
+        insertBankAccount(100L, "100000000001", "CHECKING", "EUR", new BigDecimal("12.00"));
+        String token = generateToken("bob", "EMPLOYEE");
+
+        mockMvc.perform(get("/api/bank_account/by-number/100000000001").header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.number").value("100000000001"));
+    }
+
+    @Test
+    void findByNumber_unknownNumber_returnsNotFound() throws Exception {
+        insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
+        String token = generateToken("bob", "EMPLOYEE");
+
+        mockMvc.perform(get("/api/bank_account/by-number/999999999999").header("Authorization", bearer(token)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void findByNumber_asClient_isForbidden() throws Exception {
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        String token = generateToken("alice", "CLIENT");
+
+        mockMvc.perform(get("/api/bank_account/by-number/100000000001").header("Authorization", bearer(token)))
+                .andExpect(status().isForbidden());
+    }
+
+    // GET /api/bank_account/by-number/{number}/currency ---------------------------------------
+
+    @Test
+    void findCurrencyByNumber_asClient_returnsCurrency() throws Exception {
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        insertBankAccount(100L, "100000000001", "CHECKING", "PLN", new BigDecimal("0.00"));
+        String token = generateToken("alice", "CLIENT");
+
+        mockMvc.perform(get("/api/bank_account/by-number/100000000001/currency")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.currency").value("PLN"));
+    }
+
+    @Test
+    void findCurrencyByNumber_unknownNumber_returnsNotFound() throws Exception {
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        String token = generateToken("alice", "CLIENT");
+
+        mockMvc.perform(get("/api/bank_account/by-number/999999999999/currency")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isNotFound());
+    }
+
+    // GET /api/bank_account/by-client/{clientId} ----------------------------------------------
+
+    @Test
+    void findByClientId_asEmployee_returnsLinkedAccounts() throws Exception {
+        insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
+        insertClient(10L, "Alice", "A", "W", "M", "1", "ID");
+        insertBankAccount(100L, "100000000001", "CHECKING", "EUR", new BigDecimal("0.00"));
+        insertBankAccount(200L, "100000000002", "CHECKING", "EUR", new BigDecimal("0.00"));
+        linkBankAccountToClient(100L, 10L);
+        linkBankAccountToClient(200L, 10L);
+        String token = generateToken("bob", "EMPLOYEE");
+
+        mockMvc.perform(get("/api/bank_account/by-client/10").header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
+    void findByClientId_asClient_isForbidden() throws Exception {
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        String token = generateToken("alice", "CLIENT");
+
+        mockMvc.perform(get("/api/bank_account/by-client/10").header("Authorization", bearer(token)))
+                .andExpect(status().isForbidden());
+    }
+
+    // GET /api/bank_account/{id}/owners -------------------------------------------------------
+
+    @Test
+    void findOwners_asEmployee_returnsOwnerProfiles() throws Exception {
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        insertClient(10L, "Alice", "Anderson", "W", "M", "1", "ID");
+        linkUserAccountToClient(1L, 10L);
+        insertBankAccount(100L, "100000000001", "CHECKING", "EUR", new BigDecimal("0.00"));
+        linkBankAccountToClient(100L, 10L);
+        insertUserAccount(2L, "bob", "Password1!", "EMPLOYEE");
+        String token = generateToken("bob", "EMPLOYEE");
+
+        mockMvc.perform(get("/api/bank_account/100/owners").header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].firstName").value("Alice"));
+    }
+
+    @Test
+    void findOwners_asClient_isForbidden() throws Exception {
+        insertUserAccount(1L, "alice", "Password1!", "CLIENT");
+        String token = generateToken("alice", "CLIENT");
+
+        mockMvc.perform(get("/api/bank_account/100/owners").header("Authorization", bearer(token)))
+                .andExpect(status().isForbidden());
+    }
 }
