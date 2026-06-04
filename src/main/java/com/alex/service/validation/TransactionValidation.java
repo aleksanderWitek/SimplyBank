@@ -29,7 +29,7 @@ public class TransactionValidation {
 
     public static void validateSufficientBalance(BankAccount bankAccount, BigDecimal amount) {
         if (bankAccount.getBalance().compareTo(amount) < 0) {
-            throw new IllegalStateRuntimeException("Insufficient balance on account: " + bankAccount.getNumber());
+            throw new IllegalStateRuntimeException("Insufficient balance for the requested amount");
         }
     }
 
