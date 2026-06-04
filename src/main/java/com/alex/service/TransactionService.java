@@ -19,6 +19,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 @Service
 public class TransactionService implements ITransactionService {
@@ -82,9 +84,22 @@ public class TransactionService implements ITransactionService {
                                Set<Long> ownerBankAccountIds) {
         validateInputData(bankAccountToId, amount, currency, description);
 
-        BankAccount bankAccountTo = bankAccountService.findByIdForUpdate(bankAccountToId)
-                .orElseThrow(() -> new BankAccountNotFoundRuntimeException(
-                        "Bank account not found with id: " + bankAccountToId));
+        // Lock every account the daily-limit sum covers (all of the client's accounts, plus the
+        // credited account) in ascending id order — matching transfer()'s ordering to avoid
+        // deadlocks. Holding these locks before reading the daily total prevents concurrent
+        // deposits to different owned accounts from both passing the limit check (lost update).
+        SortedSet<Long> accountsToLock = new TreeSet<>(ownerBankAccountIds);
+        accountsToLock.add(bankAccountToId);
+
+        BankAccount bankAccountTo = null;
+        for (Long id : accountsToLock) {
+            BankAccount locked = bankAccountService.findByIdForUpdate(id)
+                    .orElseThrow(() -> new BankAccountNotFoundRuntimeException(
+                            "Bank account not found with id: " + id));
+            if (id.equals(bankAccountToId)) {
+                bankAccountTo = locked;
+            }
+        }
 
         TransactionValidation.validateCurrencyMatch(bankAccountTo, currency);
 

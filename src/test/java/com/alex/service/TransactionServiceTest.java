@@ -270,6 +270,9 @@ class TransactionServiceTest {
         // Two accounts owned by the same client. Sum across both already used 600 today (whatever the currency),
         // so a 500 deposit on either must be rejected.
         BankAccount to = account(2L, new BigDecimal("0.00"), Currency.USD);
+        // Both owned accounts are locked before the daily total is read, so both must be stubbed.
+        when(bankAccountService.findByIdForUpdate(1L))
+                .thenReturn(Optional.of(account(1L, BigDecimal.TEN, Currency.EUR)));
         when(bankAccountService.findByIdForUpdate(2L)).thenReturn(Optional.of(to));
         when(transactionRepository.sumDepositsForAccountsBetween(eq(Set.of(1L, 2L)), any(), any()))
                 .thenReturn(new BigDecimal("600"));
@@ -277,6 +280,28 @@ class TransactionServiceTest {
         assertThatThrownBy(() -> service.deposit(2L, new BigDecimal("500"), "USD", null, Set.of(1L, 2L)))
                 .isInstanceOf(IllegalStateRuntimeException.class)
                 .hasMessageContaining("Daily deposit limit");
+    }
+
+    @Test
+    void deposit_locksAllOwnedAccountsInAscendingOrderBeforeReadingDailyTotal() {
+        BankAccount to = account(2L, new BigDecimal("0.00"), Currency.EUR);
+        when(bankAccountService.findByIdForUpdate(1L))
+                .thenReturn(Optional.of(account(1L, BigDecimal.TEN, Currency.EUR)));
+        when(bankAccountService.findByIdForUpdate(2L)).thenReturn(Optional.of(to));
+        when(transactionRepository.sumDepositsForAccountsBetween(eq(Set.of(1L, 2L)), any(), any()))
+                .thenReturn(BigDecimal.ZERO);
+        when(transactionRepository.save(any(Transaction.class))).thenReturn(7L);
+
+        service.deposit(2L, new BigDecimal("10.00"), "EUR", null, Set.of(1L, 2L));
+
+        // All owned accounts are pessimistically locked (ascending id, like transfer()) BEFORE the
+        // daily total is summed — this serialization is what prevents two concurrent deposits to
+        // different owned accounts from both passing the daily-limit check.
+        InOrder order = inOrder(bankAccountService, transactionRepository);
+        order.verify(bankAccountService).findByIdForUpdate(1L);
+        order.verify(bankAccountService).findByIdForUpdate(2L);
+        order.verify(transactionRepository).sumDepositsForAccountsBetween(eq(Set.of(1L, 2L)), any(), any());
+        order.verify(bankAccountService).addToBalance(2L, new BigDecimal("10.00"));
     }
 
     // withdraw ------------------------------------------------------------------------------------

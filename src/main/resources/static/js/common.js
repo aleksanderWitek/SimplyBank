@@ -7,15 +7,29 @@
 // AJAX HELPER
 // ============================================================
 
+function getCsrfToken() {
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
 function ajax(url, method, data) {
+    const type = (method || "GET").toUpperCase();
     const opts = {
         url,
-        type: method || "GET",
+        type,
         dataType: "json",
         contentType: "application/json; charset=UTF-8"
     };
-    if (data && (method === "POST" || method === "PUT")) {
+    if (data && (type === "POST" || type === "PUT")) {
         opts.data = JSON.stringify(data);
+    }
+    // Attach the CSRF token on state-changing, session-cookie-authenticated requests.
+    // (Bearer-token API clients are exempt server-side; the UI uses the session cookie.)
+    if (type !== "GET" && type !== "HEAD" && type !== "OPTIONS") {
+        const csrfToken = getCsrfToken();
+        if (csrfToken) {
+            opts.headers = { "X-XSRF-TOKEN": csrfToken };
+        }
     }
     return $.ajax(opts);
 }
@@ -310,6 +324,12 @@ function initLogoutMenu() {
         if (e.target === this) closeLogoutConfirm();
     });
     $("#logoutConfirmBtn").on("click", function () {
+        // Logout is a real form POST, so it needs the CSRF token as a hidden field.
+        const csrfToken = getCsrfToken();
+        if (csrfToken) {
+            $("#logoutForm").html('<input type="hidden" name="_csrf">');
+            $("#logoutForm").find("input[name='_csrf']").val(csrfToken);
+        }
         $("#logoutForm").trigger("submit");
     });
 }

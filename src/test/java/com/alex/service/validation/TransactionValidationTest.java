@@ -99,7 +99,9 @@ class TransactionValidationTest {
         assertThatThrownBy(() ->
                 TransactionValidation.validateSufficientBalance(account, new BigDecimal("10.00")))
                 .isInstanceOf(IllegalStateRuntimeException.class)
-                .hasMessageContaining("Insufficient balance on account: 123456789012");
+                .hasMessageContaining("Insufficient balance")
+                // The account number must not leak into the error message (finding #5).
+                .hasMessageNotContaining("123456789012");
     }
 
     @Test
