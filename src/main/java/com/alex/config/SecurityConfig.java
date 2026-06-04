@@ -1,15 +1,17 @@
 package com.alex.config;
 
 import com.alex.exception.SecurityRuntimeException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -34,7 +36,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) {
         try {
             http
-                    .csrf(AbstractHttpConfigurer::disable)
+                    // CSRF protection for the session-cookie (browser) flow. The token is stored in
+                    // a JS-readable cookie (XSRF-TOKEN) and echoed back via the X-XSRF-TOKEN header by
+                    // the frontend. Stateless requests authenticated with a Bearer token are exempt —
+                    // they carry no session cookie and therefore cannot be CSRF-forged.
+                    .csrf(csrf -> csrf
+                            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                            .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                            .ignoringRequestMatchers(SecurityConfig::hasBearerToken))
                     .sessionManagement(sm -> sm
                             .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                             .invalidSessionUrl("/login?expired")
@@ -107,5 +116,10 @@ public class SecurityConfig {
         } catch (Exception e) {
             throw new SecurityRuntimeException("Failed to build security filter chain", e);
         }
+    }
+
+    private static boolean hasBearerToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        return authHeader != null && authHeader.startsWith("Bearer ");
     }
 }

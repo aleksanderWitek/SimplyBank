@@ -10,6 +10,7 @@ import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern;
@@ -31,7 +32,8 @@ class BankAccountControllerIntegrationTest extends BaseIntegrationTest {
 
     @Test
     void save_noToken_redirectsToLogin() throws Exception {
-        mockMvc.perform(post("/api/bank_account").contentType("application/json").content("{}"))
+        // CSRF passes (so we exercise the auth redirect, not a 403); no token still redirects.
+        mockMvc.perform(post("/api/bank_account").with(csrf()).contentType("application/json").content("{}"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrlPattern("**/login"));
     }
