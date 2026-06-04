@@ -56,10 +56,30 @@ MySQL with JdbcTemplate for direct SQL control. Key design decisions:
    cd SimplyBank
    ```
 2. Set up the MySQL database using the scripts in the `db/` folder
-3. Configure your database connection in `application.properties`
+3. Configure required environment variables (see [Configuration](#configuration))
 4. Run the application
    ```bash
    ./mvnw spring-boot:run
    ```
+## Configuration
+Secrets are **not** committed to the repository — the application reads them from
+environment variables and will refuse to start if they are missing. Copy `.env.example`
+and provide real values:
+
+| Variable | Purpose |
+| --- | --- |
+| `DB_USERNAME` | MySQL datasource username |
+| `DB_PASSWORD` | MySQL datasource password |
+| `JWT_SECRET` | JWT signing secret — must be at least 32 bytes and unique per environment |
+
+Provide them in whichever way suits your workflow:
+- Export them in your shell before `./mvnw spring-boot:run`, or
+- Set them in your IDE run configuration, or
+- Create a gitignored `src/main/resources/application-local.properties` (activated with
+  `--spring.profiles.active=local`) holding the values for local development only.
+
+> The JWT secret rejects the old hard-coded default at startup. Generate a fresh one,
+> e.g. `openssl rand -base64 48`. Tests use a self-contained `application-test.properties`
+> and need no environment setup.
 ## Author
 **Aleksander Witek** — [GitHub](https://github.com/aleksanderWitek) · [LinkedIn](https://www.linkedin.com/in/aleksander-witek-dev/)

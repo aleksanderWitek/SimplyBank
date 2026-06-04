@@ -14,6 +14,10 @@ import java.util.Date;
 @Service
 public class JwtService {
 
+    private static final int MIN_SECRET_BYTES = 32;
+    private static final String INSECURE_DEFAULT_SECRET =
+            "changeme-local-dev-secret-at-least-32-bytes-long-abcdef";
+
     private final String secret;
     private final long expirationMs;
     private SecretKey signingKey;
@@ -26,6 +30,18 @@ public class JwtService {
 
     @PostConstruct
     void init() {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException(
+                    "jwt.secret must be configured (set the JWT_SECRET environment variable)");
+        }
+        if (secret.equals(INSECURE_DEFAULT_SECRET)) {
+            throw new IllegalStateException(
+                    "jwt.secret must not use the insecure default value; set a unique JWT_SECRET");
+        }
+        if (secret.getBytes(StandardCharsets.UTF_8).length < MIN_SECRET_BYTES) {
+            throw new IllegalStateException(
+                    "jwt.secret must be at least " + MIN_SECRET_BYTES + " bytes long");
+        }
         this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
